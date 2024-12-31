@@ -1,0 +1,26 @@
+#include "CurrentProfile.h"
+
+// Инициализация глобальных переменных
+uint16_t DAY_CIRCULATION = 0;
+uint16_t DAY_HUMIDITY_START = 0;
+uint16_t DAY_HUMIDITY_END = 0;
+uint16_t DAY_TEMPERATURE_START = 0;
+uint16_t DAY_TEMPERATURE_END = 0;
+uint16_t DAY_VENTILATION = 0;
+uint16_t DAY_WATERING_INTERVAL = 0;
+
+uint16_t NIGHT_CIRCULATION = 0;
+uint16_t NIGHT_HUMIDITY_START = 0;
+uint16_t NIGHT_HUMIDITY_END = 0;
+uint16_t NIGHT_TEMPERATURE_START = 0;
+uint16_t NIGHT_TEMPERATURE_END = 0;
+uint16_t NIGHT_VENTILATION = 0;
+uint16_t NIGHT_WATERING_INTERVAL = 0;
+
+uint16_t SUNRISE = 0;
+uint16_t SUNSET = 0;
+
+uint16_t WATER_TEMPERATURE = 0;
+uint16_t CYCLE = 0;
+uint16_t GROWE_START = 0;  // Адрес 0x24-0x25
+uint16_t WORK = 0;
