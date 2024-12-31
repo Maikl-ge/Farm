@@ -7,38 +7,26 @@
 #include "CurrentProfile.h"
 #include "SensorsModule.h"
 #include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 
 // Прототипы функций
-void webSocketTask(void *pvParameters);
-void sensorTask(void *pvParameters);
-void sendDataTask(void *pvParameters);
+void updateWebSocket();
+void updateSensors();
+void sendData();
 
 // Функция для обновления состояния WebSocket
-void webSocketTask(void *pvParameters) {
-    for (;;) {
-        processWebSocket();
-        vTaskDelay(5000 / portTICK_PERIOD_MS); // Выполняем каждые 500 мс (5 секунд)
-    }
+void updateWebSocket() {
+    processWebSocket();
 }
 
 // Функция для опроса датчиков
-void sensorTask(void *pvParameters) {
-    for (;;) {
-        SensorData sensorData = readSensors();
-        vTaskDelay(200 / portTICK_PERIOD_MS); // Выполняем каждые 2000 мс (0.2 секунды)
-    }
+void updateSensors() {
+    SensorData sensorData = readSensors();
 }
 
 // Функция для отправки данных
-void sendDataTask(void *pvParameters) {
-    for (;;) {
-        sendDataIfNeeded();
-        vTaskDelay(120000 / portTICK_PERIOD_MS); // Выполняем каждые 60000 мс (60 секунд)
-    }
+void sendData() {
+    sendDataIfNeeded();
 }
-
 
 void setup() {
     Serial.begin(115200);
@@ -66,15 +54,6 @@ void setup() {
 
     // Инициализация модуля опроса датчиков
     initializeSensors();
-
-        // Создание задач
-    xTaskCreate(webSocketTask, "WebSocket Task", 1024, NULL, 1, NULL);
-    xTaskCreate(sensorTask, "Sensor Task", 1024, NULL, 1, NULL);
-    xTaskCreate(sendDataTask, "Send Data Task", 1024, NULL, 1, NULL);
-
-    // Запуск планировщика FreeRTOS
-    vTaskStartScheduler();
-    
 }
 
 void loop() {
@@ -85,11 +64,13 @@ void loop() {
     printCurrentTime();  
 
     // Обновление состояния WebSocket
-    processWebSocket();
+    updateWebSocket();
 
-        // Опрос датчиков
-    SensorData sensorData = readSensors();
+    // Опрос датчиков
+    updateSensors();
 
     // Отправка данных каждые 60 секунд
-    sendDataIfNeeded();
+    sendData();
+
+    delay(1000); // Задержка для предотвращения перегрузки процессора
 }
