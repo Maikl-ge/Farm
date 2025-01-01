@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Parameters</title>
+    <style>
+        .profile-list {
+            font-size: 16px; /* Размер шрифта для списка */
+            list-style-type: none; /* Убирает маркеры списка */
+            padding: 20px; /* Устанавливает отступ */
+        }
+        .profile-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px; /* Отступ между элементами списка */
+        }
+        .profile-name {
+            width: 80px; /* Ширина контейнера */
+            background-color: transparent; /* Прозрачный фон */
+            border: none; /* Без обводки */
+            padding: 5px;
+        }
+        .edit-button, .select-button {
+            padding: 5px 10px;
+            font-size: 16px; /* Размер шрифта для кнопки */
+            background-color: transparent; /* Прозрачный фон */
+            color: #333; /* Цвет текста */
+            border: 1px solid #333; /* Задание контура */
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: 2px; /* Отступ в 2 пикселя от контейнера */
+        }
+        .edit-button:hover, .select-button:hover {
+            background-color: #d3d3d3; /* Светло-серая заливка при наведении */
+            color: #333; /* Цвет текста при наведении */
+        }
+        .page-title {
+            padding: 10px; /* Отступ внутри заголовка */
+            font-size: 18px; /* Размер шрифта для заголовка */
+            font-family: 'Arial', sans-serif; /* Шрифт */
+            color: #333; /* Цвет текста */
+        }
+    </style>
+</head>
+<body>
+    <h1 class="page-title">System Parameters</h1>
+    {% if params %}
+        <ul class="profile-list">
+            {% for param in params %}
+                <li class="profile-item">
+                    <a href="{{ url_for('edit', id=param.id) }}" class="select-button">Select</a>
+                    <span class="profile-name">{{ param.nameprofile }}</span>
+                    <a href="{{ url_for('edit', id=param.id) }}" class="edit-button">Edit Profile</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No profiles found.</p>
+    {% endif %}
+</body>
+</html>
