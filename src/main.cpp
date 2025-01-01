@@ -17,8 +17,8 @@ unsigned long lastDataSend = 0;
 unsigned long lastButtonUpdate = 0;
 
 // Интервалы обновления в миллисекундах
-const unsigned long webSocketInterval = 1000;
-const unsigned long sensorInterval = 5000;
+const unsigned long webSocketInterval = 10000;
+const unsigned long sensorInterval = 1000;
 const unsigned long dataSendInterval = 60000;
 const unsigned long buttonInterval = 100; // Интервал опроса кнопок
 
