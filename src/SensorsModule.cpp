@@ -1,33 +1,19 @@
+#include <Arduino.h>
 #include "SensorsModule.h"
+#include "Pinout.h" // Подключаем Pinout.h
 
-// Переменная для отслеживания времени последнего опроса
-static unsigned long lastSensorReadTime = 0;
-
-void initializeSensors() {
-    // Настраиваем пины датчиков
-    pinMode(DIGITAL_SENSOR_PIN, INPUT);
-    pinMode(ANALOG_SENSOR_PIN, INPUT);
-
-    Serial.println("Датчики инициализированы.");
+// Инициализация кнопок
+void initializeButtons() {
+    pinMode(BUTTON1_PIN, INPUT_PULLUP);
+    pinMode(BUTTON2_PIN, INPUT_PULLUP);
+    pinMode(BUTTON3_PIN, INPUT_PULLUP);
 }
 
-SensorData readSensors() {
-    SensorData data;
-
-    // Проверяем, прошло ли достаточно времени с последнего опроса
-    if (millis() - lastSensorReadTime >= SENSOR_READ_INTERVAL) {
-        lastSensorReadTime = millis();
-
-        // Считываем данные с аналогового датчика
-        data.analogValue = analogRead(ANALOG_SENSOR_PIN);
-
-        // Считываем состояние цифрового датчика
-        data.digitalState = digitalRead(DIGITAL_SENSOR_PIN);
-
-        // Вывод данных для отладки
-        Serial.printf("Analog Value: %d\n", data.analogValue);
-        Serial.printf("Digital State: %s\n", data.digitalState ? "HIGH" : "LOW");
-    }
-
-    return data;
+// Опрос кнопок
+ButtonState readButtons() {
+    ButtonState state;
+    state.button1Pressed = digitalRead(BUTTON1_PIN) == LOW;
+    state.button2Pressed = digitalRead(BUTTON2_PIN) == LOW;
+    state.button3Pressed = digitalRead(BUTTON3_PIN) == LOW;
+    return state;
 }

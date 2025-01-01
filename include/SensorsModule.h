@@ -2,22 +2,17 @@
 #define SENSORS_MODULE_H
 
 #include <Arduino.h>
+#include "Pinout.h" // Подключаем Pinout.h
 
-// Пины подключения датчиков
-#define ANALOG_SENSOR_PIN 34 // Пин для аналогового датчика
-#define DIGITAL_SENSOR_PIN 27 // Пин для цифрового датчика
-
-// Интервал опроса датчиков в миллисекундах
-#define SENSOR_READ_INTERVAL 1000
-
-// Структура для хранения данных с датчиков
-struct SensorData {
-    int analogValue;
-    bool digitalState;
+// Структура для хранения состояния кнопок
+struct ButtonState {
+    bool button1Pressed;
+    bool button2Pressed;
+    bool button3Pressed;
 };
 
 // Функции модуля
-void initializeSensors(); // Инициализация датчиков
-SensorData readSensors(); // Опрос датчиков
+void initializeButtons(); // Инициализация кнопок
+ButtonState readButtons(); // Опрос кнопок
 
 #endif // SENSORS_MODULE_H

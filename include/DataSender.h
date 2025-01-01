@@ -3,6 +3,7 @@
 
 #include <ArduinoWebsockets.h>
 #include <ArduinoJson.h>
+#include <Arduino.h>
 
 using namespace websockets;
 

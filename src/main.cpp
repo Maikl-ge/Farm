@@ -8,25 +8,19 @@
 #include "SensorsModule.h"
 #include <Arduino.h>
 
-// Прототипы функций
-void updateWebSocket();
-void updateSensors();
-void sendData();
+ButtonState readButtons();
 
-// Функция для обновления состояния WebSocket
-void updateWebSocket() {
-    processWebSocket();
-}
+// Переменные для хранения времени последнего выполнения функций
+unsigned long lastWebSocketUpdate = 0;
+unsigned long lastSensorUpdate = 0;
+unsigned long lastDataSend = 0;
+unsigned long lastButtonUpdate = 0;
 
-// Функция для опроса датчиков
-void updateSensors() {
-    SensorData sensorData = readSensors();
-}
-
-// Функция для отправки данных
-void sendData() {
-    sendDataIfNeeded();
-}
+// Интервалы обновления в миллисекундах
+const unsigned long webSocketInterval = 1000;
+const unsigned long sensorInterval = 5000;
+const unsigned long dataSendInterval = 60000;
+const unsigned long buttonInterval = 100; // Интервал опроса кнопок
 
 void setup() {
     Serial.begin(115200);
@@ -38,8 +32,6 @@ void setup() {
         Serial.println("Connecting to WiFi...");
     }
     Serial.println("Connected to WiFi!");
-    // Serial.print("IP-адрес ESP32: ");
-    // Serial.println(WiFi.localIP());
 
     // Вызов модуля загрузки настроек
     initializeSettingsModule(); 
@@ -52,25 +44,47 @@ void setup() {
     // Настройка OTA через модуль
     // setupOTA();
 
-    // Инициализация модуля опроса датчиков
-    initializeSensors();
+    // Инициализация кнопок
+    initializeButtons();
 }
 
 void loop() {
-    // Обновление OTA через модуль
-    // ArduinoOTA.handle();
-
-    // Выводим текущее время
-    printCurrentTime();  
+    unsigned long currentMillis = millis();
 
     // Обновление состояния WebSocket
-    updateWebSocket();
+    if (currentMillis - lastWebSocketUpdate >= webSocketInterval) {
+        lastWebSocketUpdate = currentMillis;
+        processWebSocket(); 
+    }
 
     // Опрос датчиков
-    updateSensors();
+    if (currentMillis - lastSensorUpdate >= sensorInterval) {
+        lastSensorUpdate = currentMillis;
+    //    updateSensors(); // Удалите или закомментируйте, если не нужно
+    }
 
     // Отправка данных каждые 60 секунд
-    sendData();
+    if (currentMillis - lastDataSend >= dataSendInterval) {
+        lastDataSend = currentMillis;
+        sendDataIfNeeded(); 
+    }
 
-    delay(1000); // Задержка для предотвращения перегрузки процессора
+    // Опрос кнопок
+    if (currentMillis - lastButtonUpdate >= buttonInterval) {
+        lastButtonUpdate = currentMillis;
+        ButtonState buttonState = readButtons();
+        // Обработка состояния кнопок
+        if (buttonState.button1Pressed) {
+            Serial.println("Button 1 pressed");
+        }
+        if (buttonState.button2Pressed) {
+            Serial.println("Button 2 pressed");
+        }
+        if (buttonState.button3Pressed) {
+            Serial.println("Button 3 pressed");
+        }
+    }
+
+    // Выводим текущее время
+    printCurrentTime();
 }
