@@ -2,6 +2,9 @@
 #define SENSORS_MODULE_H
 
 #include <Arduino.h>
+#include <Wire.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 #include "Pinout.h" // Подключаем Pinout.h
 
 // Структура для хранения состояния кнопок
@@ -12,7 +15,10 @@ struct ButtonState {
 };
 
 // Функции модуля
-void initializeButtons(); // Инициализация кнопок
+void initializeSensors(); // Инициализация кнопок
+void updateSensors(); // Обновление состояния всех сенсоров
 ButtonState readButtons(); // Опрос кнопок
+void handleButtonState(); // Обработка состояния кнопок
+void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval, unsigned long &lastButtonUpdate); // Обновление состояния кнопок
 
 #endif // SENSORS_MODULE_H

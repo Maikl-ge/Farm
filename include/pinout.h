@@ -5,7 +5,7 @@
 #define LED_BUILTIN 2 // Светодиод на плате (GPIO2, нога 10)
 
 // Пины для подключения I2C
-#define SDA_PIN 21  // Шина данных I2C (SDA) (GPIO21, нога 40)
+#define SDA_PIN 21  // Шина данных I2C (SDA) (GPIO21, нога 40) SHT20
 #define SCL_PIN 22  // Шина тактирования I2C (SCL) (GPIO22, нога 41)
 
 // RTC DS1302

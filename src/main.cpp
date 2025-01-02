@@ -45,7 +45,7 @@ void setup() {
     // setupOTA();
 
     // Инициализация кнопок
-    initializeButtons();
+    initializeSensors();
 }
 
 void loop() {
@@ -60,7 +60,7 @@ void loop() {
     // Опрос датчиков
     if (currentMillis - lastSensorUpdate >= sensorInterval) {
         lastSensorUpdate = currentMillis;
-    //    updateSensors(); // Удалите или закомментируйте, если не нужно
+        updateSensors(); // Удалите или закомментируйте, если не нужно
     }
 
     // Отправка данных каждые 60 секунд
@@ -70,20 +70,7 @@ void loop() {
     }
 
     // Опрос кнопок
-    if (currentMillis - lastButtonUpdate >= buttonInterval) {
-        lastButtonUpdate = currentMillis;
-        ButtonState buttonState = readButtons();
-        // Обработка состояния кнопок
-        if (buttonState.button1Pressed) {
-            Serial.println("Button 1 pressed");
-        }
-        if (buttonState.button2Pressed) {
-            Serial.println("Button 2 pressed");
-        }
-        if (buttonState.button3Pressed) {
-            Serial.println("Button 3 pressed");
-        }
-    }
+    updateButtonState(currentMillis, buttonInterval, lastButtonUpdate);
 
     // Выводим текущее время
     printCurrentTime();
