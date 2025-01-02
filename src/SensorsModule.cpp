@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "SensorsModule.h"
-#include <Wire.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
 #include "Pinout.h" // Подключаем Pinout.h
+#include <Wire.h> // Для работы с I2C
+#include <DallasTemperature.h> // Для работы с DS18B20
+#include <OneWire.h> // Для работы с 1-Wire
 
 // Инициализация всех сенсоров
 void initializeSensors() {
@@ -22,9 +22,9 @@ void initializeSensors() {
     Wire.begin(SDA_PIN, SCL_PIN);
     // Здесь можно добавить дополнительную настройку для каждого датчика HDC1080
 
-    // Инициализация датчиков DS18B20
-    OneWire oneWire(ONE_WIRE_BUS);
-    DallasTemperature ds18b20(&oneWire);
+    // Настройки для DS18B20
+    OneWire oneWire(ONE_WIRE_BUS); // Шина OneWire
+    DallasTemperature sensors(&oneWire); // Библиотека DallasTemperature
 
     // Инициализация датчика pH
     pinMode(PH_SENSOR_PIN, INPUT);
@@ -36,6 +36,16 @@ ButtonState readButtons() {
     state.button1Pressed = digitalRead(BUTTON1_PIN) == LOW;
     state.button2Pressed = digitalRead(BUTTON2_PIN) == LOW;
     state.button3Pressed = digitalRead(BUTTON3_PIN) == LOW;
+    return state;
+}
+
+// Чтение состояния датчиков холла
+HallSensorState readHallSensors() {
+    HallSensorState state;
+    state.sensor1 = digitalRead(HALL_SENSOR1_PIN);
+    state.sensor2 = digitalRead(HALL_SENSOR2_PIN);
+    state.sensor3 = digitalRead(HALL_SENSOR3_PIN);
+    state.sensor4 = digitalRead(HALL_SENSOR4_PIN);
     return state;
 }
 
@@ -62,6 +72,7 @@ void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval
         handleButtonState();
     }
 }
+// Обновление состояния датчиков
 void updateSensors() {
     Serial.println("Опрос всех сенсоров");
     return;

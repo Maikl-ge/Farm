@@ -14,10 +14,19 @@ struct ButtonState {
     bool button3Pressed;
 };
 
+// Структура для хранения состояния датчиков холла
+struct HallSensorState {
+    bool sensor1;
+    bool sensor2;
+    bool sensor3;
+    bool sensor4;
+};
+
 // Функции модуля
 void initializeSensors(); // Инициализация кнопок
 void updateSensors(); // Обновление состояния всех сенсоров
 ButtonState readButtons(); // Опрос кнопок
+HallSensorState readHallSensors(); // Чтение состояния датчиков холла
 void handleButtonState(); // Обработка состояния кнопок
 void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval, unsigned long &lastButtonUpdate); // Обновление состояния кнопок
 
