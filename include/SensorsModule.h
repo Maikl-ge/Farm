@@ -7,12 +7,13 @@
 #include <DallasTemperature.h>
 #include "Pinout.h" // Подключаем Pinout.h
 
-// Структура для хранения состояния кнопок
-struct ButtonState {
-    bool button1Pressed;
-    bool button2Pressed;
-    bool button3Pressed;
-};
+// Объявления переменных (extern)
+extern bool start_Button;
+extern bool stop_Button;
+extern bool mode_Button;
+
+// Прототипы функций
+void readButtons();
 
 // Структура для хранения состояния датчиков холла
 struct HallSensorState {
@@ -25,7 +26,7 @@ struct HallSensorState {
 // Функции модуля
 void initializeSensors(); // Инициализация кнопок
 void updateSensors(); // Обновление состояния всех сенсоров
-ButtonState readButtons(); // Опрос кнопок
+void readButtons(); // Опрос кнопок
 HallSensorState readHallSensors(); // Чтение состояния датчиков холла
 void handleButtonState(); // Обработка состояния кнопок
 void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval, unsigned long &lastButtonUpdate); // Обновление состояния кнопок

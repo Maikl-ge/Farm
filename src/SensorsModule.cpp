@@ -5,6 +5,11 @@
 #include <DallasTemperature.h> // Для работы с DS18B20
 #include <OneWire.h> // Для работы с 1-Wire
 
+// Определение переменных
+bool start_Button = false;
+bool stop_Button = false;
+bool mode_Button = false;
+
 // Инициализация всех сенсоров
 void initializeSensors() {
     // Инициализация кнопок
@@ -13,10 +18,10 @@ void initializeSensors() {
     pinMode(BUTTON3_PIN, INPUT_PULLUP);
 
     // Инициализация датчиков Холла
-    pinMode(HALL_SENSOR1_PIN, INPUT);
-    pinMode(HALL_SENSOR2_PIN, INPUT);
-    pinMode(HALL_SENSOR3_PIN, INPUT);
-    pinMode(HALL_SENSOR4_PIN, INPUT);
+    pinMode(HALL_SENSOR1_PIN, INPUT_PULLUP);
+    pinMode(HALL_SENSOR2_PIN, INPUT_PULLUP);
+    pinMode(HALL_SENSOR3_PIN, INPUT_PULLUP);
+    pinMode(HALL_SENSOR4_PIN, INPUT_PULLUP);
 
     // Инициализация датчиков HDC1080
     Wire.begin(SDA_PIN, SCL_PIN);
@@ -31,38 +36,34 @@ void initializeSensors() {
 }
 
 // Опрос кнопок
-ButtonState readButtons() {
-    ButtonState state;
-    state.button1Pressed = digitalRead(BUTTON1_PIN) == LOW;
-    state.button2Pressed = digitalRead(BUTTON2_PIN) == LOW;
-    state.button3Pressed = digitalRead(BUTTON3_PIN) == LOW;
-    return state;
+void readButtons() {
+    start_Button = digitalRead(BUTTON1_PIN) == LOW;
+    stop_Button = digitalRead(BUTTON2_PIN) == LOW;
+    mode_Button = digitalRead(BUTTON3_PIN) == LOW;
 }
 
 // Чтение состояния датчиков холла
 HallSensorState readHallSensors() {
     HallSensorState state;
-    state.sensor1 = digitalRead(HALL_SENSOR1_PIN);
-    state.sensor2 = digitalRead(HALL_SENSOR2_PIN);
-    state.sensor3 = digitalRead(HALL_SENSOR3_PIN);
-    state.sensor4 = digitalRead(HALL_SENSOR4_PIN);
+    state.sensor1 = !digitalRead(HALL_SENSOR1_PIN); // A3144: LOW = магнит обнаружен
+    state.sensor2 = !digitalRead(HALL_SENSOR2_PIN); // A3144: LOW = магнит обнаружен
+    state.sensor3 = !digitalRead(HALL_SENSOR3_PIN); // A3144: LOW = магнит обнаружен
+    state.sensor4 = !digitalRead(HALL_SENSOR4_PIN); // A3144: LOW = магнит обнаружен
     return state;
 }
 
 // Обработка состояния кнопок
 void handleButtonState() {
-    ButtonState buttonState = readButtons();
+    readButtons();
 
-    if (buttonState.button1Pressed) {
-        Serial.println("Button 1 pressed");
+    if (start_Button) {
+        Serial.println("Start button pressed");
     }
-
-    if (buttonState.button2Pressed) {
-        Serial.println("Button 2 pressed");
+    if (stop_Button) {
+        Serial.println("Stop button pressed");
     }
-
-    if (buttonState.button3Pressed) {
-        Serial.println("Button 3 pressed");
+    if (mode_Button) {
+        Serial.println("Mode button pressed");
     }
 }
 // Обновление состояния кнопок
@@ -74,6 +75,8 @@ void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval
 }
 // Обновление состояния датчиков
 void updateSensors() {
+    HallSensorState readHallSensors();
+
     Serial.println("Опрос всех сенсоров");
     return;
 }

@@ -8,8 +8,6 @@
 #include "SensorsModule.h"
 #include <Arduino.h>
 
-ButtonState readButtons();
-
 // Переменные для хранения времени последнего выполнения функций
 unsigned long lastWebSocketUpdate = 0;
 unsigned long lastSensorUpdate = 0;
@@ -18,9 +16,9 @@ unsigned long lastButtonUpdate = 0;
 
 // Интервалы обновления в миллисекундах
 const unsigned long webSocketInterval = 10000;
-const unsigned long sensorInterval = 1000;
+const unsigned long sensorInterval = 2000;
 const unsigned long dataSendInterval = 60000;
-const unsigned long buttonInterval = 100; // Интервал опроса кнопок
+const unsigned long buttonInterval = 200; // Интервал опроса кнопок
 
 void setup() {
     Serial.begin(115200);
@@ -33,19 +31,14 @@ void setup() {
     }
     Serial.println("Connected to WiFi!");
 
-    // Вызов модуля загрузки настроек
-    initializeSettingsModule(); 
-
+    initializeSettingsModule(); // Вызов модуля загрузки настроек
     initTimeModule();    // Инициализируем модуль времени
     syncTimeWithNTP();   // Синхронизируем время с NTP
+    initializeWebSocket(); // Инициализация WebSocket и подключения
 
-    // Инициализация WebSocket и подключения
-    initializeWebSocket();
-    // Настройка OTA через модуль
-    // setupOTA();
+    // setupOTA();  // Настройка OTA через модуль
 
-    // Инициализация кнопок
-    initializeSensors();
+    initializeSensors();  // Инициализация кнопок
 }
 
 void loop() {

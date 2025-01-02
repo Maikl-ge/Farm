@@ -26,10 +26,10 @@
 #define TDS_SENSOR_PIN ADC1_CH1 // Аналоговый вход для TDS (GPIO37, нога 4)
 
 // Датчики Холла (уровень воды)
-#define HALL_SENSOR1_PIN 32 // Первый датчик Холла (GPIO32, нога 1)
-#define HALL_SENSOR2_PIN 33 // Второй датчик Холла (GPIO33, нога 2)
-#define HALL_SENSOR3_PIN 25 // Третий датчик Холла (GPIO25, нога 6)
-#define HALL_SENSOR4_PIN 26 // Четвертый датчик Холла (GPIO26, нога 7)
+#define HALL_SENSOR1_PIN 32 // Первый датчик Холла (GPIO32, нога 1)    A3144
+#define HALL_SENSOR2_PIN 33 // Второй датчик Холла (GPIO33, нога 2)    A3144
+#define HALL_SENSOR3_PIN 25 // Третий датчик Холла (GPIO25, нога 6)    A3144
+#define HALL_SENSOR4_PIN 26 // Четвертый датчик Холла (GPIO26, нога 7) A3144
 
 // Контроль питающей сети
 #define POWER_MONITOR_PIN ADC1_CH2 // Аналоговый вход для мониторинга сети (GPIO38, нога 5)
