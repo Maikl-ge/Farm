@@ -1,6 +1,7 @@
 #include "DataSender.h"
 #include "globals.h"
 #include "TimeModule.h"
+#include "SensorsModule.h"
 
 WebsocketsClient client;
 bool connected = false;
@@ -45,19 +46,47 @@ void processWebSocket() {
 
 // Отправка данных
 void sendDataIfNeeded() {
+    printCurrentTime();
     static unsigned long lastTime = 0;
+    // Формируем JSON
+    JsonDocument doc;
+// Состояние кнопок
+    doc["CurrentDate"] = CurrentDate;
+    doc["CurrentTime"] = CurrentTime;
+    doc["start_Button"] = start_Button;
+    doc["stop_Button"] = stop_Button;
+    doc["mode_Button"] = mode_Button;
 
-    if (connected && millis() - lastTime > 60000) {
-        // Обновляем данные
-        temperature = random(1800, 3000) / 100.0;
-        humidity = random(300, 800) / 10.0;
-        waterLevel = random(300, 800) / 5.0;
+    // Состояние датчиков уровня воды
+    doc["max_osmo_level"] = max_osmo_level;
+    doc["min_osmo_level"] = min_osmo_level;
+    doc["max_water_level"] = max_water_level;
+    doc["min_water_level"] = min_water_level;
 
-        // Формируем JSON
-        JsonDocument doc;
-        doc["температура"] = temperature;
-        doc["влажность"] = humidity;
-        doc["уровень воды"] = waterLevel;
+    // Данные с датчиков HTU21D
+    doc["temperature_1"] = temperature_1;
+    doc["humidity_1"] = humidity_1;
+    doc["temperature_2"] = temperature_2;
+    doc["humidity_2"] = humidity_2;
+    doc["temperature_3"] = temperature_3;
+    doc["humidity_3"] = humidity_3;
+    doc["temperature_4"] = temperature_4;
+    doc["humidity_4"] = humidity_4;
+    doc["temperature_5"] = temperature_5;
+    doc["humidity_5"] = humidity_5;
+
+    // Данные с датчиков температуры
+    doc["water_temperature_osmo"] = water_temperature_osmo;
+    doc["water_temperature_watering"] = water_temperature_watering;
+    doc["air_temperature_outdoor"] = air_temperature_outdoor;
+    doc["air_temperature_inlet"] = air_temperature_inlet;
+
+    // Данные качества воды
+    doc["ph_osmo"] = ph_osmo;
+    doc["tds_osmo"] = tds_osmo;
+
+    // Мониторинг питающей сети
+    doc["power_monitor"] = power_monitor;
 
         String jsonMessage;
         serializeJson(doc, jsonMessage);
@@ -67,9 +96,5 @@ void sendDataIfNeeded() {
         lastTime = millis();
 
         Serial.print("Sent: ");
-        Serial.println(jsonMessage);
-        // Выводим текущее время
-        Serial.println("Время");
-        printCurrentTime();  
-    }
+        Serial.println(jsonMessage);    
 }

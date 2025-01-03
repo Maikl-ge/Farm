@@ -14,7 +14,7 @@
 #define DS1302_CE  26 // Пин для выбора RTC DS1302 (CE) (GPIO26, нога 18)
 
 // 1-Wire для DS18B20
-#define ONE_WIRE_BUS 4  // Шина 1-Wire для трех DS18B20 (GPIO4, нога 24)
+#define ONE_WIRE_BUS 4  // Шина 1-Wire для четырех DS18B20 (GPIO4, нога 24)
 
 // Кнопки
 #define BUTTON1_PIN 16 // Первая кнопка (GPIO16, нога 8)

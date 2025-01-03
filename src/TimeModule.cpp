@@ -4,14 +4,11 @@
 #include <Ds1302.h>
 #include <Pinout.h>
 
+uint32_t CurrentDate = 0; // Текущая дата фермы
+uint32_t CurrentTime = 0; // Текущее время фермы
 
 // Создаем объект DS1302
 Ds1302 rtc(DS1302_CE, DS1302_IO, DS1302_CLK);
-
-// Массив с днями недели для отображения
-const static char* WeekDays[] = {
-    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-};
 
 // Настройки NTP
 WiFiUDP ntpUDP;
@@ -44,7 +41,6 @@ void syncTimeWithNTP(const char* ntpServer) { // Значение по умол�
     dt.hour = (epochTime / 3600) % 24;              // Час
     dt.minute = (epochTime / 60) % 60;              // Минуты
     dt.second = epochTime % 60;                     // Секунды
-    dt.dow = (epochTime / 86400 + 4) % 7 + 1;       // День недели (1-7)
 
     // Устанавливаем время в DS1302
     rtc.setDateTime(&dt);
@@ -56,30 +52,28 @@ void printCurrentTime() {
     Ds1302::DateTime now;
     rtc.getDateTime(&now);  // Получаем текущее время
 
-    static uint8_t last_second = 0;
-    if (last_second != now.second) {
-        last_second = now.second;
+    // Формирование даты в формате YYYYMMDD
+    CurrentDate = (now.year * 10000) + (now.month * 100) + now.day;
 
-        // Выводим дату и время в формате YYYY-MM-DD DDD HH:MM:SS
-        Serial.print("20");
-        Serial.print(now.year);    // 00-99
-        Serial.print('-');
-        if (now.month < 10) Serial.print('0');
-        Serial.print(now.month);   // 01-12
-        Serial.print('-');
-        if (now.day < 10) Serial.print('0');
-        Serial.print(now.day);     // 01-31
-        Serial.print(' ');
-        Serial.print(WeekDays[now.dow - 1]); // День недели
-        Serial.print(' ');
-        if (now.hour < 10) Serial.print('0');
-        Serial.print(now.hour);    // 00-23
-        Serial.print(':');
-        if (now.minute < 10) Serial.print('0');
-        Serial.print(now.minute);  // 00-59
-        Serial.print(':');
-        if (now.second < 10) Serial.print('0');
-        Serial.print(now.second);  // 00-59
-        Serial.println();
-    }
+    // Формирование времени в формате HHMMSS
+    CurrentTime = (now.hour * 10000) + (now.minute * 100) + now.second;
+
+    // Вывод даты и времени в Serial
+    // Serial.print("Дата: ");
+    // Serial.print(CurrentDate / 10000);       // Год
+    // Serial.print('-');
+    // Serial.print((CurrentDate / 100) % 100); // Месяц
+    // Serial.print('-');
+    // Serial.println(CurrentDate % 100);      // День
+
+    // Serial.print("Время: ");
+    // Serial.print(CurrentTime / 10000);       // Часы
+    // Serial.print(':');
+    // Serial.print((CurrentTime / 100) % 100); // Минуты
+    // Serial.print(':');
+    // Serial.println(CurrentTime % 100);      // Секунды
+    Serial.print("Дата: ");
+    Serial.print(CurrentDate);       // Год
+    Serial.print(" Время: ");
+    Serial.print(CurrentTime);       // Часы
 }

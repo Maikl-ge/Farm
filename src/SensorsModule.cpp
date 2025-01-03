@@ -27,7 +27,7 @@ bool min_osmo_level = false;
 bool max_water_level = false;
 bool min_water_level = false;
 
-// Объявления  переменных состояния датчиков HDC1080
+// Определение  переменных состояния датчиков HDC1080
 float temperature_1 = 0.0;
 float humidity_1 = 0.0;
 float temperature_2 = 0.0;
@@ -45,6 +45,18 @@ Adafruit_HTU21DF htu2;
 Adafruit_HTU21DF htu3;
 Adafruit_HTU21DF htu4;
 Adafruit_HTU21DF htu5;
+
+float water_temperature_osmo = 0.0;
+float water_temperature_watering = 0.0;
+float air_temperature_outdoor = 0.0;
+float air_temperature_inlet = 0.0;
+
+// Определение переменных для датчиков качества воды
+float ph_osmo = 0.0;
+float tds_osmo = 0.0;
+
+// Определение переменных для мониторинга питающей сети
+bool power_monitor = false;
 
 // Инициализация всех сенсоров
 void initializeSensors() {
@@ -152,15 +164,28 @@ void readAllHTU21D() {
 // Чтение данных с четырех датчиков DS18B20
 void readAllDS18B20() {
     ds18b20.requestTemperatures();
+
     for (uint8_t i = 0; i < 4; i++) {
         float temperature = ds18b20.getTempCByIndex(i);
-        Serial.print("DS18B20 Sensor ");
-        Serial.print(i + 1);
-        Serial.print(" - Temperature: ");
-        Serial.print(temperature);
-        Serial.println(" C");
+
+        // Присваивание считанных температур переменным
+        switch (i) {
+            case 0:
+                water_temperature_osmo = temperature;
+                break;
+            case 1:
+                water_temperature_watering = temperature;
+                break;
+            case 2:
+                air_temperature_outdoor = temperature;
+                break;
+            case 3:
+                air_temperature_inlet = temperature;
+                break;
+        }
     }
 }
+
 
 // Обработка состояния кнопок
 void handleButtonState() {
@@ -188,7 +213,7 @@ void updateSensors() {
     readHallSensors();
     readAllHTU21D();
     readAllDS18B20();
-    Serial.println("Опрос всех сенсоров");
+    //Serial.println("Опрос всех сенсоров");
     Serial.print(max_osmo_level);
     Serial.print(" ");
     Serial.print(min_osmo_level);

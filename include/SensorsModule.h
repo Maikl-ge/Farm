@@ -41,6 +41,19 @@ extern float humidity_4;
 extern float temperature_5;
 extern float humidity_5;
 
+// Объявление переменных для датчиков температыры 
+extern float water_temperature_osmo;
+extern float water_temperature_watering;
+extern float air_temperature_outdoor;
+extern float air_temperature_inlet;
+
+// Объявление переменных для датчиков качества воды
+extern float ph_osmo;
+extern float tds_osmo;
+
+// Объявление переменных для мониторинга питающей сети
+extern bool power_monitor;
+
 // Функции модуля
 void initializeSensors(); // Инициализация кнопок
 void updateSensors(); // Обновление состояния всех сенсоров

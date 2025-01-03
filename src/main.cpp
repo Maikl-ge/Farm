@@ -16,7 +16,7 @@ unsigned long lastButtonUpdate = 0;
 
 // Интервалы обновления в миллисекундах
 const unsigned long webSocketInterval = 10000;
-const unsigned long sensorInterval = 2000;
+const unsigned long sensorInterval = 5000;
 const unsigned long dataSendInterval = 60000;
 const unsigned long buttonInterval = 200; // Интервал опроса кнопок
 
@@ -64,7 +64,4 @@ void loop() {
 
     // Опрос кнопок
     updateButtonState(currentMillis, buttonInterval, lastButtonUpdate);
-
-    // Выводим текущее время
-    printCurrentTime();
 }
