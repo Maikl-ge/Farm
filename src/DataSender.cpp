@@ -53,15 +53,15 @@ void sendDataIfNeeded() {
 // Состояние кнопок
     doc["CurrentDate"] = CurrentDate;
     doc["CurrentTime"] = CurrentTime;
-    doc["start_Button"] = start_Button;
-    doc["stop_Button"] = stop_Button;
-    doc["mode_Button"] = mode_Button;
+    doc["start_Button"] = start_Button ? 1 : 0;
+    doc["stop_Button"] = stop_Button ? 1 : 0;
+    doc["mode_Button"] = mode_Button ? 1 : 0;
 
     // Состояние датчиков уровня воды
-    doc["max_osmo_level"] = max_osmo_level;
-    doc["min_osmo_level"] = min_osmo_level;
-    doc["max_water_level"] = max_water_level;
-    doc["min_water_level"] = min_water_level;
+    doc["max_osmo_level"] = max_osmo_level ? 1 : 0;
+    doc["min_osmo_level"] = min_osmo_level ? 1 : 0;
+    doc["max_water_level"] = max_water_level ? 1 : 0;
+    doc["min_water_level"] = min_water_level ? 1 : 0;
 
     // Данные с датчиков HTU21D
     doc["temperature_1"] = temperature_1;
@@ -86,7 +86,7 @@ void sendDataIfNeeded() {
     doc["tds_osmo"] = tds_osmo;
 
     // Мониторинг питающей сети
-    doc["power_monitor"] = power_monitor;
+    doc["power_monitor"] = power_monitor ? 1 : 0;
 
         String jsonMessage;
         serializeJson(doc, jsonMessage);

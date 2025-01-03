@@ -72,8 +72,8 @@ void printCurrentTime() {
     // Serial.print((CurrentTime / 100) % 100); // Минуты
     // Serial.print(':');
     // Serial.println(CurrentTime % 100);      // Секунды
-    Serial.print("Дата: ");
-    Serial.print(CurrentDate);       // Год
-    Serial.print(" Время: ");
-    Serial.print(CurrentTime);       // Часы
+    // Serial.print("Дата: ");
+    // Serial.print(CurrentDate);       // Год
+    // Serial.print(" Время: ");
+    // Serial.print(CurrentTime);       // Часы
 }

@@ -68,7 +68,7 @@ void initializeSensors() {
     pinMode(BUTTON1_PIN, INPUT_PULLUP);
     pinMode(BUTTON2_PIN, INPUT_PULLUP);
     pinMode(BUTTON3_PIN, INPUT_PULLUP);
-
+    
     // Инициализация датчиков Холла
     pinMode(HALL_SENSOR1_PIN, INPUT_PULLUP);
     pinMode(HALL_SENSOR2_PIN, INPUT_PULLUP);
@@ -201,13 +201,7 @@ void handleButtonState() {
         Serial.println("Mode button pressed");
     }
 }
-// Обновление состояния кнопок
-void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval, unsigned long &lastButtonUpdate) {
-    if (currentMillis - lastButtonUpdate >= buttonInterval) {
-        lastButtonUpdate = currentMillis;
-        handleButtonState();
-    }
-}
+
 // Обновление состояния датчиков
 void updateSensors() {
     readHallSensors();
