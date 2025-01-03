@@ -5,10 +5,16 @@
 #include <DallasTemperature.h> // Для работы с DS18B20
 #include <OneWire.h> // Для работы с 1-Wire
 
-// Определение переменных
+// Определение переменных состояния кнопок
 bool start_Button = false;
 bool stop_Button = false;
 bool mode_Button = false;
+
+// Определение переменных состояния датчиков уровня воды
+bool max_osmo_level = false;
+bool min_osmo_level = false;
+bool max_water_level = false;
+bool min_water_level = false;
 
 // Инициализация всех сенсоров
 void initializeSensors() {
@@ -42,14 +48,13 @@ void readButtons() {
     mode_Button = digitalRead(BUTTON3_PIN) == LOW;
 }
 
-// Чтение состояния датчиков холла
-HallSensorState readHallSensors() {
-    HallSensorState state;
-    state.sensor1 = !digitalRead(HALL_SENSOR1_PIN); // A3144: LOW = магнит обнаружен
-    state.sensor2 = !digitalRead(HALL_SENSOR2_PIN); // A3144: LOW = магнит обнаружен
-    state.sensor3 = !digitalRead(HALL_SENSOR3_PIN); // A3144: LOW = магнит обнаружен
-    state.sensor4 = !digitalRead(HALL_SENSOR4_PIN); // A3144: LOW = магнит обнаружен
-    return state;
+// Чтение состояния датчиков уровня воды
+void readHallSensors() {
+    max_osmo_level = !digitalRead(HALL_SENSOR1_PIN); // A3144: LOW = магнит обнаружен
+    min_osmo_level = !digitalRead(HALL_SENSOR2_PIN); // A3144: LOW = магнит обнаружен
+    max_water_level = !digitalRead(HALL_SENSOR3_PIN); // A3144: LOW = магнит обнаружен
+    min_water_level = !digitalRead(HALL_SENSOR4_PIN); // A3144: LOW = магнит обнаружен
+    //return state;
 }
 
 // Обработка состояния кнопок
@@ -75,8 +80,7 @@ void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval
 }
 // Обновление состояния датчиков
 void updateSensors() {
-    HallSensorState readHallSensors();
-
+    readHallSensors();
     Serial.println("Опрос всех сенсоров");
     return;
 }
