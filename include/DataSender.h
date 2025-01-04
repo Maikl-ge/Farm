@@ -11,5 +11,7 @@ using namespace websockets;
 void initializeWebSocket();
 void processWebSocket();
 void sendDataIfNeeded();
+void saveMessageToSDCard();
+void saveMessageToSDCard(const String& message);
 
 #endif

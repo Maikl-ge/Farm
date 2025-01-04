@@ -6,13 +6,15 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "Pinout.h" // Подключаем Pinout.h
+#include "SensorsModule.h"
+
 
 // Прототипы функций опроса кнопок
 void readButtons();
 // Объявления переменных (extern) состояния кнопок
-extern bool start_Button;
-extern bool stop_Button;
-extern bool mode_Button;
+extern volatile bool startButtonPressed;
+extern volatile bool stopButtonPressed;
+extern volatile bool modeButtonPressed;
 
 // Прототипы функций опроса датчиков холла
 void readHallSensors();
@@ -60,9 +62,9 @@ void updateSensors(); // Обновление состояния всех сен
 void readButtons(); // Опрос кнопок
 void readHallSensors(); // Чтение состояния датчиков холла
 void handleButtonState(); // Обработка состояния кнопок
-void updateButtonState(unsigned long currentMillis, unsigned long buttonInterval, unsigned long &lastButtonUpdate); // Обновление состояния кнопок
 SensorData readHTU21D(uint8_t address); // Чтение данных с датчика HTU21D
 void readAllHTU21D(); // Чтение данных с пяти датчиков HTU21D
 void readAllDS18B20(); // Чтение данных с четырех датчиков DS18B20
+void updateButtonState(); // Обработка состояния кнопок
 
 #endif // SENSORS_MODULE_H

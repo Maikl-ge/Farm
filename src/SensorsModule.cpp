@@ -17,9 +17,9 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature ds18b20(&oneWire);
 
 // Определение переменных состояния кнопок
-bool start_Button = false;
-bool stop_Button = false;
-bool mode_Button = false;
+volatile bool startButtonPressed = false;
+volatile bool stopButtonPressed = false;
+volatile bool modeButtonPressed = false;
 
 // Определение переменных состояния датчиков уровня воды
 bool max_osmo_level = false;
@@ -27,7 +27,7 @@ bool min_osmo_level = false;
 bool max_water_level = false;
 bool min_water_level = false;
 
-// Определение  переменных состояния датчиков HDC1080
+// Определение переменных состояния датчиков HDC1080
 float temperature_1 = 0.0;
 float humidity_1 = 0.0;
 float temperature_2 = 0.0;
@@ -58,9 +58,18 @@ float tds_osmo = 0.0;
 // Определение переменных для мониторинга питающей сети
 bool power_monitor = false;
 
+// Аппаратный таймер
+hw_timer_t *timer = NULL;
+
+// Обработчик таймера
+void IRAM_ATTR handleTimer() {
+    if (digitalRead(BUTTON1_PIN) == LOW) startButtonPressed = true;
+    if (digitalRead(BUTTON2_PIN) == LOW) modeButtonPressed = true;
+    if (digitalRead(BUTTON3_PIN) == LOW) stopButtonPressed = true;
+}
+
 // Инициализация всех сенсоров
 void initializeSensors() {
-
     Wire.begin();
     ds18b20.begin();
 
@@ -68,14 +77,20 @@ void initializeSensors() {
     pinMode(BUTTON1_PIN, INPUT_PULLUP);
     pinMode(BUTTON2_PIN, INPUT_PULLUP);
     pinMode(BUTTON3_PIN, INPUT_PULLUP);
-    
+
+    // Настройка аппаратного таймера
+    timer = timerBegin(0, 80, true); // Timer 0, прескалер 80 (1 мс для 80 МГц)
+    timerAttachInterrupt(timer, &handleTimer, true);
+    timerAlarmWrite(timer, 30000, true); // Срабатывание каждые 1000 мкс (1 мс)
+    timerAlarmEnable(timer);
+
     // Инициализация датчиков Холла
     pinMode(HALL_SENSOR1_PIN, INPUT_PULLUP);
     pinMode(HALL_SENSOR2_PIN, INPUT_PULLUP);
     pinMode(HALL_SENSOR3_PIN, INPUT_PULLUP);
     pinMode(HALL_SENSOR4_PIN, INPUT_PULLUP);
 
-// Инициализация датчиков температуры и влажности HTU21D
+    // Инициализация датчиков температуры и влажности HTU21D
     if (!htu1.begin()) {
         Serial.println("Couldn't find HTU21D sensor 1");
     } else {
@@ -104,17 +119,37 @@ void initializeSensors() {
         Serial.println("Couldn't find HTU21D sensor 5");
     } else {
         Serial.println("HTU21D sensor 5 initialized");
-    } 
+    }
 
     // Инициализация датчика pH
     pinMode(PH_SENSOR_PIN, INPUT);
 }
 
 // Опрос кнопок
-void readButtons() {
-    start_Button = digitalRead(BUTTON1_PIN) == LOW;
-    stop_Button = digitalRead(BUTTON2_PIN) == LOW;
-    mode_Button = digitalRead(BUTTON3_PIN) == LOW;
+void updateButtonState() {
+
+    // if (modeButtonPressed) {
+    //     modeButtonPressed = false; // Сброс флага
+    //     Serial.println("Mode button pressed");
+    // }
+    if (modeButtonPressed && startButtonPressed) {
+        modeButtonPressed = false; // Сброс флага
+        startButtonPressed = false; // Сброс флага
+        Serial.println("START");
+    }   
+    if (modeButtonPressed && stopButtonPressed) {
+        modeButtonPressed = false; // Сброс флага
+        stopButtonPressed = false; // Сброс флага
+        Serial.println("STOP");
+    }  
+    if (startButtonPressed) {
+        startButtonPressed = false; // Сброс флага
+        Serial.println("Start button pressed");
+    }
+    if (stopButtonPressed) {
+        stopButtonPressed = false; // Сброс флага
+        Serial.println("Stop button pressed");
+    }  
 }
 
 // Чтение состояния датчиков уровня воды
@@ -123,15 +158,18 @@ void readHallSensors() {
     min_osmo_level = !digitalRead(HALL_SENSOR2_PIN); // A3144: LOW = магнит обнаружен
     max_water_level = !digitalRead(HALL_SENSOR3_PIN); // A3144: LOW = магнит обнаружен
     min_water_level = !digitalRead(HALL_SENSOR4_PIN); // A3144: LOW = магнит обнаружен
-    //return state;
 }
 
 // Чтение данных с датчика HTU21D
 SensorData readHTU21D(Adafruit_HTU21DF &htu) {
     SensorData data = {0.0, 0.0};
 
-    data.temperature = htu.readTemperature();
-    data.humidity = htu.readHumidity();
+    float temp = htu.readTemperature();
+    float hum = htu.readHumidity();
+
+    // Проверяем данные на NaN
+    data.temperature = isnan(temp) ? 0.0 : temp;
+    data.humidity = isnan(hum) ? 0.0 : hum;
 
     return data;
 }
@@ -186,28 +224,13 @@ void readAllDS18B20() {
     }
 }
 
-
-// Обработка состояния кнопок
-void handleButtonState() {
-    readButtons();
-
-    if (start_Button) {
-        Serial.println("Start button pressed");
-    }
-    if (stop_Button) {
-        Serial.println("Stop button pressed");
-    }
-    if (mode_Button) {
-        Serial.println("Mode button pressed");
-    }
-}
-
 // Обновление состояния датчиков
 void updateSensors() {
     readHallSensors();
     readAllHTU21D();
     readAllDS18B20();
-    //Serial.println("Опрос всех сенсоров");
+//    processButtonStates();
+    // Serial.println("Опрос всех сенсоров");
     Serial.print(max_osmo_level);
     Serial.print(" ");
     Serial.print(min_osmo_level);
@@ -223,5 +246,4 @@ void updateSensors() {
     Serial.print(temperature_2);
     Serial.print(" ");
     Serial.println(humidity_2);
-    return;
 }

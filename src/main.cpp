@@ -15,10 +15,10 @@ unsigned long lastDataSend = 0;
 unsigned long lastButtonUpdate = 0;
 
 // Интервалы обновления в миллисекундах
-const unsigned long webSocketInterval = 10000;
+const unsigned long webSocketInterval = 2000;
 const unsigned long sensorInterval = 5000;
 const unsigned long dataSendInterval = 60000;
-const unsigned long buttonInterval = 100; // Интервал опроса кнопок
+const unsigned long buttonInterval = 300; // Интервал опроса кнопок
 
 void setup() {
     Serial.begin(115200);
@@ -53,7 +53,7 @@ void loop() {
     // Опрос датчиков
     if (currentMillis - lastSensorUpdate >= sensorInterval) {
         lastSensorUpdate = currentMillis;
-        updateSensors(); // Удалите или закомментируйте, если не нужно
+        updateSensors(); 
     }
 
     // Отправка данных каждые 60 секунд
@@ -65,6 +65,6 @@ void loop() {
     // Опрос кнопок
     if (currentMillis - lastButtonUpdate >= buttonInterval) {
         lastButtonUpdate = currentMillis;
-        handleButtonState();
+        updateButtonState();
     }
 }

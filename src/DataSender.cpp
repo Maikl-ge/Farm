@@ -11,6 +11,13 @@ void initializeWebSocket() {
     client.onMessage([](WebsocketsMessage message) {
         Serial.print("Received: ");
         Serial.println(message.data());
+
+        if (message.data() == "Ok:200") {
+            //Serial.println("Сообщение подтверждено сервером.");
+        } else {
+            //Serial.println("Подтверждение от сервера не получено. Сохраняем сообщение на SD-карту.");
+            saveMessageToSDCard(message.data());
+        }
     });
 
     client.onEvent([](WebsocketsEvent event, String data) {
@@ -31,15 +38,27 @@ void initializeWebSocket() {
     }
 }
 
+
 // Обновление состояния WebSocket
 void processWebSocket() {
+    // Проверяем состояние соединения
     client.poll();
 
     if (!connected) {
-        Serial.println("Reconnecting to WebSocket server...");
-        if (client.connect(ws_server)) {
-            Serial.println("Reconnected to WebSocket server!");
-            connected = true;
+        static unsigned long lastReconnectAttempt = 0;
+        unsigned long currentTime = millis();
+
+        // Проверяем, прошло ли достаточно времени для повторной попытки подключения
+        if (currentTime - lastReconnectAttempt >= 5000) { // 5 секунд
+            Serial.println("Reconnecting to WebSocket server...");
+            lastReconnectAttempt = currentTime; // Обновляем время последней попытки
+
+            if (client.connect(ws_server)) {
+                Serial.println("Reconnected to WebSocket server!");
+                connected = true;
+            } else {
+                Serial.println("Reconnect attempt failed. Waiting 5 seconds before retrying.");
+            }
         }
     }
 }
@@ -48,53 +67,53 @@ void processWebSocket() {
 void sendDataIfNeeded() {
     printCurrentTime();
     static unsigned long lastTime = 0;
-    // Формируем JSON
-    JsonDocument doc;
-// Состояние кнопок
-    doc["CurrentDate"] = CurrentDate;
-    doc["CurrentTime"] = CurrentTime;
-    doc["start_Button"] = start_Button ? 1 : 0;
-    doc["stop_Button"] = stop_Button ? 1 : 0;
-    doc["mode_Button"] = mode_Button ? 1 : 0;
+    unsigned long currentTime = millis();
 
-    // Состояние датчиков уровня воды
+    // if (currentTime - lastTime < 5000) return; // Отправлять каждые 5 секунд
+    // lastTime = currentTime;
+
+    StaticJsonDocument<512> doc;
+    doc["DF"] = CurrentDate;
+    doc["TF"] = CurrentTime;
+    doc["start_Button"] = startButtonPressed ? 1 : 0;
+    doc["stop_Button"] = stopButtonPressed ? 1 : 0;
+    doc["mode_Button"] = modeButtonPressed ? 1 : 0;
     doc["max_osmo_level"] = max_osmo_level ? 1 : 0;
     doc["min_osmo_level"] = min_osmo_level ? 1 : 0;
     doc["max_water_level"] = max_water_level ? 1 : 0;
     doc["min_water_level"] = min_water_level ? 1 : 0;
+    doc["T1"] = temperature_1;
+    doc["H1"] = humidity_1;
+    doc["T2"] = temperature_2;
+    doc["H2"] = humidity_2;
+    doc["T3"] = temperature_3;
+    doc["H3"] = humidity_3;
+    doc["T4"] = temperature_4;
+    doc["H4"] = humidity_4;
+    doc["T5"] = temperature_5;
+    doc["H5"] = humidity_5;
+    doc["WTO"] = water_temperature_osmo;
+    doc["WTW"] = water_temperature_watering;
+    doc["ATO"] = air_temperature_outdoor;
+    doc["ATI"] = air_temperature_inlet;
+    doc["ph"] = ph_osmo;
+    doc["tds"] = tds_osmo;
+    doc["pm"] = power_monitor ? 1 : 0;
 
-    // Данные с датчиков HTU21D
-    doc["temperature_1"] = temperature_1;
-    doc["humidity_1"] = humidity_1;
-    doc["temperature_2"] = temperature_2;
-    doc["humidity_2"] = humidity_2;
-    doc["temperature_3"] = temperature_3;
-    doc["humidity_3"] = humidity_3;
-    doc["temperature_4"] = temperature_4;
-    doc["humidity_4"] = humidity_4;
-    doc["temperature_5"] = temperature_5;
-    doc["humidity_5"] = humidity_5;
+    String jsonMessage;
+    serializeJson(doc, jsonMessage);
 
-    // Данные с датчиков температуры
-    doc["water_temperature_osmo"] = water_temperature_osmo;
-    doc["water_temperature_watering"] = water_temperature_watering;
-    doc["air_temperature_outdoor"] = air_temperature_outdoor;
-    doc["air_temperature_inlet"] = air_temperature_inlet;
-
-    // Данные качества воды
-    doc["ph_osmo"] = ph_osmo;
-    doc["tds_osmo"] = tds_osmo;
-
-    // Мониторинг питающей сети
-    doc["power_monitor"] = power_monitor ? 1 : 0;
-
-        String jsonMessage;
-        serializeJson(doc, jsonMessage);
-
-        // Отправляем сообщение
+    if (connected) {
         client.send(jsonMessage);
-        lastTime = millis();
-
         Serial.print("Sent: ");
-        Serial.println(jsonMessage);    
+        //Serial.println(jsonMessage);
+    } else {
+        //Serial.println("Соединение отсутствует. Сообщение не отправлено.");
+        saveMessageToSDCard(jsonMessage);
+    }
+}
+void saveMessageToSDCard(const String& message) {
+    // Заглушка записи на SD-карту
+    Serial.print("Сохраняем сообщение на SD-карту: ");
+    //Serial.println(message);
 }
