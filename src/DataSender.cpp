@@ -69,9 +69,6 @@ void sendDataIfNeeded() {
     static unsigned long lastTime = 0;
     unsigned long currentTime = millis();
 
-    // if (currentTime - lastTime < 5000) return; // Отправлять каждые 5 секунд
-    // lastTime = currentTime;
-
     StaticJsonDocument<512> doc;
     doc["DF"] = CurrentDate;
     doc["TF"] = CurrentTime;

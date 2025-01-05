@@ -168,8 +168,8 @@ SensorData readHTU21D(Adafruit_HTU21DF &htu) {
     float hum = htu.readHumidity();
 
     // Проверяем данные на NaN
-    data.temperature = isnan(temp) ? 0.0 : temp;
-    data.humidity = isnan(hum) ? 0.0 : hum;
+    data.temperature = isnan(temp) ? -0.7 : temp;
+    data.humidity = isnan(hum) ? -0.7 : hum;
 
     return data;
 }
@@ -210,6 +210,7 @@ void readAllDS18B20() {
         switch (i) {
             case 0:
                 water_temperature_osmo = temperature;
+                //data.temperature = isnan(temp) ? -0.7 : temp;
                 break;
             case 1:
                 water_temperature_watering = temperature;

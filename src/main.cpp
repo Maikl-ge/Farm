@@ -8,17 +8,35 @@
 #include "SensorsModule.h"
 #include <Arduino.h>
 
-// Переменные для хранения времени последнего выполнения функций
-unsigned long lastWebSocketUpdate = 0;
-unsigned long lastSensorUpdate = 0;
-unsigned long lastDataSend = 0;
-unsigned long lastButtonUpdate = 0;
+// Задачи для FreeRTOS
 
-// Интервалы обновления в миллисекундах
-const unsigned long webSocketInterval = 2000;
-const unsigned long sensorInterval = 5000;
-const unsigned long dataSendInterval = 60000;
-const unsigned long buttonInterval = 300; // Интервал опроса кнопок
+void updateWebSocketTask(void *parameter) {
+    for (;;) {
+        processWebSocket();
+        vTaskDelay(2000 / portTICK_PERIOD_MS);  // Задержка 2000 мс
+    }
+}
+
+void updateSensorsTask(void *parameter) {
+    for (;;) {
+        updateSensors();
+        vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс
+    }
+}
+
+void sendDataTask(void *parameter) {
+    for (;;) {
+        sendDataIfNeeded();
+        vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс
+    }
+}
+
+void updateButtonTask(void *parameter) {
+    for (;;) {
+        updateButtonState();
+        vTaskDelay(300 / portTICK_PERIOD_MS);  // Задержка 300 мс
+    }
+}
 
 void setup() {
     Serial.begin(115200);
@@ -39,32 +57,49 @@ void setup() {
     // setupOTA();  // Настройка OTA через модуль
 
     initializeSensors();  // Инициализация кнопок
+
+    // Создание задач
+    xTaskCreatePinnedToCore(
+        updateWebSocketTask,   // Функция задачи
+        "Update WebSocket",    // Название задачи
+        10000,                 // Размер стека задачи
+        NULL,                  // Параметры задачи
+        1,                     // Приоритет задачи
+        NULL,                  // Дескриптор задачи
+        0                      // Ядро, на котором будет выполняться задача (0 или 1)
+    );
+
+    xTaskCreatePinnedToCore(
+        updateSensorsTask,
+        "Update Sensors",
+        10000,
+        NULL,
+        1,
+        NULL,
+        tskNO_AFFINITY
+    );
+
+    xTaskCreatePinnedToCore(
+        sendDataTask,
+        "Send Data",
+        10000,
+        NULL,
+        1,
+        NULL,
+        0
+    );
+
+    xTaskCreatePinnedToCore(
+        updateButtonTask,
+        "Update Button",
+        10000,
+        NULL,
+        1,
+        NULL,
+        tskNO_AFFINITY
+    );
 }
 
 void loop() {
-    unsigned long currentMillis = millis();
-
-    // Обновление состояния WebSocket
-    if (currentMillis - lastWebSocketUpdate >= webSocketInterval) {
-        lastWebSocketUpdate = currentMillis;
-        processWebSocket(); 
-    }
-
-    // Опрос датчиков
-    if (currentMillis - lastSensorUpdate >= sensorInterval) {
-        lastSensorUpdate = currentMillis;
-        updateSensors(); 
-    }
-
-    // Отправка данных каждые 60 секунд
-    if (currentMillis - lastDataSend >= dataSendInterval) {
-        lastDataSend = currentMillis;
-        sendDataIfNeeded(); 
-    }
-
-    // Опрос кнопок
-    if (currentMillis - lastButtonUpdate >= buttonInterval) {
-        lastButtonUpdate = currentMillis;
-        updateButtonState();
-    }
+    // Пусто, так как все задачи выполняются в контексте FreeRTOS
 }
