@@ -3,5 +3,6 @@
 
 // Инициализация модуля настроек
 void initializeSettingsModule();
+void saveUint16ToEEPROM();
 
 #endif // SETTINGS_MODULE_H

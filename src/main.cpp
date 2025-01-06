@@ -7,6 +7,10 @@
 #include "CurrentProfile.h"
 #include "SensorsModule.h"
 #include <Arduino.h>
+#include <EEPROM.h>
+
+// Размер EEPROM
+#define EEPROM_SIZE 0x2A
 
 // Задачи для FreeRTOS
 
@@ -20,6 +24,7 @@ void updateWebSocketTask(void *parameter) {
 void updateSensorsTask(void *parameter) {
     for (;;) {
         updateSensors();
+        updateLightBrightness();
         vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс
     }
 }
@@ -41,6 +46,12 @@ void updatePCF8574Task(void *parameter) {
 void setup() {
     Serial.begin(115200);
 
+    EEPROM.begin(EEPROM_SIZE);
+
+    setupLightControl(); // Инициализация модуля управления светом
+
+    setupWater(); // Инициализация модуля управления водой
+
     // Подключение к WiFi
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
@@ -55,8 +66,6 @@ void setup() {
     initializeWebSocket(); // Инициализация WebSocket и подключения
 
     setupOTA();  // Настройка OTA через модуль
-
-    setupWater(); // Инициализация модуля управления водой
 
     initializeSensors();  // Инициализация модуля сенсоров
 

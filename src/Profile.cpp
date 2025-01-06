@@ -4,9 +4,6 @@
 #include "globals.h"
 #include "CurrentProfile.h"
 
-// Размер EEPROM
-#define EEPROM_SIZE 0x2A
-
 // Сохраняет `uint16_t` значение в EEPROM
 void saveUint16ToEEPROM(int address, uint16_t value) {
     EEPROM.write(address, value & 0xFF);       // Младший байт
@@ -105,7 +102,6 @@ void fetchAndSaveSettings() {
 
 // Инициализация модуля
 void initializeSettingsModule() {
-    EEPROM.begin(EEPROM_SIZE);
 
     // Адрес для чтения байтов состояния Фермы
     int address = 0x24;

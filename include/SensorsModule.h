@@ -57,6 +57,6 @@ void handleButtonState(); // Обработка состояния кнопок
 SensorData readHTU21D(uint8_t address); // Чтение данных с датчика HTU21D
 void readAllHTU21D(); // Чтение данных с пяти датчиков HTU21D
 void readAllDS18B20(); // Чтение данных с четырех датчиков DS18B20
-void setupWater(); // Инициализация модуля управления водой
+
 
 #endif // SENSORS_MODULE_H
