@@ -5,19 +5,12 @@
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include "Pinout.h" // Подключаем Pinout.h
-#include "SensorsModule.h"
+#include "Pinout.h"
 
-
-// Прототипы функций опроса кнопок
-void readButtons();
 // Объявления переменных (extern) состояния кнопок
 extern volatile bool startButtonPressed;
 extern volatile bool stopButtonPressed;
 extern volatile bool modeButtonPressed;
-
-// Прототипы функций опроса датчиков холла
-void readHallSensors();
 
 // Объявления переменных для хранения состояния датчиков холла
 extern bool max_osmo_level;
@@ -26,12 +19,12 @@ extern bool max_water_level;
 extern bool min_water_level;
 
 // Структура для хранения данных с датчиков HTU21D
-    struct SensorData {
+struct SensorData {
     float temperature;
     float humidity;
 };
 
-//  Объявление переменных для хранения состояния датчиков температуры и влажности
+// Объявление переменных для хранения состояния датчиков температуры и влажности
 extern float temperature_1;
 extern float humidity_1;
 extern float temperature_2;
@@ -43,7 +36,7 @@ extern float humidity_4;
 extern float temperature_5;
 extern float humidity_5;
 
-// Объявление переменных для датчиков температыры 
+// Объявление переменных для датчиков температуры
 extern float water_temperature_osmo;
 extern float water_temperature_watering;
 extern float air_temperature_outdoor;
@@ -57,10 +50,9 @@ extern float tds_osmo;
 extern bool power_monitor;
 
 // Функции модуля
-void initializeSensors(); // Инициализация кнопок
+void initializeSensors(); // Инициализация всех сенсоров
 void updateSensors(); // Обновление состояния всех сенсоров
-void readButtons(); // Опрос кнопок
-void readHallSensors(); // Чтение состояния датчиков холла
+uint8_t readPCF8574(); // Чтение состояния датчиков холла
 void handleButtonState(); // Обработка состояния кнопок
 SensorData readHTU21D(uint8_t address); // Чтение данных с датчика HTU21D
 void readAllHTU21D(); // Чтение данных с пяти датчиков HTU21D

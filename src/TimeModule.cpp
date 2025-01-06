@@ -15,8 +15,18 @@ Rtc_Pcf8563 rtc;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000);
 
+void checkRtcPresence() {
+    Wire.beginTransmission(0x51); // Адрес RTC PCF8563
+    if (Wire.endTransmission() == 0) {
+        Serial.println("RTC detected on I2C bus.");
+    } else {
+        Serial.println("RTC not detected on I2C bus.");
+    }
+}
+
 void initTimeModule() {
     Wire.begin(SDA_PIN, SCL_PIN); // Инициализация I2C
+    //checkRtcPresence(); // Проверка наличия RTC на шине I2C
     rtc.initClock(); // Инициализация RTC
     timeClient.begin(); // Запуск NTP клиента
 }
@@ -26,7 +36,7 @@ void syncTimeWithNTP(const char* ntpServer) {
 
     Serial.println("Synchronizing time with NTP server...");
     while (!timeClient.update()) {
-        delay(1000);
+        delay(500);
     }
 
     unsigned long epochTime = timeClient.getEpochTime();

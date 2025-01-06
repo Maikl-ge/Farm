@@ -45,21 +45,12 @@ void processWebSocket() {
     client.poll();
 
     if (!connected) {
-      //  static unsigned long lastReconnectAttempt = 0;
-     //   unsigned long currentTime = millis();
-
-        // Проверяем, прошло ли достаточно времени для повторной попытки подключения
-     //   if (currentTime - lastReconnectAttempt >= 5000) { // 5 секунд
-     //       Serial.println("Reconnecting to WebSocket server...");
-     //       lastReconnectAttempt = currentTime; // Обновляем время последней попытки
-
-            if (client.connect(ws_server)) {
-                Serial.println("Reconnected to WebSocket server!");
-                connected = true;
-            } else {
-                Serial.println("Reconnect attempt failed. Waiting 10 seconds before retrying.");
-            }
-     //   }
+        if (client.connect(ws_server)) {
+            Serial.println("Reconnected to WebSocket server!");
+            connected = true;
+        } else {
+            Serial.println("Reconnect attempt failed. Waiting 10 seconds before retrying.");
+        }
     }
 }
 
@@ -72,13 +63,13 @@ void sendDataIfNeeded() {
     StaticJsonDocument<512> doc;
     doc["DF"] = CurrentDate;
     doc["TF"] = CurrentTime;
-    doc["start_Button"] = startButtonPressed ? 1 : 0;
-    doc["stop_Button"] = stopButtonPressed ? 1 : 0;
-    doc["mode_Button"] = modeButtonPressed ? 1 : 0;
-    doc["max_osmo_level"] = max_osmo_level ? 1 : 0;
-    doc["min_osmo_level"] = min_osmo_level ? 1 : 0;
-    doc["max_water_level"] = max_water_level ? 1 : 0;
-    doc["min_water_level"] = min_water_level ? 1 : 0;
+    doc["start_Button"] = startButtonPressed;
+    doc["stop_Button"] = stopButtonPressed;
+    doc["mode_Button"] = modeButtonPressed;
+    doc["max_osmo_level"] = max_osmo_level;
+    doc["min_osmo_level"] = min_osmo_level;
+    doc["max_water_level"] = max_water_level;
+    doc["min_water_level"] = min_water_level;
     doc["T1"] = temperature_1;
     doc["H1"] = humidity_1;
     doc["T2"] = temperature_2;
@@ -95,7 +86,7 @@ void sendDataIfNeeded() {
     doc["ATI"] = air_temperature_inlet;
     doc["ph"] = ph_osmo;
     doc["tds"] = tds_osmo;
-    doc["pm"] = power_monitor ? 1 : 0;
+    doc["pm"] = power_monitor;
 
     String jsonMessage;
     serializeJson(doc, jsonMessage);
@@ -112,5 +103,5 @@ void sendDataIfNeeded() {
 void saveMessageToSDCard(const String& message) {
     // Заглушка записи на SD-карту
     Serial.print("Сохраняем сообщение на SD-карту: ");
-    //Serial.println(message);
+    Serial.println(message);
 }

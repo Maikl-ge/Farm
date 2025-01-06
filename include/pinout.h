@@ -9,27 +9,12 @@
 // Пины для подключения I2C
 #define SDA_PIN 21  // Шина данных I2C (SDA) (GPIO21, нога 33) SHT20
 #define SCL_PIN 22  // Шина тактирования I2C (SCL) (GPIO22, нога 36)
+// Кнопки 
+// Датчики Холла (уровень воды)
+// Контроль питающей сети
 
 // 1-Wire для DS18B20
 #define ONE_WIRE_BUS 4  // Шина 1-Wire для четырех DS18B20 (GPIO4, нога 26)
-
-// Кнопки
-#define BUTTON1_PIN 16 // Первая кнопка (GPIO16, нога 8)
-#define BUTTON2_PIN 17 // Вторая кнопка (GPIO17, нога 9)
-#define BUTTON3_PIN 20 // Третья кнопка (GPIO20, нога 40)
-
-// Датчики pH и TDS
-// #define PH_SENSOR_PIN 36  // Аналоговый вход для pH (GPIO36, нога 3)
-// #define TDS_SENSOR_PIN 37 // Аналоговый вход для TDS (GPIO37, нога 4)
-
-// Датчики Холла (уровень воды)
-#define HALL_SENSOR1_PIN 34 // Первый датчик Холла (GPIO34, нога 5)
-#define HALL_SENSOR2_PIN 35 // Второй датчик Холла (GPIO35, нога 6)
-#define HALL_SENSOR3_PIN 36 // Третий датчик Холла (GPIO36, нога 3) 
-#define HALL_SENSOR4_PIN 39 // Четвертый датчик Холла (GPIO39, нога 4) 
-
-// Контроль питающей сети
-#define POWER_MONITOR_PIN 3 // Аналоговый вход для мониторинга сети (GPIO3, нога 34)
 
 // Пины для SD-карты (SPI)
 #define SD_MOSI 23 // MOSI для SD-карты (GPIO23, нога 37)

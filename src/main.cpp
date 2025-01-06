@@ -33,7 +33,7 @@ void sendDataTask(void *parameter) {
 
 void updateButtonTask(void *parameter) {
     for (;;) {
-        updateButtonState();
+        readPCF8574();
         vTaskDelay(300 / portTICK_PERIOD_MS);  // Задержка 300 мс
     }
 }
