@@ -122,11 +122,12 @@ void initializeSensors() {
     }
 
     // Инициализация датчика pH
-    pinMode(PH_SENSOR_PIN, INPUT);
+//    pinMode(PH_SENSOR_PIN, INPUT);
 }
 
 // Опрос кнопок
 void updateButtonState() {
+    readHallSensors();
 
     // if (modeButtonPressed) {
     //     modeButtonPressed = false; // Сброс флага

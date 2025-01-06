@@ -13,7 +13,7 @@
 void updateWebSocketTask(void *parameter) {
     for (;;) {
         processWebSocket();
-        vTaskDelay(2000 / portTICK_PERIOD_MS);  // Задержка 2000 мс
+        vTaskDelay(10000 / portTICK_PERIOD_MS);  // Задержка 10000 мс
     }
 }
 
@@ -51,7 +51,7 @@ void setup() {
 
     initializeSettingsModule(); // Вызов модуля загрузки настроек
     initTimeModule();    // Инициализируем модуль времени
-    syncTimeWithNTP();   // Синхронизируем время с NTP
+    syncTimeWithNTP("pool.ntp.org"); // Передаем NTP сервер в функцию   // Синхронизируем время с NTP
     initializeWebSocket(); // Инициализация WebSocket и подключения
 
     // setupOTA();  // Настройка OTA через модуль

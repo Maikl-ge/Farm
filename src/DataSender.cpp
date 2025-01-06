@@ -45,21 +45,21 @@ void processWebSocket() {
     client.poll();
 
     if (!connected) {
-        static unsigned long lastReconnectAttempt = 0;
-        unsigned long currentTime = millis();
+      //  static unsigned long lastReconnectAttempt = 0;
+     //   unsigned long currentTime = millis();
 
         // Проверяем, прошло ли достаточно времени для повторной попытки подключения
-        if (currentTime - lastReconnectAttempt >= 5000) { // 5 секунд
-            Serial.println("Reconnecting to WebSocket server...");
-            lastReconnectAttempt = currentTime; // Обновляем время последней попытки
+     //   if (currentTime - lastReconnectAttempt >= 5000) { // 5 секунд
+     //       Serial.println("Reconnecting to WebSocket server...");
+     //       lastReconnectAttempt = currentTime; // Обновляем время последней попытки
 
             if (client.connect(ws_server)) {
                 Serial.println("Reconnected to WebSocket server!");
                 connected = true;
             } else {
-                Serial.println("Reconnect attempt failed. Waiting 5 seconds before retrying.");
+                Serial.println("Reconnect attempt failed. Waiting 10 seconds before retrying.");
             }
-        }
+     //   }
     }
 }
 

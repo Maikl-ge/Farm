@@ -2,9 +2,6 @@
 #define GLOBALS_H
 
 // Глобальные переменные
-extern float temperature;
-extern float humidity;
-extern float waterLevel;
 
 // Константы для WiFi и WebSocket
 extern const char* ssid;
