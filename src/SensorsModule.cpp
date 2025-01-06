@@ -116,6 +116,8 @@ void initializeSensors() {
 
     // Инициализация датчика pH
 //    pinMode(PH_SENSOR_PIN, INPUT);
+
+// Установка периода опроса датчиков PCF8574
     max_water_level = 0;
     min_water_level = 0;
     max_osmo_level = 0;
@@ -129,7 +131,7 @@ void initializeSensors() {
 // Функция чтения байта состояния с PCF8574
 uint8_t readPCF8574() {
     if (!pcf8574.begin()) {
-        Serial.println("Failed to read PCF8574, assigning default state");
+        //Serial.println("Failed to read PCF8574, assigning default state");
         state = 0b10100001;
     } else {
         state = pcf8574.read8();
@@ -147,29 +149,6 @@ uint8_t readPCF8574() {
     power_monitor = state & 0b00000001; // 0 бит
 
     return state;
-}
-
-// Опрос кнопок
-void updateButtonState() {
-
-    if (modeButtonPressed && startButtonPressed) {
-        modeButtonPressed = false; // Сброс флага
-        startButtonPressed = false; // Сброс флага
-        Serial.println("START");
-    }   
-    if (modeButtonPressed && stopButtonPressed) {
-        modeButtonPressed = false; // Сброс флага
-        stopButtonPressed = false; // Сброс флага
-        Serial.println("STOP");
-    }  
-    if (startButtonPressed) {
-        startButtonPressed = false; // Сброс флага
-        Serial.println("Start button pressed");
-    }
-    if (stopButtonPressed) {
-        stopButtonPressed = false; // Сброс флага
-        Serial.println("Stop button pressed");
-    }  
 }
 
 // Чтение данных с датчика HTU21D

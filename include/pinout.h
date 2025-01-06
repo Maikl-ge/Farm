@@ -1,9 +1,6 @@
 #ifndef PINOUT_H
 #define PINOUT_H
 
-// Пины цифрового ввода/вывода (GPIO)
-#define LED_BUILTIN  // Светодиод на плате (GPIO2, нога 10)
-
 // Входы от датчиков фермы  20 ----------------------------
 
 // Пины для подключения I2C
@@ -25,23 +22,24 @@
 // Выходы для управления фермой ----------------------------
 // Пины для управления устройствами PWM
 #define LIGHT_PIN  2  // Свет (PWM) (GPIO02, нога 24)
-#define FAN_RACK_PIN 26     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO26, нога 10)
-#define FAN_SHELF_PIN 27    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO27, нога 11
-#define FAN_CIRC_PIN 15     // Циркуляция внутри камеры (PWM) (GPI5, нога 23)
+#define FAN_RACK_PIN 15     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
+#define FAN_SHELF_PIN 17    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+#define FAN_CIRC_PIN 16     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
 #define FAN_INLET 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
 #define HITER_AIR_PIN 13    // Обогрев камеры (PWM) (GPIO13, нога 15)
 #define HITER_WATER_PIN 14  // Нагрев воды (PWM) (GPIO14, нога 12)
+#define FAN_OPTION_PIN 25   //Опциональный вентилятор (GPIO25, нога 9)
 
-// Пины для управления клапанами ON/OFF
-#define OSMOS_ON_PIN  // Подача очищенной воды (ON/OFF) (GPIO17, нога 9)
-#define PUMP_1_PIN    // Полив (ON/OFF) (GPIO32, нога 7)
-#define PUMP_2_PIN    // Перемешивание (ON/OFF) (GPIO33, нога 8)
-#define WATER_OUT_PIN   // Слив (ON/OFF) (GPIO4, нога 24)
-#define STEAM_IN_PIN    // Парогенератор (ON/OFF) (GPIO5, нога 29)
+// Пины для управления нагрузками ON/OFF
+#define OSMOS_ON_PIN 32 // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
+#define PUMP_1_PIN 33   // Полив (ON/OFF) (GPIO33, нога 8)
+#define PUMP_2_PIN 26   // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
+#define WATER_OUT_PIN 27 // Слив (ON/OFF) (GPIO27, нога 11)
+#define STEAM_IN_PIN 3   // Парогенератор (ON/OFF) (GPIO3, нога 34)
 
 // Шаговый двигатель (Step, Dir, Enable)
-#define STEP_PIN     // Шаговый двигатель (GPIO2, нога 10)
-#define DIR_PIN     // Направление (GPIO15, нога 23)
+#define STEP_PIN 1   // Шаговый двигатель (GPIO1, нога 35)
+#define DIR_PIN 0   // Направление (GPIO0, нога 25)
 #define ENABLE_PIN   // Включение (GPIO0, нога 21)
 
 // Используемые для встроенной памяти
@@ -52,15 +50,15 @@
 
 // 3,3 volt   нога 1 ~~~~~~~~~~
 // Reset      нога 2 ~~~~~~~~~~
-// GPIO36     нога 3 --> HALL_SENSOR_3
-// GPIO39     нога 4 --> HALL_SENSOR_4
-// GPIO34     нога 5 --> HALL_SENSOR_1
-// GPIO35     нога 6 --> HALL_SENSOR_2
-// GPIO32     нога 7
-// GPIO33     нога 8
-// GPIO25     нога 9
-// GPIO26     нога 10  <-- FAN_RACK_PIN
-// GPIO27     нога 11  <-- FAN_SHELF_PIN
+// GPIO36     нога 3 
+// GPIO39     нога 4 
+// GPIO34     нога 5 
+// GPIO35     нога 6 
+// GPIO32     нога 7 <-- OSMOS_ON_PIN
+// GPIO33     нога 8 <-- PUMP_1_PIN
+// GPIO25     нога 9 <-- FAN_OPTION_PIN
+// GPIO26     нога 10 <-- PUMP_2_PIN  
+// GPIO27     нога 11 <-- WATER_OUT_PIN  
 // GPIO14     нога 12  <-- HITER_WATER_PIN
 // GPIO12     нога 13  <-- FAN_INLET
 // GNND       нога 14 ~~~~~~~~~~
@@ -72,19 +70,19 @@
 // GPIO06     нога 20   FLASH SCK
 // GPIO07     нога 21   FLASH D0
 // GPIO08     нога 22   FLASH D1
-// GPIO15     нога 23  <-- FAN_CIRC_PIN
+// GPIO15     нога 23  <-- FAN_RACK_PIN
 // GPIO02     нога 24  <-- LIGHT_PIN
-// GPIO00     нога 25
+// GPIO00     нога 25 <-- DIR_PIN
 // GPIO04     нога 26 --> ONE_WIRE_BUS
-// GPIO16     нога 27
-// GPIO17     нога 28
+// GPIO16     нога 27 <-- FAN_CIRC_PIN
+// GPIO17     нога 28 <-- FAN_SHELF_PIN
 // GPIO05     нога 29 --> SD_CS
 // GPIO18     нога 30 --> SD_SCK
 // GPIO19     нога 31 --> SD_MISO
 // GND        нога 32 ~~~~~~~~~~
 // GPIO21     нога 33 --> SDA_PIN
-// GPIO03     нога 34 --> POWER_MONITOR_PIN
-// GPIO01     нога 35
+// GPIO03     нога 34 <-- STEAM_IN_PIN 
+// GPIO01     нога 35 --> STEP_PIN
 // GPIO22     нога 36 --> SCL_PIN
 // GPIO23     нога 37 --> SD_MOSI
 // GND        нога 38 ~~~~~~~~~~

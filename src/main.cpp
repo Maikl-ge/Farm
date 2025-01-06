@@ -31,7 +31,7 @@ void sendDataTask(void *parameter) {
     }
 }
 
-void updateButtonTask(void *parameter) {
+void updatePCF8574Task(void *parameter) {
     for (;;) {
         readPCF8574();
         vTaskDelay(300 / portTICK_PERIOD_MS);  // Задержка 300 мс
@@ -51,12 +51,14 @@ void setup() {
 
     initializeSettingsModule(); // Вызов модуля загрузки настроек
     initTimeModule();    // Инициализируем модуль времени
-    syncTimeWithNTP("pool.ntp.org"); // Передаем NTP сервер в функцию   // Синхронизируем время с NTP
+    //syncTimeWithNTP("pool.ntp.org"); // Передаем NTP сервер в функцию   // Синхронизируем время с NTP
     initializeWebSocket(); // Инициализация WebSocket и подключения
 
-    // setupOTA();  // Настройка OTA через модуль
+    setupOTA();  // Настройка OTA через модуль
 
-    initializeSensors();  // Инициализация кнопок
+    setupWater(); // Инициализация модуля управления водой
+
+    initializeSensors();  // Инициализация модуля сенсоров
 
     // Создание задач
     xTaskCreatePinnedToCore(
@@ -90,7 +92,7 @@ void setup() {
     );
 
     xTaskCreatePinnedToCore(
-        updateButtonTask,
+        updatePCF8574Task,
         "Update Button",
         10000,
         NULL,
@@ -101,5 +103,6 @@ void setup() {
 }
 
 void loop() {
-    // Пусто, так как все задачи выполняются в контексте FreeRTOS
+    ArduinoOTA.handle(); // Обработка OTA обновлений
+    // Другие задачи, если есть
 }
