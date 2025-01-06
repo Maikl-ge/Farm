@@ -37,7 +37,7 @@ void sendMessagetoStatus() {
 
 //Обработка состояния датчиков холла
 void controlWaterLevel() {
-    if (max_osmo_level == 1) {
+    if (max_osmo_level == 1 && min_osmo_level == 0) {
        digitalWrite (OSMOS_ON_PIN, LOW);
     }
 
@@ -45,18 +45,28 @@ void controlWaterLevel() {
         digitalWrite (OSMOS_ON_PIN, HIGH);
     }
     
-    if (max_water_level == 1) {
+    if (max_water_level == 1 && min_water_level == 0) {
         digitalWrite (PUMP_2_PIN, LOW);
     }
     
     if (min_water_level == 0 && max_water_level == 1) {
         digitalWrite (PUMP_2_PIN, HIGH);
     }
+}
 
+    void powerMonitor() {
     // Чтение состояния мониторинга питающей сети
     if (power_monitor == 0) {
         sendMessagetoStatus();
-        Serial.println("Power monitor: ERROR");
     }
 }
+
+    void updateButtonWater() {
+        readPCF8574();
+        controlWaterLevel();
+        updateButtonState();
+        powerMonitor();
+
+    }
+
 

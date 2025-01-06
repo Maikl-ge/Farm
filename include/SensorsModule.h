@@ -7,6 +7,9 @@
 #include <DallasTemperature.h>
 #include "Pinout.h"
 
+// Объявление глобальной переменной
+extern uint8_t sensorState;
+
 // Объявления переменных (extern) состояния кнопок
 extern volatile bool startButtonPressed;
 extern volatile bool stopButtonPressed;
@@ -57,6 +60,5 @@ void handleButtonState(); // Обработка состояния кнопок
 SensorData readHTU21D(uint8_t address); // Чтение данных с датчика HTU21D
 void readAllHTU21D(); // Чтение данных с пяти датчиков HTU21D
 void readAllDS18B20(); // Чтение данных с четырех датчиков DS18B20
-
 
 #endif // SENSORS_MODULE_H

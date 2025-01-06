@@ -1,16 +1,21 @@
+#include <Arduino.h>
 #include <WiFi.h>
-#include "ota_module.h"
+#include <EEPROM.h>
 #include "globals.h"
-#include "DataSender.h"
 #include "TimeModule.h"
+#include "SensorsModule.h"
+#include "DataSender.h"
+#include "ota_module.h"
 #include "Profile.h"
 #include "CurrentProfile.h"
-#include "SensorsModule.h"
-#include <Arduino.h>
-#include <EEPROM.h>
 
 // Размер EEPROM
 #define EEPROM_SIZE 0x2A
+
+// Прототипы функций
+void sendDataTask(void *parameter);
+void updatePCF8574Task(void *parameter);
+void updateButtonWaterTask(void *parameter);
 
 // Задачи для FreeRTOS
 
@@ -39,14 +44,26 @@ void sendDataTask(void *parameter) {
 void updatePCF8574Task(void *parameter) {
     for (;;) {
         readPCF8574();
-        vTaskDelay(300 / portTICK_PERIOD_MS);  // Задержка 300 мс
+        vTaskDelay(1000 / portTICK_PERIOD_MS);  // Задержка 1000 мс
+    }
+}
+
+void updateButtonWaterTask(void *parameter) {
+    for (;;) {
+        updateButtonWater();
+        vTaskDelay(250 / portTICK_PERIOD_MS);  // Задержка 250 мс
     }
 }
 
 void setup() {
     Serial.begin(115200);
+    Serial.setDebugOutput(false); // Отключение вывода отладочных сообщений
 
-    EEPROM.begin(EEPROM_SIZE);
+    // Инициализация EEPROM
+    if (!EEPROM.begin(EEPROM_SIZE)) {
+        Serial.println("Failed to initialize EEPROM");
+        return;
+    }
 
     setupLightControl(); // Инициализация модуля управления светом
 
@@ -62,7 +79,7 @@ void setup() {
 
     initializeSettingsModule(); // Вызов модуля загрузки настроек
     initTimeModule();    // Инициализируем модуль времени
-    //syncTimeWithNTP("pool.ntp.org"); // Передаем NTP сервер в функцию   // Синхронизируем время с NTP
+    syncTimeWithNTP("pool.ntp.org"); // Синхронизируем время с NTP
     initializeWebSocket(); // Инициализация WebSocket и подключения
 
     setupOTA();  // Настройка OTA через модуль
@@ -102,7 +119,17 @@ void setup() {
 
     xTaskCreatePinnedToCore(
         updatePCF8574Task,
-        "Update Button",
+        "Update PCF8574",
+        10000,
+        NULL,
+        1,
+        NULL,
+        tskNO_AFFINITY
+    );
+
+    xTaskCreatePinnedToCore(
+        updateButtonWaterTask,
+        "Update Button Water",
         10000,
         NULL,
         1,

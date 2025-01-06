@@ -65,11 +65,8 @@ float tds_osmo = 0.0;
 // Определение переменных для мониторинга питающей сети
 bool power_monitor = 0b0;
 
-// Аппаратный таймер
-hw_timer_t *timer = NULL;
-
 // Глобальная переменная для хранения состояния PCF8574
-uint8_t state = 0;
+uint8_t sensorState = 0;
 
 // Инициализация всех сенсоров
 void initializeSensors() {
@@ -117,7 +114,7 @@ void initializeSensors() {
     // Инициализация датчика pH
 //    pinMode(PH_SENSOR_PIN, INPUT);
 
-// Установка периода опроса датчиков PCF8574
+// Назначение портов PCF8574 датчиков 
     max_water_level = 0;
     min_water_level = 0;
     max_osmo_level = 0;
@@ -132,23 +129,23 @@ void initializeSensors() {
 uint8_t readPCF8574() {
     if (!pcf8574.begin()) {
         //Serial.println("Failed to read PCF8574, assigning default state");
-        state = 0b10100001;
+        sensorState = 0b10100001;
     } else {
-        state = pcf8574.read8();
+        sensorState = pcf8574.read8();
     }
     // Чтение состояния датчиков уровня воды
-    max_osmo_level = state & 0b10000000; // 7 бит
-    min_osmo_level = state & 0b01000000; // 6 бит
-    max_water_level = state & 0b00100000; // 5 бит
-    min_water_level = state & 0b00010000; // 4 бит
+    max_osmo_level = sensorState & 0b10000000; // 7 бит
+    min_osmo_level = sensorState & 0b01000000; // 6 бит
+    max_water_level = sensorState & 0b00100000; // 5 бит
+    min_water_level = sensorState & 0b00010000; // 4 бит
     // Чтение состояния кнопок
-    startButtonPressed = state & 0b00001000; // 3 бит
-    modeButtonPressed = state & 0b00000100; // 2 бит
-    stopButtonPressed = state & 0b00000010; // 1 бит
+    startButtonPressed = sensorState & 0b00001000; // 3 бит
+    modeButtonPressed = sensorState & 0b00000100; // 2 бит
+    stopButtonPressed = sensorState & 0b00000010; // 1 бит
     // Чтение состояния мониторинга питающей сети
-    power_monitor = state & 0b00000001; // 0 бит
+    power_monitor = sensorState & 0b00000001; // 0 бит
 
-    return state;
+    return sensorState;
 }
 
 // Чтение данных с датчика HTU21D
@@ -220,8 +217,7 @@ void updateSensors() {
     readAllHTU21D();
     readAllDS18B20();
     uint8_t sensorState = readPCF8574();
-    max_water_level = (sensorState & 0x01) ? 1 : 0;
-    min_water_level = (sensorState & 0x02) ? 1 : 0;
+
 //    processButtonStates();
     // Serial.println("Опрос всех сенсоров");
     Serial.print(max_osmo_level);

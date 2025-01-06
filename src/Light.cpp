@@ -22,15 +22,17 @@ void setupLightControl() {
     pinMode(LIGHT_PIN, OUTPUT);
     analogWrite(LIGHT_PIN, 0); // Установить яркость на 0
 
-    // Адрес для чтения байтов состояния Фермы
+    // Адрес для чтения времени рассвета на Фермы
     int address = 0x1C;
     // Чтение двух байт и объединение в uint16_t
     sunriseDay = readUint16FromEEPROM(address);
 
+    // Адрес для чтения времени заката на Фермы
     address = 0x1E;
     // Чтение двух байт и объединение в uint16_t
     sunsetDay = readUint16FromEEPROM(address);
 
+    // Длительность перехода от рассвета ко дню и от дня к закату
     transitionTime = 15;
 }
 
@@ -50,21 +52,22 @@ void updateLightBrightness() {
     if (currentTimeMinutes >= sunriseDay && currentTimeMinutes < sunriseDay + transitionTime) {
         // Восход - плавное увеличение яркости
         int elapsedTime = (currentTimeMinutes - sunriseDay) * 60;
-        currentBrightness = map(elapsedTime, 0, transitionSteps, 0, 100);
+        currentBrightness = map(elapsedTime, 0, transitionSteps, 0, 255);
     } else if (currentTimeMinutes >= sunsetDay && currentTimeMinutes < sunsetDay + transitionTime) {
         // Закат - плавное уменьшение яркости
         int elapsedTime = (currentTimeMinutes - sunsetDay) * 60;
-        currentBrightness = map(elapsedTime, 0, transitionSteps, 100, 0);
+        currentBrightness = map(elapsedTime, 0, transitionSteps, 255, 0);
     } else if (currentTimeMinutes >= sunriseDay + transitionTime && currentTimeMinutes < sunsetDay) {
-        // Полный день - яркость 100
-        currentBrightness = 100;
+        // Полный день - яркость 255
+        currentBrightness = 255;
     } else {
         // Ночь - яркость 0
         currentBrightness = 0;
     }
 
     // Применить новую яркость (переводим в диапазон 0-255)
-    int pwmValue = map(currentBrightness, 0, 100, 0, 255);
+    //int pwmValue = map(currentBrightness, 0, 255, 0, 255);
+    int pwmValue = currentBrightness;
     analogWrite(LIGHT_PIN, pwmValue);
     Serial.print("Current time minutes: ");
     Serial.println(currentTimeMinutes);
