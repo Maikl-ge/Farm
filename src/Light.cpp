@@ -1,83 +1,52 @@
-
 #include <CurrentProfile.h>
 #include <Arduino.h>
 #include <pinout.h>
 #include <globals.h>
 #include <TimeModule.h>
-#include <EEPROM.h>
 
-uint16_t sunriseDay; // Время  рассвета 
-uint16_t sunsetDay; // Время заката
-uint16_t currentDay; // Текущее время суток
+
 uint16_t transitionTime; // Время перехода
 uint16_t currentTimeMinutes; // Текущее время в минутах
 
-// Прототип функции
-uint16_t readUint16FromEEPROM(int address);
-
 // Глобальные переменные
 int currentBrightness = 0; // Текущая яркость (0-100)
+
+// Константы для значений яркости
+const int MAX_BRIGHTNESS = 255;
+const int MIN_BRIGHTNESS = 0;
 
 void setupLightControl() {
     pinMode(LIGHT_PIN, OUTPUT);
     analogWrite(LIGHT_PIN, 0); // Установить яркость на 0
 
-    // Адрес для чтения времени рассвета на Фермы
-    int address = 0x1C;
-    // Чтение двух байт и объединение в uint16_t
-    sunriseDay = readUint16FromEEPROM(address);
-
-    // Адрес для чтения времени заката на Фермы
-    address = 0x1E;
-    // Чтение двух байт и объединение в uint16_t
-    sunsetDay = readUint16FromEEPROM(address);
-
     // Длительность перехода от рассвета ко дню и от дня к закату
     transitionTime = 15;
 }
 
-// Определение функции
-uint16_t readUint16FromEEPROM(int address) {
-    uint16_t value = 0;
-    value = EEPROM.read(address); // Читаем младший байт
-    value |= EEPROM.read(address + 1) << 8; // Читаем старший байт и сдвигаем в старшую позицию
-    return value;
-}
-
 // Функция для расчета яркости в зависимости от текущего времени
 void updateLightBrightness() {
-    currentTimeMinutes = CurrentTime;
+    int currentTimeMinutes = CurrentTime; // Предполагается, что CurrentTime определен глобально
     int transitionSteps = transitionTime * 60; // Время перехода в секундах
 
-    if (currentTimeMinutes >= sunriseDay && currentTimeMinutes < sunriseDay + transitionTime) {
+    if (currentTimeMinutes >= SUNRISE && currentTimeMinutes < SUNRISE + transitionTime) {
         // Восход - плавное увеличение яркости
-        int elapsedTime = (currentTimeMinutes - sunriseDay) * 60;
-        currentBrightness = map(elapsedTime, 0, transitionSteps, 0, 255);
-    } else if (currentTimeMinutes >= sunsetDay && currentTimeMinutes < sunsetDay + transitionTime) {
+        int elapsedTime = (currentTimeMinutes - SUNRISE) * 60;
+        currentBrightness = map(elapsedTime, 0, transitionSteps, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+    } else if (currentTimeMinutes >= SUNSET && currentTimeMinutes < SUNSET + transitionTime) {
         // Закат - плавное уменьшение яркости
-        int elapsedTime = (currentTimeMinutes - sunsetDay) * 60;
-        currentBrightness = map(elapsedTime, 0, transitionSteps, 255, 0);
-    } else if (currentTimeMinutes >= sunriseDay + transitionTime && currentTimeMinutes < sunsetDay) {
+        int elapsedTime = (currentTimeMinutes - SUNSET) * 60;
+        currentBrightness = map(elapsedTime, 0, transitionSteps, MAX_BRIGHTNESS, MIN_BRIGHTNESS);
+    } else if (currentTimeMinutes >= SUNRISE + transitionTime && currentTimeMinutes < SUNSET) {
         // Полный день - яркость 255
-        currentBrightness = 255;
+        currentBrightness = MAX_BRIGHTNESS;
     } else {
         // Ночь - яркость 0
-        currentBrightness = 0;
+        currentBrightness = MIN_BRIGHTNESS;
     }
 
     // Применить новую яркость (переводим в диапазон 0-255)
-    //int pwmValue = map(currentBrightness, 0, 255, 0, 255);
     int pwmValue = currentBrightness;
     analogWrite(LIGHT_PIN, pwmValue);
-    Serial.print("Current time minutes: ");
-    Serial.println(currentTimeMinutes);
-    Serial.print("Current brightness: ");
-    Serial.println(currentBrightness);
-    Serial.print("Sunrise: ");
-    Serial.println(sunriseDay);
-    Serial.print("Sunset: ");
-    Serial.println(sunsetDay);
-    Serial.print("Transition time: ");
-    Serial.println(transitionTime);
+
 }
 

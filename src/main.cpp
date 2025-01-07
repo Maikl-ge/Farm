@@ -16,6 +16,7 @@
 void sendDataTask(void *parameter);
 void updatePCF8574Task(void *parameter);
 void updateButtonWaterTask(void *parameter);
+void updateButtonWater(); // Прототип функции
 
 // Задачи для FreeRTOS
 

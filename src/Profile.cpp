@@ -3,6 +3,14 @@
 #include <EEPROM.h>
 #include "globals.h"
 #include "CurrentProfile.h"
+#include "Profile.h"
+
+// Константы для адресов и значений
+const int EEPROM_START_ADDRESS = 0x00;
+const int EEPROM_END_ADDRESS = 0x2A;
+const int EEPROM_CHECK_ADDRESS = 0x24;
+const uint16_t VALUE_RE = 0x5245;
+const uint16_t VALUE_WO = 0x574F;
 
 // Сохраняет `uint16_t` значение в EEPROM
 void saveUint16ToEEPROM(int address, uint16_t value) {
@@ -57,7 +65,7 @@ void fetchAndSaveSettings() {
 //        Serial.println(response);
 
         // Парсим JSON-ответ
-        DynamicJsonDocument doc(2048);
+        DynamicJsonDocument doc(512);
         DeserializationError error = deserializeJson(doc, response);
 
         if (error) {
@@ -100,35 +108,57 @@ void fetchAndSaveSettings() {
     http.end();
 }
 
+// Функция для чтения двух байт из EEPROM и объединения их в uint16_t
+uint16_t readUint16FromEEPROM(int address) {
+    return EEPROM.read(address) | (EEPROM.read(address + 1) << 8);
+}
+
+// Функция для вывода значений из EEPROM
+void printEEPROMValues(int startAddress, int endAddress) {
+    for (int address = startAddress; address <= endAddress; address += 2) {
+        uint16_t value = readUint16FromEEPROM(address);
+        Serial.printf("Адрес 0x%02X-0x%02X: %u\n", address, address + 1, value);
+    }
+}
+
 // Инициализация модуля
 void initializeSettingsModule() {
-
-    // Адрес для чтения байтов состояния Фермы
-    int address = 0x24;
-
     // Чтение двух байт и объединение в uint16_t
-    uint16_t value = EEPROM.read(address) | (EEPROM.read(address + 1) << 8);
+    uint16_t value = readUint16FromEEPROM(EEPROM_CHECK_ADDRESS);
 
     Serial.printf("Прочитанное значение: 0x%04X\n", value);
 
     // Проверка значения
-    if (value == 0x5245 || value == 0x454E) {  // Проверка RE или EN
-          fetchAndSaveSettings();  
-          // Выводим значения из EEPROM
-          address = 0; // Начальный адрес
-          while (address <= 0x2A) {
-         uint16_t value = EEPROM.read(address) | (EEPROM.read(address + 1) << 8); // Чтение двух байт
-         Serial.printf("Адрес 0x%02X-0x%02X: %u\n", address, address + 1, value);
-         address += 2; // Переход к следующему значению (2 байта)
-    }
+    if (value == VALUE_RE) {  // Проверка статуса RE "Ready"
+        fetchAndSaveSettings();   
+        EEPROMRead(); // Чтение настроек из EEPROM
         return; // Завершаем выполнение функции
-    }
+    } 
+    if (value == VALUE_WO) {  // Проверка статуса WO "Work"    
+        EEPROMRead(); // Чтение настроек из EEPROM
+    }    
+}
 
-    // Выводим значения из EEPROM
-    address = 0; // Начальный адрес
-    while (address <= 0x2A) {
-        uint16_t value = EEPROM.read(address) | (EEPROM.read(address + 1) << 8); // Чтение двух байт
-        Serial.printf("Адрес 0x%02X-0x%02X: %u\n", address, address + 1, value);
-        address += 2; // Переход к следующему значению (2 байта)
-    }
+    void EEPROMRead() {
+            // Присвоение переменным считанных значений
+        int address = EEPROM_START_ADDRESS;
+        DAY_CIRCULATION = readUint16FromEEPROM(address); address += 2;
+        DAY_HUMIDITY_START = readUint16FromEEPROM(address); address += 2;
+        DAY_HUMIDITY_END = readUint16FromEEPROM(address); address += 2;
+        DAY_TEMPERATURE_START = readUint16FromEEPROM(address); address += 2;
+        DAY_TEMPERATURE_END = readUint16FromEEPROM(address); address += 2;
+        DAY_VENTILATION = readUint16FromEEPROM(address); address += 2;
+        DAY_WATERING_INTERVAL = readUint16FromEEPROM(address); address += 2;
+        NIGHT_CIRCULATION = readUint16FromEEPROM(address); address += 2;
+        NIGHT_HUMIDITY_START = readUint16FromEEPROM(address); address += 2;
+        NIGHT_HUMIDITY_END = readUint16FromEEPROM(address); address += 2;
+        NIGHT_TEMPERATURE_START = readUint16FromEEPROM(address); address += 2;
+        NIGHT_TEMPERATURE_END = readUint16FromEEPROM(address); address += 2;
+        NIGHT_VENTILATION = readUint16FromEEPROM(address); address += 2;
+        NIGHT_WATERING_INTERVAL = readUint16FromEEPROM(address); address += 2;
+        SUNRISE = readUint16FromEEPROM(address); address += 2;
+        SUNSET = readUint16FromEEPROM(address); address += 2;
+        WATER_TEMPERATURE = readUint16FromEEPROM(address); address += 2;
+        CYCLE = readUint16FromEEPROM(address); address += 2;
+        WORK = readUint16FromEEPROM(address); address += 2;
 }

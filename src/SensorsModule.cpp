@@ -133,15 +133,18 @@ uint8_t readPCF8574() {
     } else {
         sensorState = pcf8574.read8();
     }
+
     // Чтение состояния датчиков уровня воды
     max_osmo_level = sensorState & 0b10000000; // 7 бит
     min_osmo_level = sensorState & 0b01000000; // 6 бит
     max_water_level = sensorState & 0b00100000; // 5 бит
     min_water_level = sensorState & 0b00010000; // 4 бит
+
     // Чтение состояния кнопок
     startButtonPressed = sensorState & 0b00001000; // 3 бит
     modeButtonPressed = sensorState & 0b00000100; // 2 бит
     stopButtonPressed = sensorState & 0b00000010; // 1 бит
+
     // Чтение состояния мониторинга питающей сети
     power_monitor = sensorState & 0b00000001; // 0 бит
 
@@ -218,21 +221,4 @@ void updateSensors() {
     readAllDS18B20();
     uint8_t sensorState = readPCF8574();
 
-//    processButtonStates();
-    // Serial.println("Опрос всех сенсоров");
-    Serial.print(max_osmo_level);
-    Serial.print(" ");
-    Serial.print(min_osmo_level);
-    Serial.print(" ");
-    Serial.print(max_water_level);
-    Serial.print(" ");
-    Serial.print(min_water_level);
-    Serial.print(" - ");
-    Serial.print(temperature_1);
-    Serial.print(" ");
-    Serial.print(humidity_1);
-    Serial.print(" ");
-    Serial.print(temperature_2);
-    Serial.print(" ");
-    Serial.println(humidity_2);
 }

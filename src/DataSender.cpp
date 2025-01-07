@@ -60,16 +60,16 @@ void sendDataIfNeeded() {
     static unsigned long lastTime = 0;
     unsigned long currentTime = millis();
 
-    StaticJsonDocument<512> doc;
+    DynamicJsonDocument doc(512);
     doc["DF"] = CurrentDate;
     doc["TF"] = CurrentTime;
-    doc["start_Button"] = startButtonPressed;
-    doc["stop_Button"] = stopButtonPressed;
-    doc["mode_Button"] = modeButtonPressed;
-    doc["max_osmo_level"] = max_osmo_level;
-    doc["min_osmo_level"] = min_osmo_level;
-    doc["max_water_level"] = max_water_level;
-    doc["min_water_level"] = min_water_level;
+    doc["start_Button"] = startButtonPressed ? 1 : 0;
+    doc["stop_Button"] = stopButtonPressed ? 1 : 0;
+    doc["mode_Button"] = modeButtonPressed ? 1 : 0;
+    doc["max_osmo_level"] = max_osmo_level ? 1 : 0;
+    doc["min_osmo_level"] = min_osmo_level ? 1 : 0;
+    doc["max_water_level"] = max_water_level ? 1 : 0;
+    doc["min_water_level"] = min_water_level ? 1 : 0;
     doc["T1"] = temperature_1;
     doc["H1"] = humidity_1;
     doc["T2"] = temperature_2;
@@ -86,7 +86,7 @@ void sendDataIfNeeded() {
     doc["ATI"] = air_temperature_inlet;
     doc["ph"] = ph_osmo;
     doc["tds"] = tds_osmo;
-    doc["pm"] = power_monitor;
+    doc["pm"] = power_monitor ? 1 : 0;
 
     String jsonMessage;
     serializeJson(doc, jsonMessage);
