@@ -18,41 +18,6 @@ void saveUint16ToEEPROM(int address, uint16_t value) {
     EEPROM.write(address + 1, (value >> 8));  // Старший байт
 }
 
-// Сохраняет настройки в EEPROM
-void saveSettingsToEEPROM() {
-    int address = 0;
-
-    saveUint16ToEEPROM(address, DAY_CIRCULATION);        address += 2;
-    saveUint16ToEEPROM(address, DAY_HUMIDITY_START);    address += 2;
-    saveUint16ToEEPROM(address, DAY_HUMIDITY_END);      address += 2;
-    saveUint16ToEEPROM(address, DAY_TEMPERATURE_START); address += 2;
-    saveUint16ToEEPROM(address, DAY_TEMPERATURE_END);   address += 2;
-    saveUint16ToEEPROM(address, DAY_VENTILATION);       address += 2;
-    saveUint16ToEEPROM(address, DAY_WATERING_INTERVAL); address += 2;
-
-    saveUint16ToEEPROM(address, NIGHT_CIRCULATION);        address += 2;
-    saveUint16ToEEPROM(address, NIGHT_HUMIDITY_START);    address += 2;
-    saveUint16ToEEPROM(address, NIGHT_HUMIDITY_END);      address += 2;
-    saveUint16ToEEPROM(address, NIGHT_TEMPERATURE_START); address += 2;
-    saveUint16ToEEPROM(address, NIGHT_TEMPERATURE_END);   address += 2;
-    saveUint16ToEEPROM(address, NIGHT_VENTILATION);       address += 2;
-    saveUint16ToEEPROM(address, NIGHT_WATERING_INTERVAL); address += 2;
-
-    saveUint16ToEEPROM(address, SUNRISE); address += 2;
-    saveUint16ToEEPROM(address, SUNSET);  address += 2;
-    saveUint16ToEEPROM(address, WATER_TEMPERATURE); address += 2;
-
-    saveUint16ToEEPROM(address, CYCLE); address += 2;
-
-    WORK = 0x5245;  // Запись статуса - RE
-    saveUint16ToEEPROM(address, WORK); address;
-    // saveUint16ToEEPROM(address, GROWE_START); 
-    
-
-    EEPROM.commit(); // Запись изменений в EEPROM
-    Serial.println("Настройки сохранены в EEPROM.");
-}
-
 // Функция для загрузки настроек с сервера и сохранения в глобальные переменные
 void fetchAndSaveSettings() {
     HTTPClient http;
@@ -139,6 +104,38 @@ void initializeSettingsModule() {
     }    
 }
 
+// Сохраняет настройки в EEPROM
+void saveSettingsToEEPROM() {
+    int address = 0;
+
+    saveUint16ToEEPROM(address, DAY_CIRCULATION);        address += 2;
+    saveUint16ToEEPROM(address, DAY_HUMIDITY_START);    address += 2;
+    saveUint16ToEEPROM(address, DAY_HUMIDITY_END);      address += 2;
+    saveUint16ToEEPROM(address, DAY_TEMPERATURE_START); address += 2;
+    saveUint16ToEEPROM(address, DAY_TEMPERATURE_END);   address += 2;
+    saveUint16ToEEPROM(address, DAY_VENTILATION);       address += 2;
+    saveUint16ToEEPROM(address, DAY_WATERING_INTERVAL); address += 2;
+
+    saveUint16ToEEPROM(address, NIGHT_CIRCULATION);        address += 2;
+    saveUint16ToEEPROM(address, NIGHT_HUMIDITY_START);    address += 2;
+    saveUint16ToEEPROM(address, NIGHT_HUMIDITY_END);      address += 2;
+    saveUint16ToEEPROM(address, NIGHT_TEMPERATURE_START); address += 2;
+    saveUint16ToEEPROM(address, NIGHT_TEMPERATURE_END);   address += 2;
+    saveUint16ToEEPROM(address, NIGHT_VENTILATION);       address += 2;
+    saveUint16ToEEPROM(address, NIGHT_WATERING_INTERVAL); address += 2;
+
+    saveUint16ToEEPROM(address, SUNRISE); address += 2;
+    saveUint16ToEEPROM(address, SUNSET);  address += 2;
+    saveUint16ToEEPROM(address, WATER_TEMPERATURE); address += 2;
+
+    saveUint16ToEEPROM(address, CYCLE); address += 2;
+    saveUint16ToEEPROM(address, WORK); address += 2;
+    saveUint16ToEEPROM(address, GROWE_START); address += 2; 
+    
+    EEPROM.commit(); // Запись изменений в EEPROM
+    Serial.println("Настройки сохранены в EEPROM.");
+}
+
     void EEPROMRead() {
             // Присвоение переменным считанных значений
         int address = EEPROM_START_ADDRESS;
@@ -161,4 +158,5 @@ void initializeSettingsModule() {
         WATER_TEMPERATURE = readUint16FromEEPROM(address); address += 2;
         CYCLE = readUint16FromEEPROM(address); address += 2;
         WORK = readUint16FromEEPROM(address); address += 2;
+        GROWE_START = readUint16FromEEPROM(address); address += 2;
 }

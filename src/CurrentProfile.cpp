@@ -23,5 +23,5 @@ uint16_t SUNSET = 0; // Адрес 0x1E-0x1F
 
 uint16_t WATER_TEMPERATURE = 0; // Адрес 0x20-0x21
 uint16_t CYCLE = 0; // Адрес 0x22-0x23
-uint16_t GROWE_START = 0;  // Адрес 0x24-0x25
-uint16_t WORK = 0;
+uint16_t WORK = 0;  // Адрес 0x24-0x25
+uint16_t GROWE_START = 0;  // Адрес 0x26-0x29

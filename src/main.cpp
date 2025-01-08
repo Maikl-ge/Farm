@@ -8,6 +8,7 @@
 #include "ota_module.h"
 #include "Profile.h"
 #include "CurrentProfile.h"
+#include "watering.h"
 
 // Размер EEPROM
 #define EEPROM_SIZE 0x2A
@@ -65,6 +66,7 @@ void setup() {
         Serial.println("Failed to initialize EEPROM");
         return;
     }
+    setupWatering(); // Инициализация модуля полива
 
     setupLightControl(); // Инициализация модуля управления светом
 
@@ -78,10 +80,11 @@ void setup() {
     }
     Serial.println("Connected to WiFi!");
 
-    initializeSettingsModule(); // Вызов модуля загрузки настроек
     initTimeModule();    // Инициализируем модуль времени
     syncTimeWithNTP("pool.ntp.org"); // Синхронизируем время с NTP
     initializeWebSocket(); // Инициализация WebSocket и подключения
+    
+    initializeSettingsModule(); // Вызов модуля загрузки настроек
 
     setupOTA();  // Настройка OTA через модуль
 

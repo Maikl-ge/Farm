@@ -32,8 +32,8 @@
 
 // Пины для управления нагрузками ON/OFF
 #define OSMOS_ON_PIN 32 // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
-#define PUMP_1_PIN 33   // Полив (ON/OFF) (GPIO33, нога 8)
-#define PUMP_2_PIN 26   // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
+#define PUMP_WATERING_PIN 33   // Полив (ON/OFF) (GPIO33, нога 8)
+#define PUMP_TRANSFER_PIN 26   // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
 #define WATER_OUT_PIN 27 // Слив (ON/OFF) (GPIO27, нога 11)
 #define STEAM_IN_PIN 3   // Парогенератор (ON/OFF) (GPIO3, нога 34)
 
@@ -57,7 +57,7 @@
 // GPIO32     нога 7 <-- OSMOS_ON_PIN
 // GPIO33     нога 8 <-- PUMP_1_PIN
 // GPIO25     нога 9 <-- FAN_OPTION_PIN
-// GPIO26     нога 10 <-- PUMP_2_PIN  
+// GPIO26     нога 10 <-- PUMP_TRANSFER_PIN  
 // GPIO27     нога 11 <-- WATER_OUT_PIN  
 // GPIO14     нога 12  <-- HITER_WATER_PIN
 // GPIO12     нога 13  <-- FAN_INLET

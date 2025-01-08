@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <Pinout.h>
 
-int8_t timeZone = 0; // Часовой пояс
+int8_t timeZone = 3; // Часовой пояс
 uint32_t CurrentDate = 0; // Текущая дата фермы
 uint32_t CurrentTime = 0; // Текущее время фермы
 
@@ -46,6 +46,14 @@ void syncTimeWithNTP(const char* ntpServer) {
     rtc.setDateTime(ptm->tm_mday, ptm->tm_wday, ptm->tm_mon + 1, 0, ptm->tm_year % 100, ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
 
     Serial.println("Time synchronized successfully.");
+
+CurrentDate = (ptm->tm_year + 1900) * 10000 + (ptm->tm_mon + 1) * 100 + ptm->tm_mday;
+CurrentTime = ptm->tm_hour * 10000 + ptm->tm_min * 100 + ptm->tm_sec;
+// Вывод даты и времени для проверки
+Serial.printf("Current Date (YYYYMMDD): %lu\n", CurrentDate);
+Serial.printf("Current Time (HHMMSS): %lu\n", CurrentTime);
+Serial.println("Time synchronized successfully.");
+
 }
 
 // Вывод текущего времени
@@ -60,16 +68,9 @@ void printCurrentTime() {
     CurrentTime = rtc.getHour() * 10000 + rtc.getMinute() * 100 + rtc.getSecond();
 
     // Вывод даты и времени в Serial
-    Serial.print("Дата: ");
-    Serial.print(CurrentDate / 10000);       // Год
-    Serial.print('-');
-    Serial.print((CurrentDate / 100) % 100); // Месяц
-    Serial.print('-');
-    Serial.print(CurrentDate % 100);         // День
-    Serial.print(" Время: ");
-    Serial.print(CurrentTime / 10000);       // Часы
-    Serial.print(':');
-    Serial.print((CurrentTime / 100) % 100); // Минуты
-    Serial.print(':');
-    Serial.println(CurrentTime % 100);       // Секунды
+    Serial.print("Current time: ");
+    Serial.println(CurrentTime);
+    Serial.print("Current date: ");
+    Serial.println(CurrentDate);
+
 }

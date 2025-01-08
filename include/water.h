@@ -1,8 +1,10 @@
 #ifndef WATER_H
 #define WATER_H
 
-void setupWater();    // Инициализация модуля управления водой
-void updateButtonState(); // Обработка нажатия кнопок
-void powerMonitor();    // Мониторинг питающей сети
+void updateButtonWater();
+void controlWaterHeater();
+void controlWaterLevel();
+void powerMonitor();
+void updateButtonState();
 
 #endif // WATER_H

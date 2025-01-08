@@ -5,5 +5,6 @@
 void initializeSettingsModule();
 void saveUint16ToEEPROM();
 void EEPROMRead();
+void saveSettingsToEEPROM();
 
 #endif // SETTINGS_MODULE_H

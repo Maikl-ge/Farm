@@ -5,11 +5,16 @@
 #include <TimeModule.h>
 
 
-uint16_t transitionTime; // Время перехода
+uint16_t transitionTime = 15; // лительность перехода от рассвета ко дню и от дня к закату
 uint16_t currentTimeMinutes; // Текущее время в минутах
+unsigned long lastUpdateTime = 0; // Последнее обновление яркости
+unsigned long brightnessInterval = 0; // Интервал изменения яркости в мс
+bool isDayTransition = false; // Переход к дню
+bool isNightTransition = false; // Переход к ночи
 
 // Глобальные переменные
 int currentBrightness = 0; // Текущая яркость (0-100)
+//transitionTime = 15; // Время перехода в минутах
 
 // Константы для значений яркости
 const int MAX_BRIGHTNESS = 255;
@@ -18,35 +23,48 @@ const int MIN_BRIGHTNESS = 0;
 void setupLightControl() {
     pinMode(LIGHT_PIN, OUTPUT);
     analogWrite(LIGHT_PIN, 0); // Установить яркость на 0
-
-    // Длительность перехода от рассвета ко дню и от дня к закату
-    transitionTime = 15;
+    brightnessInterval = ((transitionTime * 60 ) * 1000) / MAX_BRIGHTNESS; // Интервал в миллисекундах
 }
 
 // Функция для расчета яркости в зависимости от текущего времени
 void updateLightBrightness() {
-    int currentTimeMinutes = CurrentTime; // Предполагается, что CurrentTime определен глобально
-    int transitionSteps = transitionTime * 60; // Время перехода в секундах
+    // Получить текущее время в минутах
+    int currentTimeMinutes = CurrentTime;
 
-    if (currentTimeMinutes >= SUNRISE && currentTimeMinutes < SUNRISE + transitionTime) {
-        // Восход - плавное увеличение яркости
-        int elapsedTime = (currentTimeMinutes - SUNRISE) * 60;
-        currentBrightness = map(elapsedTime, 0, transitionSteps, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
-    } else if (currentTimeMinutes >= SUNSET && currentTimeMinutes < SUNSET + transitionTime) {
-        // Закат - плавное уменьшение яркости
-        int elapsedTime = (currentTimeMinutes - SUNSET) * 60;
-        currentBrightness = map(elapsedTime, 0, transitionSteps, MAX_BRIGHTNESS, MIN_BRIGHTNESS);
-    } else if (currentTimeMinutes >= SUNRISE + transitionTime && currentTimeMinutes < SUNSET) {
-        // Полный день - яркость 255
-        currentBrightness = MAX_BRIGHTNESS;
-    } else {
-        // Ночь - яркость 0
+    // Проверяем, начался ли восход
+    if (currentTimeMinutes == SUNRISE) {
+        isDayTransition = true;
+        isNightTransition = false;
         currentBrightness = MIN_BRIGHTNESS;
     }
+    // Проверяем, начался ли закат
+    else if (currentTimeMinutes == SUNSET) {
+        isDayTransition = false;
+        isNightTransition = true;
+        currentBrightness = MAX_BRIGHTNESS;
+    }
 
-    // Применить новую яркость (переводим в диапазон 0-255)
-    int pwmValue = currentBrightness;
-    analogWrite(LIGHT_PIN, pwmValue);
+    // Проверяем, закончился ли переход
+    if (isDayTransition && currentBrightness >= MAX_BRIGHTNESS) {
+        isDayTransition = false;
+    }
+    if (isNightTransition && currentBrightness <= MIN_BRIGHTNESS) {
+        isNightTransition = false;
+    }
 
+    // Увеличение/уменьшение яркости при переходе
+    if ((isDayTransition || isNightTransition) && millis() - lastUpdateTime >= brightnessInterval) {
+        if (isDayTransition) {
+            currentBrightness++;
+        } else if (isNightTransition) {
+            currentBrightness--;
+        }
+
+        // Применить новую яркость
+        analogWrite(LIGHT_PIN, currentBrightness);
+
+        // Обновить время последнего изменения яркости
+        lastUpdateTime = millis();
+    }
 }
 
