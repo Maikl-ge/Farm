@@ -9,6 +9,7 @@
 #include "Profile.h"
 #include "CurrentProfile.h"
 #include "watering.h"
+#include "WebSocketHandler.h"
 
 // Размер EEPROM
 #define EEPROM_SIZE 0x2A
@@ -18,6 +19,7 @@ void sendDataTask(void *parameter);
 void updatePCF8574Task(void *parameter);
 void updateButtonWaterTask(void *parameter);
 void updateButtonWater(); // Прототип функции
+void requestSettings();
 
 // Задачи для FreeRTOS
 
@@ -53,6 +55,7 @@ void updatePCF8574Task(void *parameter) {
 void updateButtonWaterTask(void *parameter) {
     for (;;) {
         updateButtonWater();
+        webSocket.poll(); // Обработка WebSocket событий
         vTaskDelay(250 / portTICK_PERIOD_MS);  // Задержка 250 мс
     }
 }
@@ -80,11 +83,13 @@ void setup() {
     }
     Serial.println("Connected to WiFi!");
 
+    // Инициализация WebSocket
+    initializeWebSocket();
+
     initTimeModule();    // Инициализируем модуль времени
     syncTimeWithNTP("pool.ntp.org"); // Синхронизируем время с NTP
-    initializeWebSocket(); // Инициализация WebSocket и подключения
-    
-    initializeSettingsModule(); // Вызов модуля загрузки настроек
+
+    //requestSettings(); // Отправка запроса "Settings" и получение ответа
 
     setupOTA();  // Настройка OTA через модуль
 
@@ -145,4 +150,11 @@ void setup() {
 void loop() {
     ArduinoOTA.handle(); // Обработка OTA обновлений
     // Другие задачи, если есть
+}
+
+// Функция для отправки запроса "Settings" и получения ответа
+void requestSettings() {
+    // Отправка запроса на сервер через WebSocket
+    sendWebSocketMessage("Settings");
+    Serial.println("Запрос 'Settings' отправлен.");
 }

@@ -10,8 +10,8 @@ using namespace websockets;
 // Объявления функций
 void initializeWebSocket();
 void processWebSocket();
+void handleWebSocketMessage(WebsocketsMessage message);
 void sendDataIfNeeded();
-void saveMessageToSDCard();
 void saveMessageToSDCard(const String& message);
 
 #endif

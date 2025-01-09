@@ -2,57 +2,58 @@
 #include "globals.h"
 #include "TimeModule.h"
 #include "SensorsModule.h"
+#include "WebSocketHandler.h"
 
-WebsocketsClient client;
-bool connected = false;
+// WebsocketsClient client;
+// bool connected = false;
 
-// Инициализация WebSocket
-void initializeWebSocket() {
-    client.onMessage([](WebsocketsMessage message) {
-        Serial.print("Received: ");
-        Serial.println(message.data());
+// // Инициализация WebSocket
+// void initializeWebSocket() {
+//     client.onMessage([](WebsocketsMessage message) {
+//         Serial.print("Received: ");
+//         Serial.println(message.data());
 
-        if (message.data() == "Ok:200") {
-            //Serial.println("Сообщение подтверждено сервером.");
-        } else {
-            //Serial.println("Подтверждение от сервера не получено. Сохраняем сообщение на SD-карту.");
-            saveMessageToSDCard(message.data());
-        }
-    });
+//         if (message.data() == "Ok:200") {
+//             //Serial.println("Сообщение подтверждено сервером.");
+//         } else {
+//             //Serial.println("Подтверждение от сервера не получено. Сохраняем сообщение на SD-карту.");
+//             saveMessageToSDCard(message.data());
+//         }
+//     });
 
-    client.onEvent([](WebsocketsEvent event, String data) {
-        if (event == WebsocketsEvent::ConnectionOpened) {
-            Serial.println("WebSocket connection opened");
-            connected = true;
-        } else if (event == WebsocketsEvent::ConnectionClosed) {
-            Serial.println("WebSocket connection closed");
-            connected = false;
-        }
-    });
+//     client.onEvent([](WebsocketsEvent event, String data) {
+//         if (event == WebsocketsEvent::ConnectionOpened) {
+//             Serial.println("WebSocket connection opened");
+//             connected = true;
+//         } else if (event == WebsocketsEvent::ConnectionClosed) {
+//             Serial.println("WebSocket connection closed");
+//             connected = false;
+//         }
+//     });
 
-    if (client.connect(ws_server)) {
-        Serial.println("Connected to WebSocket server!");
-        connected = true;
-    } else {
-        Serial.println("Failed to connect to WebSocket server");
-    }
-}
+//     if (client.connect(ws_server)) {
+//         Serial.println("Connected to WebSocket server!");
+//         connected = true;
+//     } else {
+//         Serial.println("Failed to connect to WebSocket server");
+//     }
+// }
 
 
-// Обновление состояния WebSocket
-void processWebSocket() {
-    // Проверяем состояние соединения
-    client.poll();
+// // Обновление состояния WebSocket
+// void processWebSocket() {
+//     // Проверяем состояние соединения
+//     client.poll();
 
-    if (!connected) {
-        if (client.connect(ws_server)) {
-            Serial.println("Reconnected to WebSocket server!");
-            connected = true;
-        } else {
-            Serial.println("Reconnect attempt failed. Waiting 10 seconds before retrying.");
-        }
-    }
-}
+//     if (!connected) {
+//         if (client.connect(ws_server)) {
+//             Serial.println("Reconnected to WebSocket server!");
+//             connected = true;
+//         } else {
+//             Serial.println("Reconnect attempt failed. Waiting 10 seconds before retrying.");
+//         }
+//     }
+// }
 
 // Отправка данных
 void sendDataIfNeeded() {
@@ -90,18 +91,12 @@ void sendDataIfNeeded() {
 
     String jsonMessage;
     serializeJson(doc, jsonMessage);
-
-    if (connected) {
-        client.send(jsonMessage);
-        Serial.print("Sent: ");
-        //Serial.println(jsonMessage);
-    } else {
-        //Serial.println("Соединение отсутствует. Сообщение не отправлено.");
-        saveMessageToSDCard(jsonMessage);
-    }
+    sendWebSocketMessage(jsonMessage);
 }
+
 void saveMessageToSDCard(const String& message) {
     // Заглушка записи на SD-карту
     Serial.print("Сохраняем сообщение на SD-карту: ");
     Serial.println(message);
 }
+

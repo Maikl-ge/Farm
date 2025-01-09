@@ -67,10 +67,10 @@ void printCurrentTime() {
     // Формирование времени в формате HHMMSS
     CurrentTime = rtc.getHour() * 10000 + rtc.getMinute() * 100 + rtc.getSecond();
 
-    // Вывод даты и времени в Serial
-    Serial.print("Current time: ");
-    Serial.println(CurrentTime);
-    Serial.print("Current date: ");
-    Serial.println(CurrentDate);
+    // // Вывод даты и времени в Serial
+    // Serial.print("Current time: ");
+    // Serial.println(CurrentTime);
+    // Serial.print("Current date: ");
+    // Serial.println(CurrentDate);
 
 }
