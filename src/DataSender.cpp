@@ -3,57 +3,7 @@
 #include "TimeModule.h"
 #include "SensorsModule.h"
 #include "WebSocketHandler.h"
-
-// WebsocketsClient client;
-// bool connected = false;
-
-// // Инициализация WebSocket
-// void initializeWebSocket() {
-//     client.onMessage([](WebsocketsMessage message) {
-//         Serial.print("Received: ");
-//         Serial.println(message.data());
-
-//         if (message.data() == "Ok:200") {
-//             //Serial.println("Сообщение подтверждено сервером.");
-//         } else {
-//             //Serial.println("Подтверждение от сервера не получено. Сохраняем сообщение на SD-карту.");
-//             saveMessageToSDCard(message.data());
-//         }
-//     });
-
-//     client.onEvent([](WebsocketsEvent event, String data) {
-//         if (event == WebsocketsEvent::ConnectionOpened) {
-//             Serial.println("WebSocket connection opened");
-//             connected = true;
-//         } else if (event == WebsocketsEvent::ConnectionClosed) {
-//             Serial.println("WebSocket connection closed");
-//             connected = false;
-//         }
-//     });
-
-//     if (client.connect(ws_server)) {
-//         Serial.println("Connected to WebSocket server!");
-//         connected = true;
-//     } else {
-//         Serial.println("Failed to connect to WebSocket server");
-//     }
-// }
-
-
-// // Обновление состояния WebSocket
-// void processWebSocket() {
-//     // Проверяем состояние соединения
-//     client.poll();
-
-//     if (!connected) {
-//         if (client.connect(ws_server)) {
-//             Serial.println("Reconnected to WebSocket server!");
-//             connected = true;
-//         } else {
-//             Serial.println("Reconnect attempt failed. Waiting 10 seconds before retrying.");
-//         }
-//     }
-// }
+#include "CurrentProfile.h"
 
 // Отправка данных
 void sendDataIfNeeded() {
@@ -91,7 +41,15 @@ void sendDataIfNeeded() {
 
     String jsonMessage;
     serializeJson(doc, jsonMessage);
-    sendWebSocketMessage(jsonMessage);
+    
+    // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
+    TYPE_MSG = "FD"; // Тип сообщения "FD" - Farm Data
+    ID_FARM = 255;  // ID фермы
+    LENGTH_MSG = jsonMessage.length(); // Длина JSON сообщения
+    String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
+
+    // Отправка сообщения
+    sendWebSocketMessage(messageToSend);
 }
 
 void saveMessageToSDCard(const String& message) {

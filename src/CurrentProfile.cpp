@@ -1,6 +1,10 @@
 #include "CurrentProfile.h"
 
 // Инициализация глобальных переменных
+uint8_t ID_FARM = 0;  // ID фермы
+String TYPE_MSG = " "; // Тип сообщения
+uint16_t LENGTH_MSG = 0; // Длина сообщения
+
 uint16_t DAY_CIRCULATION = 0; // Адрес 0x00-0x01
 uint16_t DAY_HUMIDITY_START = 0; // Адрес 0x02-0x03
 uint16_t DAY_HUMIDITY_END = 0;  // Адрес 0x04-0x05
@@ -25,3 +29,6 @@ uint16_t WATER_TEMPERATURE = 0; // Адрес 0x20-0x21
 uint16_t CYCLE = 0; // Адрес 0x22-0x23
 uint16_t WORK = 0;  // Адрес 0x24-0x25
 uint16_t GROWE_START = 0;  // Адрес 0x26-0x29
+uint16_t GROWE_START_TIME = 0;  // Адрес 0x2A-0x2B
+uint16_t GROWE_START_DATA = 0;  // Адрес 0x2C-0x2D
+

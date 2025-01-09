@@ -9,8 +9,10 @@
 const int EEPROM_START_ADDRESS = 0x00;
 const int EEPROM_END_ADDRESS = 0x2A;
 const int EEPROM_CHECK_ADDRESS = 0x24;
-const uint16_t VALUE_RE = 0x5245;
-const uint16_t VALUE_WO = 0x574F;
+const uint16_t VALUE_READY = 0x5245;  // RE - Ready
+const uint16_t VALUE_WORK = 0x574F;  // WO - Work
+const uint16_t VALUE_END = 0x454E;  // EN - End
+
 
 // Сохраняет `uint16_t` значение в EEPROM
 void saveUint16ToEEPROM(int address, uint16_t value) {
@@ -94,15 +96,18 @@ void initializeSettingsModule() {
     Serial.printf("Прочитанное значение: 0x%04X\n", value);
 
     // Проверка значения
-    if (value == VALUE_RE) {  // Проверка статуса RE "Ready"
+    if (value == VALUE_READY) {  // Проверка статуса RE "Ready"
         fetchAndSaveSettings();   
         EEPROMRead(); // Чтение настроек из EEPROM
         return; // Завершаем выполнение функции
     } 
-    if (value == VALUE_WO) {  // Проверка статуса WO "Work"    
+    if (value == VALUE_WORK || VALUE_END) {  // Проверка статуса WO "Work"    
         EEPROMRead(); // Чтение настроек из EEPROM
-    }    
-}
+    }
+    if (value == VALUE_END) {  // Проверка статуса EN "End"
+        Serial.println("EEPROM не содержит настроек.");
+    }
+}    
 
 // Сохраняет настройки в EEPROM
 void saveSettingsToEEPROM() {

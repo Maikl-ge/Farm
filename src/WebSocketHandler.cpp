@@ -65,7 +65,7 @@ void handleWebSocketMessage(const String& message) {
     messageFromServer = message;
 
     if (message == "Settings Farm") {
-        Serial.println("Сделат чтение настроек из EEPROM");
+        Serial.println("Сделать чтение настроек из EEPROM");
     }
     if (message == "Work Start") {
         Serial.println("Начало цикла выращивания");
@@ -91,6 +91,15 @@ void processWebSocket() {
     unsigned long currentMillis = millis();
     webSocket.ping();
     if (!connected) {
+        // Проверка состояния Wi-Fi
+        if (WiFi.status() != WL_CONNECTED) {
+            Serial.println("Wi-Fi disconnected, attempting to reconnect...");
+            WiFi.reconnect();
+            delay(1000); // Небольшая задержка для стабилизации
+            return;      // Не пытаемся подключиться к WebSocket, пока Wi-Fi не восстановится
+        }
+
+        // Если Wi-Fi в порядке, проверяем необходимость переподключения WebSocket
         if (currentMillis - lastReconnectAttempt >= RECONNECT_INTERVAL) {
             lastReconnectAttempt = currentMillis;
             connectWebSocket();
