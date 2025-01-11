@@ -64,6 +64,9 @@ async def main():
         app.router.add_post('/api/command', http_handler.set_command)  # API для установки команды
         app.router.add_get('/api/frqs', http_handler.get_frqs)  # API для получения FRQS данных
         app.router.add_get('/api/websocket-state', http_handler.get_websocket_state)  # API для состояния WebSocket
+        app.router.add_get('/parameters', http_handler.show_parameters)
+        app.router.add_get('/parameters/{id}/edit', http_handler.edit_parameters)
+        app.router.add_post('/parameters/{id}/edit', http_handler.edit_parameters)
 
         # Запускаем HTTP сервер
         runner = web.AppRunner(app)

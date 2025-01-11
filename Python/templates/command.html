@@ -308,33 +308,14 @@
             try {
                 const response = await fetch('/api/frqs');
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        // Если данных еще нет, просто очищаем таблицы
-                        clearFrqsTables();
-                        document.getElementById('lastUpdate').textContent = 
-                            'Waiting for FRQS data...';
-                        return;
-                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
                 updateFrqsTables(data);
                 updateLastUpdate();
             } catch (error) {
-                console.warn('FRQS data not available:', error);
-                clearFrqsTables();
-                document.getElementById('lastUpdate').textContent = 
-                    'Waiting for FRQS data...';
+                showStatus('Error loading FRQS data: ' + error.message, false);
             }
-        }
-
-        function clearFrqsTables() {
-            const tables = ['dayParams', 'nightParams', 'generalParams'];
-            tables.forEach(tableId => {
-                const table = document.getElementById(tableId);
-                table.innerHTML = '<tr><th>Parameter</th><th>Value</th></tr>' +
-                    '<tr><td colspan="2" style="text-align: center;">Waiting for data...</td></tr>';
-            });
         }
 
         function updateFrqsTables(data) {

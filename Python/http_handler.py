@@ -133,3 +133,120 @@ class FarmHTTPHandler:
         return web.json_response({
             "state": self.websocket_handler.websocket_state
         })
+
+    async def show_parameters(self, request):
+        """Отображение списка профилей параметров"""
+        try:
+            async with self.db_manager.params_pool.acquire() as conn:
+                params = await conn.fetch('''
+                    SELECT * FROM system_params 
+                    ORDER BY id DESC 
+                    LIMIT 10
+                ''')
+
+            context = {'params': params}
+            return aiohttp_jinja2.render_template(
+                'parametrs.html',
+                request,
+                context
+            )
+        except Exception as e:
+            self.logger.error(f"Error showing parameters: {e}")
+            return web.Response(text=str(e), status=500)
+
+    async def edit_parameters(self, request):
+        """Редактирование профиля параметров"""
+        try:
+            profile_id = request.match_info.get('id')
+            
+            async with self.db_manager.params_pool.acquire() as conn:
+                params = await conn.fetchrow('''
+                    SELECT * FROM system_params 
+                    WHERE id = $1
+                ''', int(profile_id))
+
+                if not params:
+                    raise web.HTTPNotFound(text="Profile not found")
+
+                # Если это POST запрос, обновляем данные
+                if request.method == 'POST':
+                    data = await request.post()
+                    
+                    # Конвертируем время в минуты
+                    sunrise = data['sunrise'].split(':')
+                    sunrise_minutes = int(sunrise[0]) * 60 + int(sunrise[1])
+                    
+                    sunset = data['sunset'].split(':')
+                    sunset_minutes = int(sunset[0]) * 60 + int(sunset[1])
+                    
+                    day_watering = data['dayWateringInterval'].split(':')
+                    day_watering_minutes = int(day_watering[0]) * 60 + int(day_watering[1])
+                    
+                    night_watering = data['nightWateringInterval'].split(':')
+                    night_watering_minutes = int(night_watering[0]) * 60 + int(night_watering[1])
+
+                    await conn.execute('''
+                        UPDATE system_params 
+                        SET nameprofile = $1,
+                            cycle = $2,
+                            sunrise = $3,
+                            sunset = $4,
+                            daytemperaturestart = $5,
+                            daytemperatureend = $6,
+                            nighttemperaturestart = $7,
+                            nighttemperatureend = $8,
+                            dayhumiditystart = $9,
+                            dayhumidityend = $10,
+                            nighthumiditystart = $11,
+                            nighthumidityend = $12,
+                            watertemperature = $13,
+                            daywateringinterval = $14,
+                            nightwateringinterval = $15,
+                            daycirculation = $16,
+                            nightcirculation = $17,
+                            dayventilation = $18,
+                            nightventilation = $19
+                        WHERE id = $20
+                    ''',
+                    data['nameProfile'],
+                    int(data['cycle']),
+                    sunrise_minutes,
+                    sunset_minutes,
+                    float(data['dayTemperatureStart']),
+                    float(data['dayTemperatureEnd']),
+                    float(data['nightTemperatureStart']),
+                    float(data['nightTemperatureEnd']),
+                    float(data['dayHumidityStart']),
+                    float(data['dayHumidityEnd']),
+                    float(data['nightHumidityStart']),
+                    float(data['nightHumidityEnd']),
+                    float(data['waterTemperature']),
+                    day_watering_minutes,
+                    night_watering_minutes,
+                    int(data['dayCirculation']),
+                    int(data['nightCirculation']),
+                    int(data['dayVentilation']),
+                    int(data['nightVentilation']),
+                    int(profile_id)
+                    )
+                    
+                    raise web.HTTPFound('/parameters')
+
+            # Преобразуем минуты в формат HH:MM для отображения
+            params = dict(params)
+            params['sunrise'] = f"{params['sunrise'] // 60:02d}:{params['sunrise'] % 60:02d}"
+            params['sunset'] = f"{params['sunset'] // 60:02d}:{params['sunset'] % 60:02d}"
+            params['daywateringinterval'] = f"{params['daywateringinterval'] // 60:02d}:{params['daywateringinterval'] % 60:02d}"
+            params['nightwateringinterval'] = f"{params['nightwateringinterval'] // 60:02d}:{params['nightwateringinterval'] % 60:02d}"
+
+            return aiohttp_jinja2.render_template(
+                'edit.html',
+                request,
+                {'params': params}
+            )
+
+        except web.HTTPFound:
+            raise
+        except Exception as e:
+            self.logger.error(f"Error editing parameters: {e}")
+            return web.Response(text=str(e), status=500)
