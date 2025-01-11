@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Farm Sensor Data</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+        }
+
+        .data-table th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .sensor-group {
+            background-color: #ecf0f1;
+        }
+
+        .timestamp-col {
+            white-space: nowrap;
+        }
+
+        .button-group {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .refresh-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 10px;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Farm Sensor Data</h1>
+        
+        <div class="button-group">
+            <button class="refresh-btn" onclick="refreshData()">Refresh Data</button>
+        </div>
+        
+        <div class="status" id="lastUpdate"></div>
+        
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Timestamp</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Buttons</th>
+                        <th>Levels</th>
+                        <th>Temperature Sensors</th>
+                        <th>Humidity Sensors</th>
+                        <th>Water Temperature</th>
+                        <th>Air Temperature</th>
+                        <th>Other Sensors</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function updateLastRefresh() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `Last updated: ${now.toLocaleString()}`;
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                updateTable(data);
+                updateLastRefresh();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('lastUpdate').textContent = 
+                    `Error loading data: ${error.message}`;
+            }
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        function updateTable(data) {
+            const tbody = document.getElementById('dataBody');
+            tbody.innerHTML = data.map(record => `
+                <tr>
+                    <td>${record.id}</td>
+                    <td class="timestamp-col">${record.timestamp}</td>
+                    <td>${record.current_date}</td>
+                    <td>${record.current_time}</td>
+                    <td>
+                        Start: ${record.start_button}<br>
+                        Stop: ${record.stop_button}<br>
+                        Mode: ${record.mode_button}
+                    </td>
+                    <td>
+                        Osmo Max: ${record.max_osmo_level}<br>
+                        Osmo Min: ${record.min_osmo_level}<br>
+                        Water Max: ${record.max_water_level}<br>
+                        Water Min: ${record.min_water_level}
+                    </td>
+                    <td>
+                        T1: ${record.temperature_1}°C<br>
+                        T2: ${record.temperature_2}°C<br>
+                        T3: ${record.temperature_3}°C<br>
+                        T4: ${record.temperature_4}°C<br>
+                        T5: ${record.temperature_5}°C
+                    </td>
+                    <td>
+                        H1: ${record.humidity_1}%<br>
+                        H2: ${record.humidity_2}%<br>
+                        H3: ${record.humidity_3}%<br>
+                        H4: ${record.humidity_4}%<br>
+                        H5: ${record.humidity_5}%
+                    </td>
+                    <td>
+                        Osmo: ${record.water_temperature_osmo}°C<br>
+                        Watering: ${record.water_temperature_watering}°C
+                    </td>
+                    <td>
+                        Outdoor: ${record.air_temperature_outdoor}°C<br>
+                        Inlet: ${record.air_temperature_inlet}°C
+                    </td>
+                    <td>
+                        pH: ${record.ph_osmo}<br>
+                        TDS: ${record.tds_osmo}<br>
+                        Power: ${record.power_monitor}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        updateLastRefresh();
+
+        // Загружаем данные при загрузке страницы
+        window.onload = loadData;
+    </script>
+</body>
+</html> 

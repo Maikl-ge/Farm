@@ -4,14 +4,15 @@
 #include "globals.h"
 #include "CurrentProfile.h"
 #include "Profile.h"
+#include "DataSender.h"
 
 // Константы для адресов и значений
 const int EEPROM_START_ADDRESS = 0x00;
-const int EEPROM_END_ADDRESS = 0x2A;
+const int EEPROM_END_ADDRESS = 0x2D;
 const int EEPROM_CHECK_ADDRESS = 0x24;
-const uint16_t VALUE_READY = 0x5245;  // RE - Ready
-const uint16_t VALUE_WORK = 0x574F;  // WO - Work
-const uint16_t VALUE_END = 0x454E;  // EN - End
+const uint16_t VALUE_READY = 0x5245;  // RE - Ready статус фермы в EEPROM
+const uint16_t VALUE_WORK = 0x574F;  // WO - Work статус фермы в EEPROM
+const uint16_t VALUE_END = 0x454E;  // EN - End статус фермы в EEPROM
 
 
 // Сохраняет `uint16_t` значение в EEPROM
@@ -164,4 +165,47 @@ void saveSettingsToEEPROM() {
         CYCLE = readUint16FromEEPROM(address); address += 2;
         WORK = readUint16FromEEPROM(address); address += 2;
         GROWE_START = readUint16FromEEPROM(address); address += 2;
+}
+
+// Сереализация настроек считанных из EEPROM и отправка на сервер
+void serializeSettings() {
+    EEPROMRead();
+    DynamicJsonDocument doc(512);
+    doc["dayCirculation"] = DAY_CIRCULATION;
+    doc["dayHumidityStart"] = DAY_HUMIDITY_START / 10.0;
+    doc["dayHumidityEnd"] = DAY_HUMIDITY_END / 10.0;
+    doc["dayTemperatureStart"] = DAY_TEMPERATURE_START / 10.0;
+    doc["dayTemperatureEnd"] = DAY_TEMPERATURE_END / 10.0;
+    doc["dayVentilation"] = DAY_VENTILATION;
+    doc["dayWateringInterval"] = DAY_WATERING_INTERVAL;
+
+    doc["nightCirculation"] = NIGHT_CIRCULATION;
+    doc["nightHumidityStart"] = NIGHT_HUMIDITY_START / 10.0;
+    doc["nightHumidityEnd"] = NIGHT_HUMIDITY_END / 10.0;
+    doc["nightTemperatureStart"] = NIGHT_TEMPERATURE_START / 10.0;
+    doc["nightTemperatureEnd"] = NIGHT_TEMPERATURE_END / 10.0;
+    doc["nightVentilation"] = NIGHT_VENTILATION;
+    doc["nightWateringInterval"] = NIGHT_WATERING_INTERVAL;
+
+    doc["sunrise"] = SUNRISE;
+    doc["sunset"] = SUNSET;
+    doc["waterTemperature"] = WATER_TEMPERATURE / 10.0;
+
+    doc["cycle"] = CYCLE;
+    doc["work"] = WORK;
+    doc["groweStart"] = GROWE_START;
+
+    // Сериализация в строку
+    String jsonSettings;
+    serializeJson(doc, jsonSettings);
+    Serial.println(jsonSettings);
+
+    // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
+    TYPE_MSG = FARM_RES_SETTINGS; // Тип сообщения "FRQS" - данные от фермы на сервер данные
+    ID_FARM = 255;  // ID фермы
+    LENGTH_MSG = jsonSettings.length(); // Длина JSON сообщения
+    String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonSettings;
+
+    // Отправка сообщения
+    sendWebSocketMessage(messageToSend);
 }

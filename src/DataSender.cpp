@@ -43,7 +43,7 @@ void sendDataIfNeeded() {
     serializeJson(doc, jsonMessage);
     
     // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
-    TYPE_MSG = "FD"; // Тип сообщения "FD" - Farm Data
+    TYPE_MSG = FARM_LOG_INFO; // Тип сообщения "FLIN" - данные от фермы на сервер данные
     ID_FARM = 255;  // ID фермы
     LENGTH_MSG = jsonMessage.length(); // Длина JSON сообщения
     String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;

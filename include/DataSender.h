@@ -13,5 +13,6 @@ void processWebSocket();
 void handleWebSocketMessage(WebsocketsMessage message);
 void sendDataIfNeeded();
 void saveMessageToSDCard(const String& message);
+void sendWebSocketMessage(const String& message);
 
 #endif

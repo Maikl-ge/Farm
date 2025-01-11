@@ -220,5 +220,5 @@ void updateSensors() {
     readAllHTU21D();
     readAllDS18B20();
     uint8_t sensorState = readPCF8574();
-    Serial.println(sensorState, BIN);
+    //Serial.println(sensorState, BIN);
 }

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px; /* Размер шрифта */
+            background-color: #f4f4f4;
+            margin: 10;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #333; /* Зеленый цвет текста */
+            font-size: 16px; /* Размер шрифта */
+            margin-bottom: 10px; /* Отступ снизу */
+            font-weight: bold; /* Жирный шрифт */
+        }
+        form {
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 600px; /* Увеличена ширина для двух столбиков */
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .form-column {
+            width: 48%; /* Две колонки занимают по 48% ширины */
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-container {
+            margin-bottom: 5px;
+        }
+        .input-container input {
+            width: 75px; /* Ширина контейнера */
+            padding: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 12px; /* Размер шрифта */
+            margin-bottom: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color: transparent;
+            color: #333;
+            border: 1px solid #333; /* Задание контура */
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        input[type="submit"]:hover {
+            background-color: #d3d3d3;
+        }
+    </style>
+</head>
+<body>
+    <form method="post">
+        <h1>Edit Profile</h1>
+        <div class="form-row">
+            <div class="form-column">
+                <div class="input-container">
+                    <label for="nameProfile">Name Profile:</label>
+                    <input type="text" id="nameProfile" name="nameProfile" value="{{ params.nameprofile }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="cycle">Cycle:</label>
+                    <input type="number" id="cycle" name="cycle" value="{{ params.cycle }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="sunrise">Sunrise:</label>
+                    <input type="time" id="sunrise" name="sunrise" value="{{ params.sunrise }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="sunset">Sunset:</label>
+                    <input type="time" id="sunset" name="sunset" value="{{ params.sunset }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="dayTemperatureStart">Day Temperature Start:</label>
+                    <input type="number" step="1.0" id="dayTemperatureStart" name="dayTemperatureStart" value="{{ params.daytemperaturestart }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="dayTemperatureEnd">Day Temperature End:</label>
+                    <input type="number" step="0.1" id="dayTemperatureEnd" name="dayTemperatureEnd" value="{{ params.daytemperatureend }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="nightTemperatureStart">Night Temperature Start:</label>
+                    <input type="number" step="0.1" id="nightTemperatureStart" name="nightTemperatureStart" value="{{ params.nighttemperaturestart }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="nightTemperatureEnd">Night Temperature End:</label>
+                    <input type="number" step="0.1" id="nightTemperatureEnd" name="nightTemperatureEnd" value="{{ params.nighttemperatureend }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="dayHumidityStart">Day Humidity Start:</label>
+                    <input type="number" step="0.1" id="dayHumidityStart" name="dayHumidityStart" value="{{ params.dayhumiditystart }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="dayHumidityEnd">Day Humidity End:</label>
+                    <input type="number" step="0.1" id="dayHumidityEnd" name="dayHumidityEnd" value="{{ params.dayhumidityend }}" required>
+                </div>
+            </div>
+            <div class="form-column">
+                <div class="input-container">
+                    <label for="nightHumidityStart">Night Humidity Start:</label>
+                    <input type="number" step="0.1" id="nightHumidityStart" name="nightHumidityStart" value="{{ params.nighthumiditystart }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="nightHumidityEnd">Night Humidity End:</label>
+                    <input type="number" step="0.1" id="nightHumidityEnd" name="nightHumidityEnd" value="{{ params.nighthumidityend }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="waterTemperature">Water Temperature:</label>
+                    <input type="number" step="0.1" id="waterTemperature" name="waterTemperature" value="{{ params.watertemperature }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="dayWateringInterval">Day Watering Interval (HH:MM):</label>
+                    <input type="time" id="dayWateringInterval" name="dayWateringInterval" value="{{ params.daywateringinterval }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="nightWateringInterval">Night Watering Interval (HH:MM):</label>
+                    <input type="time" id="nightWateringInterval" name="nightWateringInterval" value="{{ params.nightwateringinterval }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="dayCirculation">Day Circulation:</label>
+                    <input type="number" id="dayCirculation" name="dayCirculation" value="{{ params.daycirculation }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="nightCirculation">Night Circulation:</label>
+                    <input type="number" id="nightCirculation" name="nightCirculation" value="{{ params.nightcirculation }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="dayVentilation">Day Ventilation:</label>
+                    <input type="number" id="dayVentilation" name="dayVentilation" value="{{ params.dayventilation }}" required>
+                </div>
+
+                <div class="input-container">
+                    <label for="nightVentilation">Night Ventilation:</label>
+                    <input type="number" id="nightVentilation" name="nightVentilation" value="{{ params.nightventilation }}" required>
+                </div>
+            </div>
+        </div>
+
+        <input type="submit" value="Save">
+    </form>
+</body>
+</html>

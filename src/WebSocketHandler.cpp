@@ -2,7 +2,9 @@
 #include <ArduinoWebsockets.h>
 #include "WebSocketHandler.h"
 #include "globals.h"
-#include "DataSender.h"
+#include <DataSender.h>
+#include "Profile.h"
+#include <CurrentProfile.h>
 
 #define WEBSOCKETS_MAX_DATA_SIZE 1024 // Максимальный размер данных
 
@@ -47,7 +49,7 @@ void webSocketEvent(WebsocketsEvent event, String data) {
             Serial.println("WebSocket connection closed, attempting reconnect...");
             Serial.println(data);
             connected = false;
-            connectWebSocket(); // Попытка повторного соединения
+            connectWebSocket(); // processWebSocket(); // Попытка повторного соединения
             break;
         case WebsocketsEvent::GotPing:
             Serial.println("Got a Ping!");
@@ -63,15 +65,46 @@ void handleWebSocketMessage(const String& message) {
     Serial.print("Received WebSocket message: ");
     Serial.println(message);
     messageFromServer = message;
-
-    if (message == "Settings Farm") {
-        Serial.println("Сделать чтение настроек из EEPROM");
+    // Обработка сообщения КОМАНДЫ
+    if (messageFromServer == SERVER_CMD_START) {
+        Serial.println("Команда от сервера: START");
     }
-    if (message == "Work Start") {
-        Serial.println("Начало цикла выращивания");
+    if (messageFromServer == SERVER_CMD_STOP) {
+        Serial.println("Команда от сервера: STOP");
     }
-    if (message == "test") {
-        Serial.println("Конец цикла выращивания");
+    if (messageFromServer == SERVER_CMD_RESTART) {
+        Serial.println("Команда от сервера: RESTART");
+    }
+    if (messageFromServer == SERVER_CMD_UPDATE) {
+        Serial.println("Команда от сервера: UPDATE");
+    }
+    // Обработка сообщения ЗАПРОСЫ
+    if (messageFromServer == SERVER_REQ_STATUS) {
+        Serial.println("Запрос от сервера: STATUS");
+    }
+    if (messageFromServer == SERVER_REQ_DATA) {
+        Serial.println("Запрос от сервера: DATA");
+    }
+    if (messageFromServer == SERVER_REQ_SETTINGS) {
+        Serial.println(readUint16FromEEPROM(EEPROM_WORK_ADDRESS));
+        serializeSettings();
+        Serial.println("Настройки из EEPROM");
+    }
+    if (messageFromServer == SERVER_REQ_PARAMETERS) {
+        Serial.println("Запрос от сервера: PARAMETERS");
+    }
+    if (messageFromServer == SERVER_REQ_PROFILE) {
+        Serial.println("Запрос от сервера: PROFILE");
+    }
+    if (messageFromServer == SERVER_REQ_CURRENT) {
+        Serial.println("Запрос от сервера: CURRENT");
+    }
+    // Обработка сообщения ошибки и 
+    if (messageFromServer == SERVER_ERR_INVALID) {
+        Serial.println("Ошибка: недействительный запрос");
+    }
+    if (messageFromServer == SERVER_EVENT_SYNC) {
+        Serial.println("Событие синхронизации");
     }
 }    
 
@@ -89,7 +122,7 @@ void sendWebSocketMessage(const String& message) {
 void processWebSocket() {
     static unsigned long lastPing = 0;
     unsigned long currentMillis = millis();
-    webSocket.ping();
+    //webSocket.ping();
     if (!connected) {
         // Проверка состояния Wi-Fi
         if (WiFi.status() != WL_CONNECTED) {
