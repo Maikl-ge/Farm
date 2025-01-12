@@ -9,13 +9,14 @@
 #define WEBSOCKETS_MAX_DATA_SIZE 1024 // Максимальный размер данных
 
 using namespace websockets;
+int missedPongs = 0;  // Счетчик пропущенных Pong
 
 // Глобальные переменные для WebSocket клиента 
 WebsocketsClient webSocket;
 String messageFromServer;
 bool connected = false;
 unsigned long lastReconnectAttempt = 0;
-const unsigned long RECONNECT_INTERVAL = 20000; // Интервал повторного подключения в мс
+const unsigned long RECONNECT_INTERVAL = 14000; // Интервал повторного подключения в мс
 
 void initializeWebSocket() {
     webSocket.onMessage([](WebsocketsMessage message) {
@@ -29,37 +30,28 @@ void initializeWebSocket() {
     connectWebSocket();
 }
 
-void connectWebSocket() {
-    connected = webSocket.connect(ws_server);
-
-    if (connected) {
-        Serial.println("WebSocket connected");
-    } else {
-        Serial.println("WebSocket connection failed");
-    }
-}
-
 void webSocketEvent(WebsocketsEvent event, String data) {
     switch (event) {
         case WebsocketsEvent::ConnectionOpened:
             Serial.println("WebSocket connection opened");
+            //Serial.println(data);
             connected = true;
             break;
         case WebsocketsEvent::ConnectionClosed:
             Serial.println("WebSocket connection closed, attempting reconnect...");
-            Serial.println(data);
             connected = false;
-            connectWebSocket(); // processWebSocket(); // Попытка повторного соединения
+            processWebSocket(); // Попытка повторного соединения
             break;
         case WebsocketsEvent::GotPing:
-            Serial.println("Got a Ping!");
+            webSocket.ping();  // Отправка PING
+            //Serial.println("Got a Ping!");
             break;
         case WebsocketsEvent::GotPong:
-            Serial.println("Got a Pong!");
+            missedPongs = 0;   // Сброс счетчика
+            //Serial.println("Got a Pong!");
             break;
     }
 }
-
 
 void handleWebSocketMessage(const String& message) {
     Serial.print("Received WebSocket message: ");
@@ -72,12 +64,21 @@ void handleWebSocketMessage(const String& message) {
     if (messageFromServer == SERVER_CMD_STOP) {
         Serial.println("Команда от сервера: STOP");
     }
-    if (messageFromServer == SERVER_CMD_RESTART) {
+    if (messageFromServer == SERVER_CMD_RESTART) {    // Перезагрузка фермы
         Serial.println("Команда от сервера: RESTART");
+        esp_restart();
     }
     if (messageFromServer == SERVER_CMD_UPDATE) {
         Serial.println("Команда от сервера: UPDATE");
     }
+    if (messageFromServer == SERVER_CMD_SETTINGS) {         // Получена команда Обновление настроек
+        Serial.println("Команда от сервера: SETTINGS NEW");
+        //fetchAndSaveSettings();                                     // Загрузка настроек с сервера
+        //Serial.println(EEPROMRead());  // Вывод настроек из EEPROM
+        //serializeSettings();                                        // Отправка настроек на сервер
+    }
+    
+
     // Обработка сообщения ЗАПРОСЫ
     if (messageFromServer == SERVER_REQ_STATUS) {
         Serial.println("Запрос от сервера: STATUS");
@@ -140,3 +141,17 @@ void processWebSocket() {
     }
 }
 
+void connectWebSocket() {
+    static bool isConnecting = false;
+    if (isConnecting) return; // Избегаем одновременных попыток подключения
+    isConnecting = true;
+
+    connected = webSocket.connect(ws_server);
+    if (connected) {
+        Serial.println("WebSocket connected");
+    } else {
+        Serial.println("WebSocket connection failed");
+    }
+
+    isConnecting = false;
+}

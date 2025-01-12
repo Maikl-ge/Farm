@@ -94,21 +94,20 @@ void initializeSettingsModule() {
     // Чтение двух байт и объединение в uint16_t
     uint16_t value = readUint16FromEEPROM(EEPROM_CHECK_ADDRESS);
 
+    // Вывод значения в формате HEX
     Serial.printf("Прочитанное значение: 0x%04X\n", value);
 
     // Проверка значения
-    if (value == VALUE_READY) {  // Проверка статуса RE "Ready"
-        fetchAndSaveSettings();   
-        EEPROMRead(); // Чтение настроек из EEPROM
-        return; // Завершаем выполнение функции
-    } 
-    if (value == VALUE_WORK || VALUE_END) {  // Проверка статуса WO "Work"    
-        EEPROMRead(); // Чтение настроек из EEPROM
+    if (value == VALUE_READY || value == VALUE_END) {  // Проверка статусов RE и EN
+        //fetchAndSaveSettings();  // Загрузка и сохранение настроек
+        EEPROMRead();  // Чтение настроек из EEPROM
+    } else if (value == VALUE_WORK) {  // Проверка статуса WO "Work"
+        EEPROMRead();  // Чтение настроек из EEPROM
+    } else {
+        Serial.println("EEPROM не содержит корректных настроек.");
     }
-    if (value == VALUE_END) {  // Проверка статуса EN "End"
-        Serial.println("EEPROM не содержит настроек.");
-    }
-}    
+}
+   
 
 // Сохраняет настройки в EEPROM
 void saveSettingsToEEPROM() {

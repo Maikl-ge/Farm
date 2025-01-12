@@ -12,6 +12,8 @@ class FarmWebSocketHandler:
     def __init__(self, db_manager, ping_interval=5, ping_timeout=30):
         """
         Инициализация WebSocket обработчика
+        ping_interval=5 - интервал пинга в секундах
+        ping_timeout=10 - таймаут в секундах
         """
         global _logger
         
@@ -19,8 +21,8 @@ class FarmWebSocketHandler:
         self.ping_interval = ping_interval
         self.ping_timeout = ping_timeout
         self.connected_clients: Set[websockets.WebSocketServerProtocol] = set()
-        self.websocket_state = None
-        self.command_to_farm = "SRSE"
+        self.websocket_state = "disconnected"
+        self.command_to_farm = ""
         self.should_send_command = False
         self.frqs_data = None  # Добавляем хранение FRQS данных
         
@@ -112,6 +114,7 @@ class FarmWebSocketHandler:
         self.logger.info(f"New client connected: {client_id}")
         
         try:
+            websocket.ping_timeout = self.ping_timeout  # Устанавливаем таймаут для ping
             self.connected_clients.add(websocket)
             self.update_websocket_state("connected")
 
@@ -123,7 +126,7 @@ class FarmWebSocketHandler:
                     parts = message.split(' ', 3)
                     if len(parts) < 4:
                         continue
-
+                    id_farm = parts[0]
                     type_msg = parts[1]
                     json_length = parts[2]
                     data = json.loads(parts[3])
@@ -134,7 +137,7 @@ class FarmWebSocketHandler:
                     elif type_msg == "FLIN":
                         success = await self.db_manager.save_sensor_data(data, timestamp)
                         if success:
-                            self.logger.info(f"{timestamp} - Данные успешно сохранены")
+                            self.logger.info(f"{timestamp} - Данные от клиента {id_farm} успешно сохранены")
                         else:
                             self.logger.error(f"{timestamp} - Ошибка при сохранении данных")
                     else:
@@ -152,8 +155,6 @@ class FarmWebSocketHandler:
         finally:
             if websocket in self.connected_clients:
                 self.connected_clients.remove(websocket)
-                self.logger.info(f"Client {client_id} removed from connected clients")
-            
             if not self.connected_clients:
                 self.update_websocket_state("disconnected")
 

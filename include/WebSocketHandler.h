@@ -6,6 +6,7 @@
 extern websockets::WebsocketsClient webSocket;
 extern bool connected;
 extern String messageFromServer;
+extern int missedPongs;
 
 void initializeWebSocket();
 void webSocketEvent(websockets::WebsocketsEvent event, String data);

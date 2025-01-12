@@ -11,6 +11,8 @@
 #include "watering.h"
 #include "WebSocketHandler.h"
 
+#define WEBSOCKETS_MAX_DATA_SIZE 2048 // Максимальный размер данных
+
 // Размер EEPROM
 #define EEPROM_SIZE 0x2A
 
@@ -24,11 +26,38 @@ void requestSettings();
 // Задачи для FreeRTOS
 
 void updateWebSocketTask(void *parameter) {
+    static unsigned long lastPing = 0; // Время последнего отправленного PING
+    // Если пропущено 11 Pong подряд, убиваем текущий сокет и подключаем новый
+
     for (;;) {
-        processWebSocket();
-        vTaskDelay(10000 / portTICK_PERIOD_MS);  // Задержка 10000 мс
+        unsigned long currentMillis = millis();
+        // Если соединение потеряно, пробуем переподключиться
+        if (!connected) {
+            connectWebSocket();
+        } else {
+            // Если соединение активно, отправляем PING каждые 5 секунд
+            if (currentMillis - lastPing >= 3000) {  // Проверка интервала
+                missedPongs++;  // Увеличиваем счетчик пропущенных Pong
+
+                if (missedPongs >= 5) {
+                Serial.println("5 missed Pongs, reconnecting WebSocket...");
+                webSocket.close();  // Закрываем текущий WebSocket
+                missedPongs = 0;   // Сброс счетчика
+                connectWebSocket(); // Пробуем подключиться заново
+                }
+
+                lastPing = currentMillis;  // Обновляем время последнего PING
+                //Serial.println("PING sent to WebSocket server");
+            }
+
+            // Обрабатываем события WebSocket
+            webSocket.poll();
+        }
+        // Задержка перед следующим циклом
+        vTaskDelay(5000 / portTICK_PERIOD_MS);  // 1 секунда
     }
 }
+
 
 void updateSensorsTask(void *parameter) {
     for (;;) {
@@ -69,6 +98,7 @@ void setup() {
         Serial.println("Failed to initialize EEPROM");
         return;
     }
+
     setupWatering(); // Инициализация модуля полива
 
     setupLightControl(); // Инициализация модуля управления светом
@@ -83,11 +113,12 @@ void setup() {
     }
     Serial.println("Connected to WiFi!");
 
-    // Инициализация WebSocket
-    initializeWebSocket();
+    initializeWebSocket();  // Инициализация WebSocket
 
     initTimeModule();    // Инициализируем модуль времени
     syncTimeWithNTP("pool.ntp.org"); // Синхронизируем время с NTP
+
+    initializeSettingsModule(); // Инициализация модуля настроек
 
     //requestSettings(); // Отправка запроса "Settings" и получение ответа
 
@@ -95,13 +126,18 @@ void setup() {
 
     initializeSensors();  // Инициализация модуля сенсоров
 
+    if (connected) {
+        Serial.println("WebSocket connected started");
+    } else {
+        Serial.println("WebSocket connection not started");
+    }
     // Создание задач
     xTaskCreatePinnedToCore(
         updateWebSocketTask,   // Функция задачи
         "Update WebSocket",    // Название задачи
         10000,                 // Размер стека задачи
         NULL,                  // Параметры задачи
-        1,                     // Приоритет задачи
+        2,                     // Приоритет задачи
         NULL,                  // Дескриптор задачи
         0                      // Ядро, на котором будет выполняться задача (0 или 1)
     );
@@ -155,6 +191,6 @@ void loop() {
 // Функция для отправки запроса "Settings" и получения ответа
 void requestSettings() {
     // Отправка запроса на сервер через WebSocket
-    sendWebSocketMessage("Settings");
-    Serial.println("Запрос 'Settings' отправлен.");
+    sendWebSocketMessage("FRQS");
+    Serial.println("Запрос 'Settings' отправлен серверу.");
 }

@@ -98,6 +98,7 @@ extern String SERVER_CMD_START;       // Запуск работы
 extern String SERVER_CMD_STOP;        // Остановка работы
 extern String SERVER_CMD_RESTART;     // Перезапуск
 extern String SERVER_CMD_UPDATE;      // Обновление прошивки
+extern String SERVER_CMD_SETTINGS;    // Команда на обновление настроек
 
 // Ответы на запросы
 extern String SERVER_REQ_STATUS;      // Запрос статуса
