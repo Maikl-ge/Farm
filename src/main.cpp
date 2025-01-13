@@ -32,32 +32,28 @@ void updateWebSocketTask(void *parameter) {
     for (;;) {
         unsigned long currentMillis = millis();
         // Если соединение потеряно, пробуем переподключиться
+
         if (!connected) {
+            Serial.println("Reconnected...");          
             connectWebSocket();
         } else {
             // Если соединение активно, отправляем PING каждые 5 секунд
-            if (currentMillis - lastPing >= 2000) {  // Проверка интервала
+            if (currentMillis - lastPing >= 5500) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
-
-                if (missedPongs >= 4) {
-                Serial.println("5 missed Pongs, reconnecting WebSocket...");
+                Serial.println("Счетчик Ping " + String(missedPongs));
+                if (missedPongs >= 3) {
+                Serial.println("3 missed Pongs, reconnecting WebSocket...");
                 webSocket.close();  // Закрываем текущий WebSocket
                 missedPongs = 0;   // Сброс счетчика
                 connectWebSocket(); // Пробуем подключиться заново
                 }
-
                 lastPing = currentMillis;  // Обновляем время последнего PING
-                //Serial.println("PING sent to WebSocket server");
             }
-
-            // Обрабатываем события WebSocket
-            webSocket.poll();
         }
         // Задержка перед следующим циклом
-        vTaskDelay(1000 / portTICK_PERIOD_MS);  // 1 секунда
+        vTaskDelay(3000 / portTICK_PERIOD_MS);  // 1 секунда
     }
 }
-
 
 void updateSensorsTask(void *parameter) {
     for (;;) {
@@ -70,7 +66,7 @@ void updateSensorsTask(void *parameter) {
 void sendDataTask(void *parameter) {
     for (;;) {
         sendDataIfNeeded();
-        vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс
+        vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
     }
 }
 
@@ -121,9 +117,8 @@ void setup() {
     initializeSettingsModule(); // Инициализация модуля настроек
 
     initializeSensors();  // Инициализация модуля сенсоров
-
+    
     setupOTA();  // Настройка OTA через модуль
-
     if (connected) {
         Serial.println("WebSocket connected started");    
     } else {

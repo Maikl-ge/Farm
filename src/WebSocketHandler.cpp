@@ -9,7 +9,6 @@
 #define WEBSOCKETS_MAX_DATA_SIZE 1024 // Максимальный размер данных
 
 using namespace websockets;
-int missedPongs = 0;  // Счетчик пропущенных Pong
 
 // Глобальные переменные для WebSocket клиента 
 WebsocketsClient webSocket;
@@ -49,7 +48,7 @@ void webSocketEvent(WebsocketsEvent event, String data) {
             break;
         case WebsocketsEvent::GotPong:
             missedPongs = 0;   // Сброс счетчика
-            //Serial.println("Got a Pong!");
+            //Serial.println("Got a Pong!" + String(missedPongs));
             break;
     }
 }

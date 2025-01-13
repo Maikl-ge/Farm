@@ -6,6 +6,7 @@
 extern String id_farm_ACK;
 extern String type_msg_ACK;
 extern String ack_ACK;
+extern int missedPongs;
 
 // Константы для WiFi и WebSocket
 extern const char* ssid;

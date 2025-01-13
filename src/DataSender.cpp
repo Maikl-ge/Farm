@@ -8,6 +8,7 @@
 // Отправка данных
 void sendDataIfNeeded() {
     printCurrentTime();
+    updateSensors();
     static unsigned long lastTime = 0;
     unsigned long currentTime = millis();
 
@@ -50,13 +51,23 @@ void sendDataIfNeeded() {
     // Отправка сообщения
     sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonMessage);
     
-    // Проверка подтверждения
-    if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-        Serial.println("Квитанция ACK получена");
-        return;
-    } else {
-        // Записи на SD-карту
-        saveMessageToSDCard(jsonMessage);  // Вызываем функцию сохранения сообщения
+    // Ожидание ACK с таймаутом
+    unsigned long startWait = millis();
+    while(millis() - startWait < 300) {  // ждем 300 мс
+        if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
+            Serial.println("Квитанция ACK получена");
+            type_msg_ACK = "";
+            ack_ACK = "";
+            id_farm_ACK = "";
+            return;
+        }
+        delay(1);  // Небольшая задержка чтобы не нагружать процессор
+    }
+
+    // Если ACK не получен за 300 мс
+    Serial.println("Таймаут ожидания ACK");
+    if(connected) {
+        saveMessageToSDCard(jsonMessage);
     }
 }
 

@@ -9,6 +9,7 @@ float waterLevel = 0.0;
 String id_farm_ACK = "";
 String type_msg_ACK = "";  // Инициализация переменной для типа сообщения ACK
 String ack_ACK = "";       // Инициализация переменной для подтверждения ACK
+int missedPongs = 0;
 
 // Константы для WiFi и WebSocket
 const char* ssid = "TORNIKE";       // Название WiFi-сети
