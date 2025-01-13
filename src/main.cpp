@@ -36,10 +36,10 @@ void updateWebSocketTask(void *parameter) {
             connectWebSocket();
         } else {
             // Если соединение активно, отправляем PING каждые 5 секунд
-            if (currentMillis - lastPing >= 3000) {  // Проверка интервала
+            if (currentMillis - lastPing >= 2000) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
 
-                if (missedPongs >= 5) {
+                if (missedPongs >= 4) {
                 Serial.println("5 missed Pongs, reconnecting WebSocket...");
                 webSocket.close();  // Закрываем текущий WebSocket
                 missedPongs = 0;   // Сброс счетчика
@@ -54,7 +54,7 @@ void updateWebSocketTask(void *parameter) {
             webSocket.poll();
         }
         // Задержка перед следующим циклом
-        vTaskDelay(5000 / portTICK_PERIOD_MS);  // 1 секунда
+        vTaskDelay(1000 / portTICK_PERIOD_MS);  // 1 секунда
     }
 }
 
@@ -120,17 +120,16 @@ void setup() {
 
     initializeSettingsModule(); // Инициализация модуля настроек
 
-    //requestSettings(); // Отправка запроса "Settings" и получение ответа
+    initializeSensors();  // Инициализация модуля сенсоров
 
     setupOTA();  // Настройка OTA через модуль
 
-    initializeSensors();  // Инициализация модуля сенсоров
-
     if (connected) {
-        Serial.println("WebSocket connected started");
+        Serial.println("WebSocket connected started");    
     } else {
         Serial.println("WebSocket connection not started");
     }
+
     // Создание задач
     xTaskCreatePinnedToCore(
         updateWebSocketTask,   // Функция задачи

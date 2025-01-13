@@ -5,6 +5,7 @@
 #include "CurrentProfile.h"
 #include "Profile.h"
 #include "DataSender.h"
+#include "WebSocketHandler.h"
 
 // Константы для адресов и значений
 const int EEPROM_START_ADDRESS = 0x00;
@@ -203,8 +204,7 @@ void serializeSettings() {
     TYPE_MSG = FARM_RES_SETTINGS; // Тип сообщения "FRQS" - данные от фермы на сервер данные
     ID_FARM = 255;  // ID фермы
     LENGTH_MSG = jsonSettings.length(); // Длина JSON сообщения
-    String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonSettings;
 
     // Отправка сообщения
-    sendWebSocketMessage(messageToSend);
+    sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonSettings);
 }

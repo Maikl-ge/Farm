@@ -14,5 +14,6 @@ void handleWebSocketMessage(const String& message);
 void sendWebSocketMessage(const String& message);
 void processWebSocket();
 void connectWebSocket();
+void parseMessageACK();
 
 #endif // WEBSOCKETHANDLER_H

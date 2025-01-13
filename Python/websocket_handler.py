@@ -131,8 +131,13 @@ class FarmWebSocketHandler:
                     json_length = parts[2]
                     data = json.loads(parts[3])
 
+                    # Отправляем простую квитанцию сразу после разбора сообщения
+                    ack_message = f"{id_farm} {type_msg} ACK"
+                    await websocket.send(ack_message)
+                    self.logger.info(f"Sent ACK: {ack_message}")
+
                     if type_msg == "FRQS":
-                        self.frqs_data = data  # Сохраняем FRQS данные
+                        self.frqs_data = data
                         self.logger.info(f"FRQS data updated: {data}")
                     elif type_msg == "FLIN":
                         success = await self.db_manager.save_sensor_data(data, timestamp)

@@ -14,6 +14,7 @@ int missedPongs = 0;  // Счетчик пропущенных Pong
 // Глобальные переменные для WebSocket клиента 
 WebsocketsClient webSocket;
 String messageFromServer;
+String messageACK;
 bool connected = false;
 unsigned long lastReconnectAttempt = 0;
 const unsigned long RECONNECT_INTERVAL = 14000; // Интервал повторного подключения в мс
@@ -53,10 +54,8 @@ void webSocketEvent(WebsocketsEvent event, String data) {
     }
 }
 
-void handleWebSocketMessage(const String& message) {
-    Serial.print("Received WebSocket message: ");
-    Serial.println(message);
-    messageFromServer = message;
+void parceMessageFromServer(const String& messageFromServer) {
+
     // Обработка сообщения КОМАНДЫ
     if (messageFromServer == SERVER_CMD_START) {
         Serial.println("Команда от сервера: START");
@@ -73,12 +72,8 @@ void handleWebSocketMessage(const String& message) {
     }
     if (messageFromServer == SERVER_CMD_SETTINGS) {         // Получена команда Обновление настроек
         Serial.println("Команда от сервера: SETTINGS NEW");
-        //fetchAndSaveSettings();                                     // Загрузка настроек с сервера
-        //Serial.println(EEPROMRead());  // Вывод настроек из EEPROM
-        //serializeSettings();                                        // Отправка настроек на сервер
     }
     
-
     // Обработка сообщения ЗАПРОСЫ
     if (messageFromServer == SERVER_REQ_STATUS) {
         Serial.println("Запрос от сервера: STATUS");
@@ -109,15 +104,17 @@ void handleWebSocketMessage(const String& message) {
     }
 }    
 
-void sendWebSocketMessage(const String& message) {
+void sendWebSocketMessage(const String& ID_FARM, const String& TYPE_MSG, const String& LENGTH_MSG, const String& jsonMessage) {
+    String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
     if (connected) {
-        webSocket.send(message);
+        webSocket.send(messageToSend);
         Serial.print("Sent: ");
-        Serial.println(message);
+        Serial.println(messageToSend);
     } else {
         Serial.println("Соединение отсутствует. Сообщение не отправлено.");
-        saveMessageToSDCard(message);
+        saveMessageToSDCard(messageToSend);
     }
+    //parseMessageACK();
 }
 
 void processWebSocket() {
@@ -152,6 +149,40 @@ void connectWebSocket() {
     } else {
         Serial.println("WebSocket connection failed");
     }
-
     isConnecting = false;
+}    
+
+// Функция для разбора сообщения сервера на три переменные
+void handleWebSocketMessage(const String& message) {
+    Serial.print("Received WebSocket message: ");
+    Serial.println(message);
+    messageFromServer = message;
+    messageACK = message;
+
+    // Проверяем, что сообщение не пустое
+    if (messageACK.isEmpty()) {
+        //Serial.println("Ошибка: пустое сообщение ACK");
+        return;
+    }
+
+    // Находим позиции пробелов
+    int firstSpace = messageACK.indexOf(' ');  // Позиция первого пробела
+    int secondSpace = messageACK.indexOf(' ', firstSpace + 1);  // Позиция второго пробела
+
+    // Проверяем корректность структуры сообщения
+    if (firstSpace == -1 || secondSpace == -1) {
+        Serial.println("Ошибка разбора сообщения: недостаточно частей");
+        return;
+    }
+
+    // Извлечение частей
+    id_farm_ACK = messageACK.substring(0, firstSpace);                 // Первая часть: номер фермы
+    type_msg_ACK = messageACK.substring(firstSpace + 1, secondSpace); // Вторая часть: тип сообщения
+    ack_ACK = messageACK.substring(secondSpace + 1);                  // Третья часть: квитанция
+
+    // Проверка корректности ID фермы
+    if (id_farm_ACK == String(ID_FARM)) {
+        parceMessageFromServer(type_msg_ACK);
+        messageFromServer = type_msg_ACK;
+    } 
 }

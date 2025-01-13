@@ -46,10 +46,18 @@ void sendDataIfNeeded() {
     TYPE_MSG = FARM_LOG_INFO; // Тип сообщения "FLIN" - данные от фермы на сервер данные
     ID_FARM = 255;  // ID фермы
     LENGTH_MSG = jsonMessage.length(); // Длина JSON сообщения
-    String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
 
     // Отправка сообщения
-    sendWebSocketMessage(messageToSend);
+    sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonMessage);
+    
+    // Проверка подтверждения
+    if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
+        Serial.println("Квитанция ACK получена");
+        return;
+    } else {
+        // Записи на SD-карту
+        saveMessageToSDCard(jsonMessage);  // Вызываем функцию сохранения сообщения
+    }
 }
 
 void saveMessageToSDCard(const String& message) {
