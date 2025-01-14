@@ -46,7 +46,7 @@ extern uint16_t WORK;  // 0x52 - R Адрес 0x24-0x25
                        // 0x45 - E  End
                        // 0x4E - N
 extern uint16_t GROWE_START_TIME;  // Время начала цикла роста
-extern uint16_t GROWE_START_DATA;  // Дата начала цикла роста 
+extern uint16_t GROWE_START_DATE;  // Дата начала цикла роста 
 
 extern int EEPROM_DAY_CIRCULATION_ADDRESS; // Адрес начала EEPROM
 extern int EEPROM_DAY_HUMIDITY_START_ADDRESS; 
@@ -69,7 +69,7 @@ extern int EEPROM_CYCLE_ADDRESS;
 extern int EEPROM_WORK_ADDRESS;
 extern int EEPROM_GROWE_START_ADDRESS;
 extern int EEPROM_GROWE_START_TIME_ADDRESS;
-extern int EEPROM_GROWE_START_DATA_ADDRESS;
+extern int EEPROM_GROWE_START_DATE_ADDRESS;
 
 
 //Типы сообщений от фермы серверу

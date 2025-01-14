@@ -30,7 +30,7 @@ uint16_t CYCLE = 0; // Адрес 0x22-0x23
 uint16_t WORK = 0;  // Адрес 0x24-0x25
 uint16_t GROWE_START = 0;  // Адрес 0x26-0x29
 uint16_t GROWE_START_TIME = 0;  // Адрес 0x2A-0x2B
-uint16_t GROWE_START_DATA = 0;  // Адрес 0x2C-0x2D
+uint16_t GROWE_START_DATE = 0;  // Адрес 0x2C-0x2D
 
 
 int EEPROM_DAY_CIRCULATION_ADDRESS = 0x00; // Адрес 0x00-0x01
@@ -54,7 +54,7 @@ int EEPROM_CYCLE_ADDRESS = 0x22; // Адрес 0x22-0x23
 int EEPROM_WORK_ADDRESS = 0x24;  // Адрес 0x24-0x25
 int EEPROM_GROWE_START_ADDRESS = 0x26;  // Адрес 0x26-0x29
 int EEPROM_GROWE_START_TIME_ADDRESS = 0x2A;  // Адрес 0x2A-0x2B
-int EEPROM_GROWE_START_DATA_ADDRESS = 0x2C;  // Адрес 0x2C-0x2D
+int EEPROM_GROWE_START_DATE_ADDRESS = 0x2C;  // Адрес 0x2C-0x2D
 
 
 // Типы сообщений от фермы серверу

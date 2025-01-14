@@ -103,11 +103,13 @@ void setup() {
     // Подключение к WiFi
     WiFi.begin(ssid, password);
     
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        Serial.println("Connecting to WiFi...");
-    }
-    Serial.println("Connected to WiFi!");
+    connectToWiFi();
+
+    // while (WiFi.status() != WL_CONNECTED) {
+    //     delay(1000);
+    //     Serial.println("Connecting to WiFi...");
+    // }
+    // Serial.println("Connected to WiFi!");
 
     initializeWebSocket();  // Инициализация WebSocket
 
@@ -188,3 +190,31 @@ void requestSettings() {
     sendWebSocketMessage("FRQS");
     Serial.println("Запрос 'Settings' отправлен серверу.");
 }
+// Функция для подключения к WiFi
+void connectToWiFi() {
+    const int maxAttempts = 3;            // Количество попыток подключения
+    const unsigned long attemptTimeout = 5000; // Время ожидания каждой попытки (в миллисекундах)
+
+    for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+        Serial.printf("Attempt %d of %d to connect to WiFi...\n", attempt, maxAttempts);
+        unsigned long startAttemptTime = millis();
+        while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < attemptTimeout) {
+            delay(100); // Небольшая задержка для освобождения процессора
+            Serial.print(".");
+        }
+
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("\nConnected to WiFi!");
+            Serial.print("IP Address: ");
+            Serial.println(WiFi.localIP());
+            return; // Выходим из функции, если подключение успешно
+        }
+
+        Serial.println("\nFailed to connect. Retrying...");
+    }
+
+    // Если не удалось подключиться за три попытки
+    Serial.println("Failed to connect to WiFi after 3 attempts.");
+    // Здесь можно добавить дополнительные действия, например, включение режима AP
+}
+

@@ -18,5 +18,7 @@ extern const char* http_server;
 void setupWater(); // Инициализация модуля управления водой
 void setupLightControl(); // Инициализация модуля управления светом
 void updateLightBrightness(); // Обновление яркости света
+void connectToWiFi(); // Подключение к WiFi
+void saveUint16ToEEPROM(int address, uint16_t value); 
 
 #endif // GLOBALS_H

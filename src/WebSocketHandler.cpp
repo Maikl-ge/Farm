@@ -55,13 +55,15 @@ void webSocketEvent(WebsocketsEvent event, String data) {
 void parceMessageFromServer(const String& messageFromServer) {
 
     // Обработка сообщения КОМАНДЫ
-    if (messageFromServer == SERVER_CMD_START) {
+    if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
+        saveUint16ToEEPROM(EEPROM_WORK_ADDRESS, (0x57 << 8 | 0x4F)); // W O - WORK
         Serial.println("Команда от сервера: START");
     }
-    if (messageFromServer == SERVER_CMD_STOP) {
+    if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
+        saveUint16ToEEPROM(EEPROM_WORK_ADDRESS, (0x45 << 8 | 0x4E)); // E N - END
         Serial.println("Команда от сервера: STOP");
     }
-    if (messageFromServer == SERVER_CMD_RESTART) {    // Перезагрузка фермы
+    if (messageFromServer == SERVER_CMD_RESTART) {    // SCMR Перезагрузка фермы
         Serial.println("Команда от сервера: RESTART");
         esp_restart();
     }
@@ -80,11 +82,12 @@ void parceMessageFromServer(const String& messageFromServer) {
         Serial.println("Запрос от сервера: DATA");
     }
     if (messageFromServer == SERVER_REQ_SETTINGS) {
-        Serial.println(readUint16FromEEPROM(EEPROM_WORK_ADDRESS));
+        Serial.println(readUint16FromEEPROM(EEPROM_WORK_ADDRESS));  // SRSE Запрос на отправку Настройки фермы
         serializeSettings();
         Serial.println("Настройки из EEPROM");
     }
     if (messageFromServer == SERVER_REQ_PARAMETERS) {
+        sendDataIfNeeded();
         Serial.println("Запрос от сервера: PARAMETERS");
     }
     if (messageFromServer == SERVER_REQ_PROFILE) {

@@ -266,6 +266,9 @@ class FarmHTTPHandler:
 
             if parameter:
                 # Отправляем команду на ферму через WebSocket
+
+                print(f"Selected parameter ID: {param_id}")  # Вывод в консоль
+
                 command = f"SELECT_PARAM {param_id}"
                 await self.websocket_handler.update_command(command)
                 
