@@ -200,7 +200,7 @@ void serializeSettings() {
 
     doc["cycle"] = CYCLE;
     doc["work"] = WORK;
-    doc["groweStart"] = GROWE_START;
+    doc["groweStart"] = WiFi.localIP();   // GROWE_START;
     doc["groweStartTime"] = GROWE_START_TIME;
     doc["groweStartDate"] = GROWE_START_DATE;
 

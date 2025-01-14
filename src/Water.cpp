@@ -43,10 +43,6 @@ void updateButtonState() {
     }  
 }
 
-void sendMessagetoStatus() {
-    Serial.println("Power monitor: ERROR");
-}
-
 //Обработка состояния датчиков холла
 void controlWaterLevel() {
     if (max_osmo_level == 1 && min_osmo_level == 0) {
@@ -64,6 +60,10 @@ void controlWaterLevel() {
     if (min_water_level == 0 && max_water_level == 1) {
         digitalWrite (PUMP_TRANSFER_PIN, HIGH);
     }
+}
+
+void sendMessagetoStatus() {
+    //Serial.println("Power monitor: ERROR");
 }
 
 // Функция мониторинга питания

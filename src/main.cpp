@@ -121,6 +121,7 @@ void setup() {
     initializeSensors();  // Инициализация модуля сенсоров
     
     setupOTA();  // Настройка OTA через модуль
+    
     if (connected) {
         Serial.println("WebSocket connected started");    
     } else {

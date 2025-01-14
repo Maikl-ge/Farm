@@ -18,7 +18,7 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature ds18b20(&oneWire);
 
 // Адрес I2C экспандера PCF8574T
-#define PCF8574_ADDRESS 0x20
+#define PCF8574_ADDRESS 0x27  // Адрес I2C экспандера PCF8574T проверен
 
 // Создание объекта для I2C экспандера
 PCF8574 pcf8574(PCF8574_ADDRESS);
@@ -129,25 +129,30 @@ void initializeSensors() {
 uint8_t readPCF8574() {
     if (!pcf8574.begin()) {
         //Serial.println("Failed to read PCF8574, assigning default state");
-        sensorState = 0b10100001;
+        sensorState = 0b11101000;
     } else {
         sensorState = pcf8574.read8();
     }
 
+    // Инвертируем логические значения, если требуется
+    //sensorState = ~sensorState;
+
     // Чтение состояния датчиков уровня воды
-    max_osmo_level = sensorState & 0b10000000; // 7 бит
-    min_osmo_level = sensorState & 0b01000000; // 6 бит
-    max_water_level = sensorState & 0b00100000; // 5 бит
-    min_water_level = sensorState & 0b00010000; // 4 бит
+    max_osmo_level = (sensorState & 0b10000000) != 0; // 7 бит
+    min_osmo_level = (sensorState & 0b01000000) != 0; // 6 бит
+    max_water_level = (sensorState & 0b00100000) != 0; // 5 бит
+    min_water_level = (sensorState & 0b00010000) != 0; // 4 бит
+
+    // 3 бит всегда в 0, исключить из опроса
 
     // Чтение состояния кнопок
-    startButtonPressed = sensorState & 0b00001000; // 3 бит
-    modeButtonPressed = sensorState & 0b00000100; // 2 бит
-    stopButtonPressed = sensorState & 0b00000010; // 1 бит
+    modeButtonPressed = (sensorState & 0b00000100) != 0; // 2 бит
+    stopButtonPressed = (sensorState & 0b00000010) != 0; // 1 бит
+    startButtonPressed = (sensorState & 0b00000001) != 0; // 0 бит
 
     // Чтение состояния мониторинга питающей сети
-    power_monitor = sensorState & 0b00000001; // 0 бит
-
+    power_monitor = sensorState & 0b00001000; // 0 бит
+  
     return sensorState;
 }
 
@@ -159,8 +164,8 @@ SensorData readHTU21D(Adafruit_HTU21DF &htu) {
     float hum = htu.readHumidity();
 
     // Проверяем данные на NaN
-    data.temperature = isnan(temp) ? -12.7 : temp;
-    data.humidity = isnan(hum) ? -0.7 : hum;
+    data.temperature = isnan(temp) ? -2.7 : temp;
+    data.humidity = isnan(hum) ? -3.7 : hum;
 
     return data;
 }
@@ -219,6 +224,5 @@ void readAllDS18B20() {
 void updateSensors() {
     readAllHTU21D();
     readAllDS18B20();
-    uint8_t sensorState = readPCF8574();
-    //Serial.println(sensorState, BIN);
+    readPCF8574(); 
 }
