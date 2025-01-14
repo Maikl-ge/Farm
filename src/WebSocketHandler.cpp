@@ -38,9 +38,8 @@ void webSocketEvent(WebsocketsEvent event, String data) {
             connected = true;
             break;
         case WebsocketsEvent::ConnectionClosed:
-            Serial.println("WebSocket connection closed, attempting reconnect...");
-            connected = false;
-            processWebSocket(); // Попытка повторного соединения
+            Serial.println("WebSocket connection closed");
+            resetWebSocketState();  // Очищаем состояние при закрытии
             break;
         case WebsocketsEvent::GotPing:
             webSocket.ping();  // Отправка PING
@@ -48,7 +47,7 @@ void webSocketEvent(WebsocketsEvent event, String data) {
             break;
         case WebsocketsEvent::GotPong:
             missedPongs = 0;   // Сброс счетчика
-            //Serial.println("Got a Pong!" + String(missedPongs));
+            Serial.println("Got a Pong!");
             break;
     }
 }
@@ -137,17 +136,39 @@ void processWebSocket() {
     }
 }
 
+void resetWebSocketState() {
+    // Очистка буферов сообщений
+    messageFromServer = "";
+    messageACK = "";
+    
+    // Очистка переменных ACK
+    type_msg_ACK = "";
+    ack_ACK = "";
+    id_farm_ACK = "";
+    
+    // Сброс счетчиков
+    missedPongs = 0;
+    
+    // Очистка флагов
+    connected = false;
+}
+
 void connectWebSocket() {
     static bool isConnecting = false;
-    if (isConnecting) return; // Избегаем одновременных попыток подключения
+    if (isConnecting) return;  // Если уже идет подключение, то выходим
+    
     isConnecting = true;
-
+    
+    // Очищаем состояние перед новым подключением
+    resetWebSocketState();
+    
     connected = webSocket.connect(ws_server);
     if (connected) {
         Serial.println("WebSocket connected");
     } else {
         Serial.println("WebSocket connection failed");
     }
+    
     isConnecting = false;
 }    
 

@@ -38,9 +38,8 @@ void updateWebSocketTask(void *parameter) {
             connectWebSocket();
         } else {
             // Если соединение активно, отправляем PING каждые 5 секунд
-            if (currentMillis - lastPing >= 5500) {  // Проверка интервала
+            if (currentMillis - lastPing >= 3500) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
-                Serial.println("Счетчик Ping " + String(missedPongs));
                 if (missedPongs >= 3) {
                 Serial.println("3 missed Pongs, reconnecting WebSocket...");
                 webSocket.close();  // Закрываем текущий WebSocket
@@ -103,6 +102,7 @@ void setup() {
 
     // Подключение к WiFi
     WiFi.begin(ssid, password);
+    
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
         Serial.println("Connecting to WiFi...");

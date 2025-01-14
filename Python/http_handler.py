@@ -250,3 +250,30 @@ class FarmHTTPHandler:
         except Exception as e:
             self.logger.error(f"Error editing parameters: {e}")
             return web.Response(text=str(e), status=500)
+
+    async def select_parameter(self, request):
+        """Обработка выбора параметра"""
+        param_id = request.match_info['id']
+        try:
+            # Получаем параметр из БД
+            async with self.db_manager.parameters_pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "SELECT * FROM parameters WHERE id = %s",
+                        (param_id,)
+                    )
+                    parameter = await cur.fetchone()
+
+            if parameter:
+                # Отправляем команду на ферму через WebSocket
+                command = f"SELECT_PARAM {param_id}"
+                await self.websocket_handler.update_command(command)
+                
+                # Перенаправляем обратно на страницу параметров
+                return web.HTTPFound('/parameters')
+            else:
+                return web.Response(text="Parameter not found", status=404)
+
+        except Exception as e:
+            self.logger.error(f"Error selecting parameter: {e}")
+            return web.Response(text=str(e), status=500)

@@ -39,7 +39,7 @@ async def main():
         await db_manager.init_pools()
         
         # Создаем приложение aiohttp
-        app = web.Application()
+        app = web.Application(middlewares=[security_middleware])
         app['db_manager'] = db_manager
 
         # Настраиваем шаблонизатор
@@ -107,6 +107,41 @@ async def main():
         if 'runner' in locals():
             await runner.cleanup()
         logger.info("Application shutdown complete")
+
+@web.middleware
+async def security_middleware(request, handler):
+    """Middleware для базовой защиты от сканирования"""
+    # Список разрешенных User-Agent
+    allowed_agents = [
+        'Mozilla',  # Обычные браузеры
+        'Chrome',
+        'Firefox',
+        'Safari',
+        'Edge',
+        'ESP32'    # Ваши устройства
+    ]
+    
+    # Проверка User-Agent
+    user_agent = request.headers.get('User-Agent', '')
+    if not any(agent in user_agent for agent in allowed_agents):
+        return web.Response(status=403)  # Forbidden
+
+    # Блокировка подозрительных запросов
+    if request.method == 'UNKNOWN' or 'PRI' in str(request.method):
+        return web.Response(status=403)
+
+    # Блокировка сканеров
+    if 'CensysInspect' in user_agent or 'bot' in user_agent.lower():
+        return web.Response(status=403)
+
+    try:
+        response = await handler(request)
+        return response
+    except web.HTTPException as ex:
+        raise
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return web.Response(status=500)
 
 if __name__ == "__main__":
     asyncio.run(main())

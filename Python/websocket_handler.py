@@ -120,21 +120,22 @@ class FarmWebSocketHandler:
 
             async for message in websocket:
                 try:
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    self.logger.info(f"{timestamp} - Получено сообщение от {client_id}: {message}")
-
                     parts = message.split(' ', 3)
                     if len(parts) < 4:
                         continue
+                    
+                    # Сразу отправляем ACK, проверив только формат сообщения
                     id_farm = parts[0]
                     type_msg = parts[1]
-                    json_length = parts[2]
-                    data = json.loads(parts[3])
-
-                    # Отправляем простую квитанцию сразу после разбора сообщения
                     ack_message = f"{id_farm} {type_msg} ACK"
                     await websocket.send(ack_message)
-                    self.logger.info(f"Sent ACK: {ack_message}")
+                    
+                    # Теперь можно логировать и обрабатывать данные
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.logger.info(f"{timestamp} - Получено сообщение от {client_id}: {message}")
+                    
+                    json_length = parts[2]
+                    data = json.loads(parts[3])
 
                     if type_msg == "FRQS":
                         self.frqs_data = data
@@ -155,14 +156,26 @@ class FarmWebSocketHandler:
 
         except websockets.exceptions.ConnectionClosed:
             self.logger.info(f"Client {client_id} connection closed")
-        except Exception as e:
-            self.logger.error(f"Error handling connection for client {client_id}: {e}")
-        finally:
             if websocket in self.connected_clients:
                 self.connected_clients.remove(websocket)
             if not self.connected_clients:
-                self.update_websocket_state("disconnected")
+                self.reset_state()  # Очищаем состояние если нет подключенных клиентов
+                
+        except Exception as e:
+            self.logger.error(f"Error in connection handler: {e}")
+            if websocket in self.connected_clients:
+                self.connected_clients.remove(websocket)
+            if not self.connected_clients:
+                self.reset_state()
 
     async def get_frqs_data(self):
         """Получение текущих FRQS данных"""
         return self.frqs_data      
+
+    def reset_state(self):
+        """Очистка состояния WebSocket обработчика"""
+        self.connected_clients.clear()
+        self.websocket_state = "disconnected"
+        self.frqs_data = None
+        self.command_to_farm = ""
+        self.logger.info("WebSocket handler state reset")      

@@ -53,9 +53,9 @@ void sendDataIfNeeded() {
     
     // Ожидание ACK с таймаутом
     unsigned long startWait = millis();
-    while(millis() - startWait < 300) {  // ждем 300 мс
+    while(millis() - startWait < 4000) {  // ждем 4000 мс
         if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-            Serial.println("Квитанция ACK получена");
+            Serial.println("Квитанция ACK получена " +  String(millis() - startWait) + "ms");
             type_msg_ACK = "";
             ack_ACK = "";
             id_farm_ACK = "";
