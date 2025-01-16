@@ -1,9 +1,9 @@
+import asyncpg
 from aiohttp import web
 import logging
 import json
 import aiohttp_jinja2
 import jinja2
-import os
 
 class FarmHTTPHandler:
     def __init__(self, db_manager, websocket_handler=None):
@@ -140,8 +140,8 @@ class FarmHTTPHandler:
             async with self.db_manager.params_pool.acquire() as conn:
                 params = await conn.fetch('''
                     SELECT * FROM system_params 
-                    ORDER BY id DESC 
-                    LIMIT 10
+                    ORDER BY id ASC 
+                    LIMIT 10 OFFSET 0
                 ''')
 
             context = {'params': params}
@@ -250,33 +250,43 @@ class FarmHTTPHandler:
         except Exception as e:
             self.logger.error(f"Error editing parameters: {e}")
             return web.Response(text=str(e), status=500)
-
+            
     async def select_parameter(self, request):
         """Обработка выбора параметра"""
-        param_id = request.match_info['id']
+        param_id = request.match_info.get('id')
+        id_farm = '255'
+        type_msg = 'SCSE'
+
         try:
             # Получаем параметр из БД
-            async with self.db_manager.parameters_pool.acquire() as conn:
-                async with conn.cursor() as cur:
-                    await cur.execute(
-                        "SELECT * FROM parameters WHERE id = %s",
-                        (param_id,)
-                    )
-                    parameter = await cur.fetchone()
+            async with self.db_manager.params_pool.acquire() as conn:
+                settings = await conn.fetchrow(
+                    "SELECT * FROM system_params WHERE id = $1",
+                    int(param_id)
+                )
 
-            if parameter:
-                # Отправляем команду на ферму через WebSocket
-
-                print(f"Selected parameter ID: {param_id}")  # Вывод в консоль
-
-                command = f"SELECT_PARAM {param_id}"
-                await self.websocket_handler.update_command(command)
+            if settings:  # Проверяем, существует ли параметр
+                # Формируем JSON-строку из настроек
+                settings_json = json.dumps(dict(settings), ensure_ascii=False)
                 
+                # Выводим в консоль для отладки
+                print(f"Selected parameter ID: {param_id}")
+                print(f"Setting command: {settings_json}")
+
+                # Формируем сообщение для отправки
+                message = f"{id_farm} {type_msg} {len(settings_json)} {settings_json}"
+
+                # Отправляем команду на ферму через WebSocket
+                #await self.websocket_handler.command_to_farm(message)
+                await self.websocket_handler.broadcast_message(message)
                 # Перенаправляем обратно на страницу параметров
                 return web.HTTPFound('/parameters')
             else:
                 return web.Response(text="Parameter not found", status=404)
 
+        except asyncpg.PostgresError as e:
+            self.logger.error(f"Database error selecting parameter: {e}")
+            return web.Response(text="Database error", status=500)
         except Exception as e:
             self.logger.error(f"Error selecting parameter: {e}")
             return web.Response(text=str(e), status=500)

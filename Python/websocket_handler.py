@@ -6,38 +6,31 @@ from datetime import datetime
 from typing import Optional, Set
 
 # Глобальный логгер для модуля
-_logger = None
+_logger = logging.getLogger('websocket_handler')
+if not _logger.handlers:
+    _logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    ))
+    _logger.addHandler(handler)
+    _logger.propagate = False
 
 class FarmWebSocketHandler:
-    def __init__(self, db_manager, ping_interval=5, ping_timeout=30):
+    def __init__(self, db_manager, ping_interval=5, ping_timeout=15):
         """
         Инициализация WebSocket обработчика
         ping_interval=5 - интервал пинга в секундах
-        ping_timeout=10 - таймаут в секундах
+        ping_timeout=15 - таймаут в секундах
         """
-        global _logger
-        
         self.db_manager = db_manager
         self.ping_interval = ping_interval
         self.ping_timeout = ping_timeout
         self.connected_clients: Set[websockets.WebSocketServerProtocol] = set()
         self.websocket_state = "disconnected"
-        self.command_to_farm = ""
+        self.current_command = None  # Переименовано с command_to_farm
         self.should_send_command = False
-        self.frqs_data = None  # Добавляем хранение FRQS данных
-        
-        # Используем глобальный логгер или создаем новый
-        if _logger is None:
-            _logger = logging.getLogger('websocket_handler')
-            if not _logger.handlers:
-                _logger.setLevel(logging.INFO)
-                handler = logging.StreamHandler()
-                handler.setFormatter(logging.Formatter(
-                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-                ))
-                _logger.addHandler(handler)
-                _logger.propagate = False
-        
+        self.frqs_data = None
         self.logger = _logger
 
     def update_websocket_state(self, new_state: str) -> None:
@@ -72,6 +65,8 @@ class FarmWebSocketHandler:
 
         for client in clients:
             try:
+                if len(message) > 1024:  # Ограничение на длину сообщения
+                    raise ValueError("Message size exceeds limit")
                 await client.send(message)
             except websockets.exceptions.ConnectionClosed:
                 disconnected_clients.add(client)
@@ -92,14 +87,40 @@ class FarmWebSocketHandler:
     async def send_command(self) -> None:
         """Отправка команды всем подключенным клиентам"""
         if self.connected_clients and self.should_send_command:
-            await self.broadcast_message(self.command_to_farm)
-            self.should_send_command = False
-            self.logger.debug(f"Command {self.command_to_farm} sent to {len(self.connected_clients)} clients")
+            try:
+                # Преобразуем команды в сериализуемый формат
+                serializable_command = {
+                    key: list(value) if isinstance(value, set) else value
+                    for key, value in self.current_command.items()
+                }
+                command_str = json.dumps(serializable_command, default=str)
+                await self.broadcast_message(command_str)
+                self.should_send_command = False
+                self.logger.debug(f"Command {self.current_command} sent to {len(self.connected_clients)} clients")
+            except Exception as e:
+                self.logger.error(f"Error sending command: {e}")
 
-    def set_command(self, new_command: str) -> bool:
+    async def command_to_farm(self, parameter: dict) -> bool:
+        """Асинхронная отправка команды на ферму"""
+        try:
+            command_str = json.dumps(parameter)
+            
+            if len(command_str) > 1024:  # Ограничение на длину команды
+                raise ValueError("Command size exceeds limit")
+            await self.broadcast_message(command_str)
+            self.logger.info(f"Command sent to farm: {command_str}")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error sending command to farm: {e}")
+            return False
+
+    def set_command(self, new_command: dict) -> bool:
         """Установка новой команды и флага для отправки"""
         try:
-            self.command_to_farm = new_command
+            command_str = json.dumps(new_command)  # Преобразование команды в строку JSON
+            if len(command_str) > 1024:  # Ограничение на длину команды
+                raise ValueError("Command size exceeds limit")
+            self.current_command = new_command  # Изменено с command_to_farm
             self.should_send_command = True
             self.logger.info(f"Command updated to: {new_command}")
             asyncio.create_task(self.send_command())
@@ -112,7 +133,7 @@ class FarmWebSocketHandler:
         """Обработка WebSocket соединения"""
         client_id = id(websocket)
         self.logger.info(f"New client connected: {client_id}")
-        
+
         try:
             websocket.ping_timeout = self.ping_timeout  # Устанавливаем таймаут для ping
             self.connected_clients.add(websocket)
@@ -120,20 +141,23 @@ class FarmWebSocketHandler:
 
             async for message in websocket:
                 try:
+                    if len(message) > 1024:  # Ограничение на длину сообщения
+                        raise ValueError("Message size exceeds limit")
+
                     parts = message.split(' ', 3)
                     if len(parts) < 4:
                         continue
-                    
+
                     # Сразу отправляем ACK, проверив только формат сообщения
                     id_farm = parts[0]
                     type_msg = parts[1]
                     ack_message = f"{id_farm} {type_msg} ACK"
                     await websocket.send(ack_message)
-                    
+
                     # Теперь можно логировать и обрабатывать данные
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     self.logger.info(f"{timestamp} - Получено сообщение от {client_id}: {message}")
-                    
+
                     json_length = parts[2]
                     data = json.loads(parts[3])
 
@@ -151,6 +175,8 @@ class FarmWebSocketHandler:
 
                 except json.JSONDecodeError as e:
                     self.logger.error(f"JSON decode error from client {client_id}: {e}")
+                except ValueError as e:
+                    self.logger.error(f"Value error: {e}")
                 except Exception as e:
                     self.logger.error(f"Error processing message from client {client_id}: {e}")
 
@@ -160,7 +186,7 @@ class FarmWebSocketHandler:
                 self.connected_clients.remove(websocket)
             if not self.connected_clients:
                 self.reset_state()  # Очищаем состояние если нет подключенных клиентов
-                
+
         except Exception as e:
             self.logger.error(f"Error in connection handler: {e}")
             if websocket in self.connected_clients:
@@ -170,12 +196,12 @@ class FarmWebSocketHandler:
 
     async def get_frqs_data(self):
         """Получение текущих FRQS данных"""
-        return self.frqs_data      
+        return self.frqs_data
 
     def reset_state(self):
         """Очистка состояния WebSocket обработчика"""
         self.connected_clients.clear()
         self.websocket_state = "disconnected"
         self.frqs_data = None
-        self.command_to_farm = ""
-        self.logger.info("WebSocket handler state reset")      
+        self.command_to_farm = None
+        self.logger.info("WebSocket handler state reset")
