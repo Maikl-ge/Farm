@@ -25,7 +25,7 @@
 #define FAN_RACK_PIN 15     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
 #define FAN_SHELF_PIN 17    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
 #define FAN_CIRC_PIN 16     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
-#define FAN_INLET 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
+#define FAN_INLET_PIN 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
 #define HITER_AIR_PIN 13    // Обогрев камеры (PWM) (GPIO13, нога 15)
 #define HITER_WATER_PIN 14  // Нагрев воды (PWM) (GPIO14, нога 12)
 #define FAN_OPTION_PIN 25   //Опциональный вентилятор (GPIO25, нога 9)

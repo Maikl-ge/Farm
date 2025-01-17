@@ -6,6 +6,7 @@
 #include "Profile.h"
 #include "DataSender.h"
 #include "WebSocketHandler.h"
+#include "ArduinoJson.h"
 
 // Константы для адресов и значений
 const int EEPROM_START_ADDRESS = 0x00;
@@ -27,7 +28,7 @@ void fetchAndSaveSettings() {
         Serial.println(ack_ACK);
 
         // Парсим JSON-ответ
-        DynamicJsonDocument doc(1024);
+        StaticJsonDocument<512> doc;
         DeserializationError error = deserializeJson(doc, ack_ACK);
 
         if (error) {
@@ -165,7 +166,7 @@ void saveSettingsToEEPROM() {
 // Сереализация настроек считанных из EEPROM и отправка на сервер
 void serializeSettings() {
     EEPROMRead();
-    DynamicJsonDocument doc(512);
+    StaticJsonDocument<512> doc;
     doc["dayCirculation"] = DAY_CIRCULATION;
     doc["dayHumidityStart"] = DAY_HUMIDITY_START / 10.0;
     doc["dayHumidityEnd"] = DAY_HUMIDITY_END / 10.0;

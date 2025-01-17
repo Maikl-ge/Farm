@@ -64,7 +64,10 @@ void updateSensorsTask(void *parameter) {
 
 void sendDataTask(void *parameter) {
     for (;;) {
+        // Отправка параметров
         sendDataIfNeeded();
+        // Отправка статуса
+        //serializeStatus();
         vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
     }
 }
@@ -114,7 +117,8 @@ void setup() {
     initializeWebSocket();  // Инициализация WebSocket
 
     initTimeModule();    // Инициализируем модуль времени
-    syncTimeWithNTP("pool.ntp.org"); // Синхронизируем время с NTP
+
+    syncTimeWithNTP("pool.ntp.org", timeZone); // Синхронизируем время с NTP
 
     initializeSettingsModule(); // Инициализация модуля настроек
 
