@@ -40,7 +40,7 @@
 // Шаговый двигатель (Step, Dir, Enable)
 #define STEP_PIN 1   // Шаговый двигатель (GPIO1, нога 35)
 #define DIR_PIN 0   // Направление (GPIO0, нога 25)
-#define ENABLE_PIN   // Включение (GPIO0, нога 21)
+#define ENABLE_PIN   // Включение (GPIO0, нога )
 
 // Используемые для встроенной памяти
 // GPIO6-11: Рекомендуется не использовать для ввода/вывода, так как они подключены к встроенной флеш-памяти.
@@ -54,15 +54,15 @@
 // GPIO39     нога 4 
 // GPIO34     нога 5 
 // GPIO35     нога 6 
-// GPIO32     нога 7 <-- OSMOS_ON_PIN
-// GPIO33     нога 8 <-- PUMP_1_PIN
-// GPIO25     нога 9 <-- FAN_OPTION_PIN
-// GPIO26     нога 10 <-- PUMP_TRANSFER_PIN  
-// GPIO27     нога 11 <-- WATER_OUT_PIN  
+// GPIO32     нога 7  <-- OSMOS_ON_PIN
+// GPIO33     нога 8  <-- PUMP_1_PIN
+// GPIO25     нога 9  <-- FAN_OPTION_PIN
+// GPIO26     нога 10  <-- PUMP_TRANSFER_PIN  
+// GPIO27     нога 11  <-- WATER_OUT_PIN  
 // GPIO14     нога 12  <-- HITER_WATER_PIN
-// GPIO12     нога 13  <-- FAN_INLET
+// GPIO12     нога 13  <-- FAN_INLET      // Подача воздуха из вне (PWM) (FAN_INLET)    
 // GNND       нога 14 ~~~~~~~~~~
-// GPIO13     нога 15  <-- HITER_AIR_PIN
+// GPIO13     нога 15  <-- HITER_AIR_PIN  // Обогрев камеры (PWM) (HITER_AIR_PIN)   
 // GPIO09     нога 16   FLASH D2
 // GPIO10     нога 17   FLASH D3
 // GPIO11     нога 18   FLASH CMD
@@ -70,19 +70,19 @@
 // GPIO06     нога 20   FLASH SCK
 // GPIO07     нога 21   FLASH D0
 // GPIO08     нога 22   FLASH D1
-// GPIO15     нога 23  <-- FAN_RACK_PIN
-// GPIO02     нога 24  <-- LIGHT_PIN
-// GPIO00     нога 25 <-- DIR_PIN
-// GPIO04     нога 26 --> ONE_WIRE_BUS
-// GPIO16     нога 27 <-- FAN_CIRC_PIN
-// GPIO17     нога 28 <-- FAN_SHELF_PIN
-// GPIO05     нога 29 --> SD_CS
-// GPIO18     нога 30 --> SD_SCK
-// GPIO19     нога 31 --> SD_MISO
+// GPIO15     нога 23  <-- FAN_RACK_PIN   // Циркуляция внутри 1 и 2 полки (PWM) (FAN_RACK_PIN)
+// GPIO02     нога 24  <-- LIGHT_PIN      // Свет (PWM) (LIGHT_PIN)
+// GPIO00     нога 25  <-- DIR_PIN        // Направление (DIR_PIN)
+// GPIO04     нога 26 --> ONE_WIRE_BUS    // 1-Wire для DS18B20
+// GPIO16     нога 27  <-- FAN_CIRC_PIN   // Циркуляция внутри камеры (PWM) (FAN_CIRC_PIN)
+// GPIO17     нога 28  <-- FAN_SHELF_PIN  // Циркуляция внутри 3 и 4 полки (PWM) (FAN_SHELF_PIN)
+// GPIO05     нога 29 --> SD_CS           // Выбор устройства (CS) для SD-карты 
+// GPIO18     нога 30 --> SD_SCK          // Шина тактирования I2C (SCL) (SD_SCK)
+// GPIO19     нога 31 --> SD_MISO         // Шина данных I2C (SDA) (SD_MISO)
 // GND        нога 32 ~~~~~~~~~~
-// GPIO21     нога 33 --> SDA_PIN
-// GPIO03     нога 34 <-- STEAM_IN_PIN 
-// GPIO01     нога 35 --> STEP_PIN
-// GPIO22     нога 36 --> SCL_PIN
-// GPIO23     нога 37 --> SD_MOSI
+// GPIO21     нога 33 --> SDA_PIN         // Шина данных I2C 
+// GPIO03     нога 34  <-- STEAM_IN_PIN   // Парогенератор (ON/OFF) (STEAM_IN_PIN)
+// GPIO01     нога 35 --> STEP_PIN        // Шаговый двигатель (Step) (STEP_PIN)
+// GPIO22     нога 36 --> SCL_PIN         // Шина тактирования I2C 
+// GPIO23     нога 37 --> SD_MOSI         // MOSI для SD-карты (SD_MOSI)
 // GND        нога 38 ~~~~~~~~~~

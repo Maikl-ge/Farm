@@ -46,7 +46,7 @@ extern uint16_t WORK;  // 0x52 - R Адрес 0x24-0x25
                        // 0x45 - E  End
                        // 0x4E - N
 extern uint16_t GROWE_START_TIME;  // Время начала цикла роста
-extern uint16_t GROWE_START_DATA;  // Дата начала цикла роста 
+extern uint16_t GROWE_START_DATE;  // Дата начала цикла роста 
 
 extern int EEPROM_DAY_CIRCULATION_ADDRESS; // Адрес начала EEPROM
 extern int EEPROM_DAY_HUMIDITY_START_ADDRESS; 
@@ -69,7 +69,7 @@ extern int EEPROM_CYCLE_ADDRESS;
 extern int EEPROM_WORK_ADDRESS;
 extern int EEPROM_GROWE_START_ADDRESS;
 extern int EEPROM_GROWE_START_TIME_ADDRESS;
-extern int EEPROM_GROWE_START_DATA_ADDRESS;
+extern int EEPROM_GROWE_START_DATE_ADDRESS;
 
 
 //Типы сообщений от фермы серверу
@@ -111,5 +111,28 @@ extern String SERVER_REQ_CURRENT;     // Запрос текущих данны�
 // Ошибки и события
 extern String SERVER_ERR_INVALID;       // Ошибка: недействительный запрос
 extern String SERVER_EVENT_SYNC;        // Событие синхронизации
+
+
+// Переменные для управления устройствами On/Off
+extern volatile bool OSMOS_ON;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
+extern volatile bool PUMP_WATERING;     // Полив (ON/OFF) (GPIO33, нога 8)
+extern volatile bool STEAM_IN;          // Парогенератор (ON/OFF) (GPIO3, нога 34)
+extern volatile bool WATER_OUT;         // Слив (ON/OFF) (GPIO27, нога 11)
+extern volatile bool PUMP_TRANSFER;     // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
+
+// Переменные для управления устройствами PWM
+extern volatile uint8_t LIGHT;          // Свет (PWM) (GPIO02, нога 24)
+extern volatile uint8_t FAN_RACK;       // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
+extern volatile uint8_t FAN_SHELF;      // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+extern volatile uint8_t FAN_CIRC;       // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
+extern volatile uint8_t FAN_INLET;      // Подача воздуха из вне (PWM) (GPIO12, нога 13)
+extern volatile uint8_t HITER_AIR;      // Обогрев камеры (PWM) (GPIO13, нога 15)
+extern volatile uint8_t HITER_WATER;    // Нагрев воды (PWM) (GPIO14, нога 12)
+extern volatile uint8_t FAN_OPTION;     // Опциональный вентилятор (GPIO25, нога 9)
+
+// Переменные для управления шаговым двигателем
+extern volatile bool STEP;              // Шаговый двигатель (GPIO1, нога 35)
+extern volatile bool DIR;               // Направление (GPIO0, нога 25)
+extern volatile bool ENABLE;            // Включение (GPIO0, нога )
 
 #endif // CURRENT_CONSTANTS_H

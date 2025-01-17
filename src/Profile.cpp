@@ -24,18 +24,11 @@ void saveUint16ToEEPROM(int address, uint16_t value) {
 
 // Функция для загрузки настроек с сервера и сохранения в глобальные переменные
 void fetchAndSaveSettings() {
-    HTTPClient http;
-    http.begin(http_server);
-    int httpResponseCode = http.GET();
-
-    if (httpResponseCode == 200) {
-        String response = http.getString();
-        Serial.println("Ответ получен:");
-//        Serial.println(response);
+        Serial.println(ack_ACK);
 
         // Парсим JSON-ответ
-        DynamicJsonDocument doc(512);
-        DeserializationError error = deserializeJson(doc, response);
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, ack_ACK);
 
         if (error) {
             Serial.print("Ошибка парсинга JSON: ");
@@ -65,16 +58,15 @@ void fetchAndSaveSettings() {
         WATER_TEMPERATURE = static_cast<uint16_t>(doc["waterTemperature"].as<float>() * 10);
 
         CYCLE = doc["cycle"];
+        //WORK = doc["work"];
+        GROWE_START = doc["groweStart"];
+        GROWE_START_TIME = doc["groweStartTime"];
+        GROWE_START_DATE = doc["groweStartDate"];
 
         Serial.println("Все настройки сохранены в глобальные переменные.");
 
         // Сохраняем настройки в EEPROM
-        saveSettingsToEEPROM();
-    } else {
-        Serial.printf("Ошибка HTTP-запроса. Код: %d\n", httpResponseCode);
-    }
-
-    http.end();
+        //saveSettingsToEEPROM();
 }
 
 // Функция для чтения двух байт из EEPROM и объединения их в uint16_t
@@ -99,11 +91,10 @@ void initializeSettingsModule() {
     Serial.printf("Прочитанное значение: 0x%04X\n", value);
 
     // Проверка значения
-    if (value == VALUE_READY || value == VALUE_END) {  // Проверка статусов RE и EN
-        //fetchAndSaveSettings();  // Загрузка и сохранение настроек
-        EEPROMRead();  // Чтение настроек из EEPROM
-    } else if (value == VALUE_WORK) {  // Проверка статуса WO "Work"
-        EEPROMRead();  // Чтение настроек из EEPROM
+    if (value == VALUE_READY || value == VALUE_END || VALUE_WORK) {  // Проверка статусов RE и EN
+        EEPROMRead();  // Чтение настроек из EEPROM    
+        Serial.println("Настройки из EEPROM загружены");
+        Serial.println("Статус фермы: " + String(WORK));
     } else {
         Serial.println("EEPROM не содержит корректных настроек.");
     }
@@ -137,6 +128,8 @@ void saveSettingsToEEPROM() {
     saveUint16ToEEPROM(address, CYCLE); address += 2;
     saveUint16ToEEPROM(address, WORK); address += 2;
     saveUint16ToEEPROM(address, GROWE_START); address += 2; 
+    saveUint16ToEEPROM(address, GROWE_START_TIME); address += 2;
+    saveUint16ToEEPROM(address, GROWE_START_DATE); address += 2;
     
     EEPROM.commit(); // Запись изменений в EEPROM
     Serial.println("Настройки сохранены в EEPROM.");
@@ -165,6 +158,8 @@ void saveSettingsToEEPROM() {
         CYCLE = readUint16FromEEPROM(address); address += 2;
         WORK = readUint16FromEEPROM(address); address += 2;
         GROWE_START = readUint16FromEEPROM(address); address += 2;
+        GROWE_START_TIME = readUint16FromEEPROM(address); address += 2;
+        GROWE_START_DATE = readUint16FromEEPROM(address); address += 2;
 }
 
 // Сереализация настроек считанных из EEPROM и отправка на сервер
@@ -193,7 +188,9 @@ void serializeSettings() {
 
     doc["cycle"] = CYCLE;
     doc["work"] = WORK;
-    doc["groweStart"] = GROWE_START;
+    doc["groweStart"] = WiFi.localIP();   // GROWE_START;
+    doc["groweStartTime"] = GROWE_START_TIME;
+    doc["groweStartDate"] = GROWE_START_DATE;
 
     // Сериализация в строку
     String jsonSettings;

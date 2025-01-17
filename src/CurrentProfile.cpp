@@ -30,7 +30,7 @@ uint16_t CYCLE = 0; // Адрес 0x22-0x23
 uint16_t WORK = 0;  // Адрес 0x24-0x25
 uint16_t GROWE_START = 0;  // Адрес 0x26-0x29
 uint16_t GROWE_START_TIME = 0;  // Адрес 0x2A-0x2B
-uint16_t GROWE_START_DATA = 0;  // Адрес 0x2C-0x2D
+uint16_t GROWE_START_DATE = 0;  // Адрес 0x2C-0x2D
 
 
 int EEPROM_DAY_CIRCULATION_ADDRESS = 0x00; // Адрес 0x00-0x01
@@ -54,7 +54,7 @@ int EEPROM_CYCLE_ADDRESS = 0x22; // Адрес 0x22-0x23
 int EEPROM_WORK_ADDRESS = 0x24;  // Адрес 0x24-0x25
 int EEPROM_GROWE_START_ADDRESS = 0x26;  // Адрес 0x26-0x29
 int EEPROM_GROWE_START_TIME_ADDRESS = 0x2A;  // Адрес 0x2A-0x2B
-int EEPROM_GROWE_START_DATA_ADDRESS = 0x2C;  // Адрес 0x2C-0x2D
+int EEPROM_GROWE_START_DATE_ADDRESS = 0x2C;  // Адрес 0x2C-0x2D
 
 
 // Типы сообщений от фермы серверу
@@ -90,7 +90,7 @@ String SERVER_CMD_SETTINGS = "SCME";    // Команда на обновлен�
 // Ответы на запросы
 String SERVER_REQ_STATUS = "SRST";      // Запрос о статусе фермы
 String SERVER_REQ_DATA = "SRDT";        // Запрос данных фермы
-String SERVER_REQ_SETTINGS = "SRSE";    // Запрос о настройках фермы
+String SERVER_REQ_SETTINGS = "SRSE";    // Запрос о настройках фермы Профиля настроек сохраненных 
 String SERVER_REQ_PARAMETERS = "SRPM";  // Запрос о параметрах фермы
 String SERVER_REQ_PROFILE = "SRPF";     // Запрос о профиле фермы
 String SERVER_REQ_CURRENT = "SRCU";     // Запрос  текущих данных фермы
@@ -98,3 +98,26 @@ String SERVER_REQ_CURRENT = "SRCU";     // Запрос  текущих данн
 // Ошибки и события
 String SERVER_ERR_INVALID = "SERR";     // Ошибка: недействительный запрос
 String SERVER_EVENT_SYNC = "SEVN";      // Событие синхронизации
+
+
+// Переменные для управления устройствами On/Off
+bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
+bool PUMP_1 = false;            // Полив (ON/OFF) (GPIO33, нога 8)
+bool PUMP_TRANSFER = false;     // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
+bool WATER_OUT = false;         // Слив (ON/OFF) (GPIO27, нога 11)
+bool STEAM_IN = false;          // Парогенератор (ON/OFF) (GPIO3, нога 34)
+
+// Переменные для управления устройствами PWM
+int LIGHT = 0;  // Свет (PWM) (GPIO02, нога 24)
+int FAN_RACK = 0;     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
+int FAN_SHELF = 0;    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+int FAN_CIRC = 0;     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
+int FAN_INLET = 0;    // Подача воздуха из вне (PWM) (GPIO12, нога 13)
+int HITER_AIR = 0;    // Обогрев камеры (PWM) (GPIO13, нога 15)
+int HITER_WATER = 0;  // Нагрев воды (PWM) (GPIO14, нога 12)
+int FAN_OPTION = 0;   // Опциональный вентилятор (GPIO25, нога 9)
+
+// Переменные для управления шаговым двигателем
+bool STEP = false;  // Шаговый двигатель (GPIO1, нога 35)
+bool DIR = false;   // Направление (GPIO0, нога 25)
+bool ENABLE = false;   // Включение (GPIO0, нога 25)
