@@ -7,24 +7,34 @@ from websocket_handler import FarmWebSocketHandler
 from http_handler import FarmHTTPHandler
 import aiohttp_jinja2
 import jinja2
-import os
+import tracemalloc
+import aiomonitor
+from datetime import datetime, timezone
 
 async def main():
+    # Старт отслеживания утечек памяти
+    tracemalloc.start()
+
     # Базовая настройка логирования
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.StreamHandler()
+            logging.StreamHandler(),  # Лог в консоль
+            logging.FileHandler('server.log'),  # Лог в файл
         ]
-    )
-    
+    )  
+
     # Отключаем логи websockets по умолчанию
     logging.getLogger('websockets').setLevel(logging.WARNING)
-    
+
     # Создаем логгер для main
     logger = logging.getLogger(__name__)
     logger.propagate = False
+
+    # Логируем время старта сервера
+    start_time = datetime.now(timezone.utc)
+    logger.info(f"Server started at {start_time}")
 
     # Порты для серверов
     websocket_port = 5001
@@ -33,11 +43,11 @@ async def main():
 
     # Создаем менеджер баз данных
     db_manager = DatabaseManager()
-    
+
     try:
         # Инициализируем пулы подключений
         await db_manager.init_pools()
-        
+
         # Создаем приложение aiohttp
         app = web.Application(middlewares=[security_middleware])
         app['db_manager'] = db_manager
@@ -68,6 +78,7 @@ async def main():
         app.router.add_get('/parameters/{id}/select', http_handler.select_parameter)
         app.router.add_get('/parameters/{id}/edit', http_handler.edit_parameters)  # Добавьте этот маршрут
         app.router.add_post('/parameters/{id}/edit', http_handler.edit_parameters)
+        app.router.add_get('/select_parameter/{id}', http_handler.select_parameter)
 
         # Запускаем HTTP сервер
         runner = web.AppRunner(app)
@@ -111,16 +122,23 @@ async def main():
 
         try:
             # Ждем завершения работы серверов
-            await websocket_server.wait_closed()
+            with aiomonitor.start_monitor(loop=asyncio.get_event_loop()):
+                await websocket_server.wait_closed()
         finally:
             # Отменяем фоновые задачи при завершении
             for task in background_tasks:
                 task.cancel()
             await asyncio.gather(*background_tasks, return_exceptions=True)
-        
+
     except Exception as e:
         logger.error(f"Application error: {e}")
     finally:
+        # Логируем время остановки сервера
+        stop_time = datetime.utcnow()
+        elapsed_time = stop_time - start_time
+        logger.info(f"Server stopped at {stop_time}")
+        logger.info(f"Server uptime: {elapsed_time}")
+
         # Закрываем соединения
         await db_manager.close_pools()
         if 'runner' in locals():

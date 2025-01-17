@@ -98,3 +98,26 @@ String SERVER_REQ_CURRENT = "SRCU";     // Запрос  текущих данн
 // Ошибки и события
 String SERVER_ERR_INVALID = "SERR";     // Ошибка: недействительный запрос
 String SERVER_EVENT_SYNC = "SEVN";      // Событие синхронизации
+
+
+// Переменные для управления устройствами On/Off
+bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
+bool PUMP_1 = false;            // Полив (ON/OFF) (GPIO33, нога 8)
+bool PUMP_TRANSFER = false;     // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
+bool WATER_OUT = false;         // Слив (ON/OFF) (GPIO27, нога 11)
+bool STEAM_IN = false;          // Парогенератор (ON/OFF) (GPIO3, нога 34)
+
+// Переменные для управления устройствами PWM
+int LIGHT = 0;  // Свет (PWM) (GPIO02, нога 24)
+int FAN_RACK = 0;     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
+int FAN_SHELF = 0;    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+int FAN_CIRC = 0;     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
+int FAN_INLET = 0;    // Подача воздуха из вне (PWM) (GPIO12, нога 13)
+int HITER_AIR = 0;    // Обогрев камеры (PWM) (GPIO13, нога 15)
+int HITER_WATER = 0;  // Нагрев воды (PWM) (GPIO14, нога 12)
+int FAN_OPTION = 0;   // Опциональный вентилятор (GPIO25, нога 9)
+
+// Переменные для управления шаговым двигателем
+bool STEP = false;  // Шаговый двигатель (GPIO1, нога 35)
+bool DIR = false;   // Направление (GPIO0, нога 25)
+bool ENABLE = false;   // Включение (GPIO0, нога 25)

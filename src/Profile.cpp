@@ -24,18 +24,11 @@ void saveUint16ToEEPROM(int address, uint16_t value) {
 
 // Функция для загрузки настроек с сервера и сохранения в глобальные переменные
 void fetchAndSaveSettings() {
-    HTTPClient http;
-    http.begin(http_server);
-    int httpResponseCode = http.GET();
-
-    if (httpResponseCode == 200) {
-        String response = http.getString();
-        Serial.println("Ответ получен:");
-//        Serial.println(response);
+        Serial.println(ack_ACK);
 
         // Парсим JSON-ответ
-        DynamicJsonDocument doc(512);
-        DeserializationError error = deserializeJson(doc, response);
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, ack_ACK);
 
         if (error) {
             Serial.print("Ошибка парсинга JSON: ");
@@ -73,12 +66,7 @@ void fetchAndSaveSettings() {
         Serial.println("Все настройки сохранены в глобальные переменные.");
 
         // Сохраняем настройки в EEPROM
-        saveSettingsToEEPROM();
-    } else {
-        Serial.printf("Ошибка HTTP-запроса. Код: %d\n", httpResponseCode);
-    }
-
-    http.end();
+        //saveSettingsToEEPROM();
 }
 
 // Функция для чтения двух байт из EEPROM и объединения их в uint16_t

@@ -1,9 +1,23 @@
-import asyncpg
-from aiohttp import web
-import logging
 import json
 import aiohttp_jinja2
-import jinja2
+from aiohttp import web
+import logging
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Исправлено 'levellevel' на 'levelname'
+    handlers=[
+        logging.FileHandler("http_handler.log"),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+# Пример использования логирования
+logger.info("HTTP handler initialized")
+logger.error("Error in HTTP handler")
 
 class FarmHTTPHandler:
     def __init__(self, db_manager, websocket_handler=None):
@@ -73,23 +87,26 @@ class FarmHTTPHandler:
                 {"error": "WebSocket handler not initialized"},
                 status=500
             )
-        
+
         try:
             data = await request.json()
-            new_command = data.get('command')
-            
-            if not new_command:
+            self.logger.info(f"Received data for setting command: {data}")
+
+            command_str = data.get('command')
+
+            if not command_str:
                 return web.json_response(
                     {"error": "Command is required"},
                     status=400
                 )
-            
-            success = self.websocket_handler.set_command(new_command)
-            
+
+            # Отправляем команду как строку
+            success = await self.websocket_handler.send_command(command_str)
+
             if success:
                 return web.json_response({
                     "status": "success",
-                    "command": new_command
+                    "command": command_str
                 })
             else:
                 return web.json_response(
@@ -103,10 +120,10 @@ class FarmHTTPHandler:
                 status=400
             )
         except Exception as e:
+            self.logger.error(f"Error setting command: {e}")
             return web.json_response(
                 {"error": str(e)},
-                status=500
-            )
+                status=500)
 
     async def get_frqs(self, request):
         """API: Получение FRQS данных"""
@@ -250,12 +267,12 @@ class FarmHTTPHandler:
         except Exception as e:
             self.logger.error(f"Error editing parameters: {e}")
             return web.Response(text=str(e), status=500)
-            
+
     async def select_parameter(self, request):
         """Обработка выбора параметра"""
         param_id = request.match_info.get('id')
         id_farm = '255'
-        type_msg = 'SCSE'
+        type_msg = 'SCME'
 
         try:
             # Получаем параметр из БД
@@ -274,10 +291,9 @@ class FarmHTTPHandler:
                 print(f"Setting command: {settings_json}")
 
                 # Формируем сообщение для отправки
-                message = f"{id_farm} {type_msg} {len(settings_json)} {settings_json}"
+                message = f"{id_farm} {type_msg} {settings_json}"
 
                 # Отправляем команду на ферму через WebSocket
-                #await self.websocket_handler.command_to_farm(message)
                 await self.websocket_handler.broadcast_message(message)
                 # Перенаправляем обратно на страницу параметров
                 return web.HTTPFound('/parameters')

@@ -2,8 +2,25 @@ import asyncio
 import websockets
 import json
 import logging
+import aiohttp_jinja2
 from datetime import datetime
 from typing import Optional, Set
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Исправлено 'levellevel' на 'levelname'
+    handlers=[
+        logging.FileHandler("websocket_handler.log"),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+# Пример использования логирования
+logger.info("WebSocket handler initialized")
+logger.error("Error in WebSocket handler")
 
 # Глобальный логгер для модуля
 _logger = logging.getLogger('websocket_handler')
@@ -11,7 +28,7 @@ if not _logger.handlers:
     _logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'  # Исправлено 'levellevel' на 'levelname'
     ))
     _logger.addHandler(handler)
     _logger.propagate = False
@@ -28,8 +45,6 @@ class FarmWebSocketHandler:
         self.ping_timeout = ping_timeout
         self.connected_clients: Set[websockets.WebSocketServerProtocol] = set()
         self.websocket_state = "disconnected"
-        self.current_command = None  # Переименовано с command_to_farm
-        self.should_send_command = False
         self.frqs_data = None
         self.logger = _logger
 
@@ -84,25 +99,26 @@ class FarmWebSocketHandler:
         if not self.connected_clients:
             self.update_websocket_state("disconnected")
 
-    async def send_command(self) -> None:
+    async def send_command(self, command: str) -> bool:
         """Отправка команды всем подключенным клиентам"""
-        if self.connected_clients and self.should_send_command:
-            try:
-                # Преобразуем команды в сериализуемый формат
-                serializable_command = {
-                    key: list(value) if isinstance(value, set) else value
-                    for key, value in self.current_command.items()
-                }
-                command_str = json.dumps(serializable_command, default=str)
-                await self.broadcast_message(command_str)
-                self.should_send_command = False
-                self.logger.debug(f"Command {self.current_command} sent to {len(self.connected_clients)} clients")
-            except Exception as e:
-                self.logger.error(f"Error sending command: {e}")
+        try:
+            if not isinstance(command, str):
+                raise ValueError(f"Expected command to be a str, got {type(command)}")
+
+            if len(command) > 1024:  # Ограничение на длину команды
+                raise ValueError("Command size exceeds limit")
+            await self.broadcast_message(command)
+            self.logger.debug(f"Command {command} sent to {len(self.connected_clients)} clients")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error sending command: {e}")
+            return False
 
     async def command_to_farm(self, parameter: dict) -> bool:
         """Асинхронная отправка команды на ферму"""
         try:
+            if not isinstance(parameter, dict):
+                raise ValueError(f"Expected parameter to be a dict, got {type(parameter)}")
             command_str = json.dumps(parameter)
             
             if len(command_str) > 1024:  # Ограничение на длину команды
@@ -112,21 +128,6 @@ class FarmWebSocketHandler:
             return True
         except Exception as e:
             self.logger.error(f"Error sending command to farm: {e}")
-            return False
-
-    def set_command(self, new_command: dict) -> bool:
-        """Установка новой команды и флага для отправки"""
-        try:
-            command_str = json.dumps(new_command)  # Преобразование команды в строку JSON
-            if len(command_str) > 1024:  # Ограничение на длину команды
-                raise ValueError("Command size exceeds limit")
-            self.current_command = new_command  # Изменено с command_to_farm
-            self.should_send_command = True
-            self.logger.info(f"Command updated to: {new_command}")
-            asyncio.create_task(self.send_command())
-            return True
-        except Exception as e:
-            self.logger.error(f"Error setting command: {e}")
             return False
 
     async def handle_connection(self, websocket: websockets.WebSocketServerProtocol, path: str) -> None:
@@ -203,5 +204,4 @@ class FarmWebSocketHandler:
         self.connected_clients.clear()
         self.websocket_state = "disconnected"
         self.frqs_data = None
-        self.command_to_farm = None
         self.logger.info("WebSocket handler state reset")

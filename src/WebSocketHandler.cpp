@@ -71,6 +71,7 @@ void parceMessageFromServer(const String& messageFromServer) {
         Serial.println("Команда от сервера: UPDATE");
     }
     if (messageFromServer == SERVER_CMD_SETTINGS) {         // Получена команда Обновление настроек
+        fetchAndSaveSettings();
         Serial.println("Команда от сервера: SETTINGS NEW");
     }
     
