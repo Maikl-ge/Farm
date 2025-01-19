@@ -2,6 +2,8 @@
 #include "SensorsModule.h"
 #include "water.h"
 #include <CurrentProfile.h>
+#include <globals.h>
+#include <pinout.h>
 
 // Глобальные переменные
 float hysteresis;
@@ -19,28 +21,6 @@ void setupWater() {
 
     hysteresis = 0.5; // Гистерезис ±0.5°C для стабильности
     tempRange = 10;  // Диапазон пропорционального регулирования (в °C)
-}
-
-// Обработка нажатия кнопок
-void updateButtonState() {
-    if (modeButtonPressed && startButtonPressed) {
-        modeButtonPressed = false; // Сброс флага
-        startButtonPressed = false; // Сброс флага
-        Serial.println("START");
-    }   
-    if (modeButtonPressed && stopButtonPressed) {
-        modeButtonPressed = false; // Сброс флага
-        stopButtonPressed = false; // Сброс флага
-        Serial.println("STOP");
-    }  
-    if (startButtonPressed) {
-        startButtonPressed = false; // Сброс флага
-        Serial.println("Start button pressed");
-    }
-    if (stopButtonPressed) {
-        stopButtonPressed = false; // Сброс флага
-        Serial.println("Stop button pressed");
-    }  
 }
 
 //Обработка состояния датчиков холла
@@ -74,11 +54,9 @@ void powerMonitor() {
     }
 }
 
-void updateButtonWater() {
+void updateWater() {
     readPCF8574();
     controlWaterLevel();
-    updateButtonState();
-    powerMonitor();
 }
 
 // Функция управления нагревом воды

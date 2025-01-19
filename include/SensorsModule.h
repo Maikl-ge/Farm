@@ -10,11 +10,6 @@
 // Объявление глобальной переменной
 extern uint8_t sensorState;
 
-// Объявления переменных (extern) состояния кнопок
-extern volatile bool startButtonPressed;
-extern volatile bool stopButtonPressed;
-extern volatile bool modeButtonPressed;
-
 // Объявления переменных для хранения состояния датчиков холла
 extern bool max_osmo_level;
 extern bool min_osmo_level;
@@ -50,7 +45,8 @@ extern float ph_osmo;
 extern float tds_osmo;
 
 // Объявление переменных для мониторинга питающей сети
-extern bool power_monitor;
+extern float power_monitor;
+extern uint8_t buttonState;
 
 // Функции модуля
 void initializeSensors(); // Инициализация всех сенсоров

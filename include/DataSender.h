@@ -14,6 +14,6 @@ void handleWebSocketMessage(WebsocketsMessage message);
 void sendDataIfNeeded();
 void saveMessageToSDCard(const String& message);
 void sendWebSocketMessage(const String& ID_FARM, const String& TYPE_MSG, const String& LENGTH_MSG, const String& jsonMessage);
-
+void setupCDcard();
 
 #endif

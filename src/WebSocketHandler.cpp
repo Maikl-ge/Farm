@@ -76,10 +76,15 @@ void parceMessageFromServer(const String& messageFromServer) {
     }
     
     // Обработка сообщения ЗАПРОСЫ
-    if (messageFromServer == SERVER_REQ_STATUS) {
+    if (messageFromServer == SERVER_REQ_STATUS) {     // SRST Запрос статуса фермы
+        serializeStatus();
         Serial.println("Запрос от сервера: STATUS");
     }
     if (messageFromServer == SERVER_REQ_DATA) {
+        // Отправка данных
+        sendDataIfNeeded();
+        // Отправка статуса
+        serializeStatus();
         Serial.println("Запрос от сервера: DATA");
     }
     if (messageFromServer == SERVER_REQ_SETTINGS) {

@@ -13,6 +13,14 @@
 // 1-Wire для DS18B20
 #define ONE_WIRE_BUS 4  // Шина 1-Wire для четырех DS18B20 (GPIO4, нога 26)
 
+// Power Monitor
+#define POWER_MONITOR_PIN 39 // Пин для мониторинга питающей сети (GPIO34, нога 5)
+
+// Кнопки
+#define START_BUTTON_PIN 36 // Кнопка старта (GPIO36, нога 3)
+#define STOP_BUTTON_PIN 34  // Кнопка стоп (GPIO34, нога 5)
+#define MODE_BUTTON_PIN 35  // Кнопка режима (GPIO35, нога 6)
+
 // Пины для SD-карты (SPI)
 #define SD_MOSI 23 // MOSI для SD-карты (GPIO23, нога 37)
 #define SD_MISO 19 // MISO для SD-карты (GPIO19, нога 31)
@@ -25,7 +33,7 @@
 #define FAN_RACK_PIN 15     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
 #define FAN_SHELF_PIN 17    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
 #define FAN_CIRC_PIN 16     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
-#define FAN_INLET 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
+#define FAN_INLET_PIN 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
 #define HITER_AIR_PIN 13    // Обогрев камеры (PWM) (GPIO13, нога 15)
 #define HITER_WATER_PIN 14  // Нагрев воды (PWM) (GPIO14, нога 12)
 #define FAN_OPTION_PIN 25   //Опциональный вентилятор (GPIO25, нога 9)
@@ -50,10 +58,10 @@
 
 // 3,3 volt   нога 1 ~~~~~~~~~~
 // Reset      нога 2 ~~~~~~~~~~
-// GPIO36     нога 3 
+// GPIO36     нога 3 --> START_BUTTON_PIN 
 // GPIO39     нога 4 
-// GPIO34     нога 5 
-// GPIO35     нога 6 
+// GPIO34     нога 5 --> STOP_BUTTON_PIN 
+// GPIO35     нога 6 --> MODE_BUTTON_PIN 
 // GPIO32     нога 7  <-- OSMOS_ON_PIN
 // GPIO33     нога 8  <-- PUMP_1_PIN
 // GPIO25     нога 9  <-- FAN_OPTION_PIN
