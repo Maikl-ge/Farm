@@ -23,16 +23,16 @@ DallasTemperature ds18b20(&oneWire);
 // Создание объекта для I2C экспандера
 PCF8574 pcf8574(PCF8574_ADDRESS);
 
-// Определение переменных состояния кнопок
-volatile bool startButtonPressed = 0b0;
-volatile bool stopButtonPressed = 0b0;
-volatile bool modeButtonPressed = 0b0;
+// // Определение переменных состояния кнопок
+// volatile bool startButtonPressed = 0b0;
+// volatile bool stopButtonPressed = 0b0;
+// volatile bool modeButtonPressed = 0b0;
 
 // Определение переменных состояния датчиков уровня воды
-bool max_osmo_level = 0b0;
-bool min_osmo_level = 0b0;
-bool max_water_level = 0b0;
-bool min_water_level = 0b0;
+bool max_osmo_level = false;
+bool min_osmo_level = false;
+bool max_water_level = false;
+bool min_water_level = false;
 
 // Определение переменных состояния датчиков HDC1080
 float temperature_1 = 0.0;
@@ -61,9 +61,6 @@ float air_temperature_inlet = 0.0;
 // Определение переменных для датчиков качества воды
 float ph_osmo = 0.0;
 float tds_osmo = 0.0;
-
-// Определение переменных для мониторинга питающей сети
-bool power_monitor = 0b0;
 
 // Глобальная переменная для хранения состояния PCF8574
 uint8_t sensorState = 0;
@@ -120,39 +117,31 @@ void initializeSensors() {
     max_osmo_level = 0;
     min_osmo_level = 0;
     power_monitor = 0;
-    startButtonPressed = 0;
-    stopButtonPressed = 0;
-    modeButtonPressed = 0;
 }
 
 // Функция чтения байта состояния с PCF8574
 uint8_t readPCF8574() {
     if (!pcf8574.begin()) {
-        //Serial.println("Failed to read PCF8574, assigning default state");
+        Serial.println("Failed to initialize PCF8574, assigning default state");
         sensorState = 0b11101000;
     } else {
         sensorState = pcf8574.read8();
+        if (sensorState == 0xFF) {
+            Serial.println("Failed to read from PCF8574, assigning default state");
+            sensorState = 0b11101000;
+        }
     }
 
     // Инвертируем логические значения, если требуется
-    //sensorState = ~sensorState;
+    sensorState = ~sensorState;
 
     // Чтение состояния датчиков уровня воды
     max_osmo_level = (sensorState & 0b10000000) != 0; // 7 бит
     min_osmo_level = (sensorState & 0b01000000) != 0; // 6 бит
     max_water_level = (sensorState & 0b00100000) != 0; // 5 бит
     min_water_level = (sensorState & 0b00010000) != 0; // 4 бит
-
     // 3 бит всегда в 0, исключить из опроса
 
-    // Чтение состояния кнопок
-    modeButtonPressed = (sensorState & 0b00000100) != 0; // 2 бит
-    stopButtonPressed = (sensorState & 0b00000010) != 0; // 1 бит
-    startButtonPressed = (sensorState & 0b00000001) != 0; // 0 бит
-
-    // Чтение состояния мониторинга питающей сети
-    power_monitor = sensorState & 0b00001000; // 0 бит
-  
     return sensorState;
 }
 

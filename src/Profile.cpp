@@ -15,6 +15,7 @@ const int EEPROM_CHECK_ADDRESS = 0x24;
 const uint16_t VALUE_READY = 0x5245;  // RE - Ready статус фермы в EEPROM
 const uint16_t VALUE_WORK = 0x574F;  // WO - Work статус фермы в EEPROM
 const uint16_t VALUE_END = 0x454E;  // EN - End статус фермы в EEPROM
+const uint16_t VALUE_ABORT = 0x4142;  // AB - Abort статус фермы в EEPROM
 
 
 // Сохраняет `uint16_t` значение в EEPROM
@@ -88,20 +89,26 @@ void initializeSettingsModule() {
     // Чтение двух байт и объединение в uint16_t
     uint16_t value = readUint16FromEEPROM(EEPROM_CHECK_ADDRESS);
 
-    // Вывод значения в формате HEX
-    Serial.printf("Прочитанное значение: 0x%04X\n", value);
-
     // Проверка значения
-    if (value == VALUE_READY || value == VALUE_END || VALUE_WORK) {  // Проверка статусов RE и EN
+    if (value == VALUE_READY || value == VALUE_END || value == VALUE_WORK || value == VALUE_ABORT) {  // Проверка статусов
         EEPROMRead();  // Чтение настроек из EEPROM    
         Serial.println("Настройки из EEPROM загружены");
-        Serial.println("Статус фермы: " + String(WORK));
+
+        // Определение статуса фермы
+        if (value == VALUE_READY) {
+            Serial.println("Статус фермы: READY");
+        } else if (value == VALUE_WORK) {
+            Serial.println("Статус фермы: WORK");
+        } else if (value == VALUE_END) {
+            Serial.println("Статус фермы: END");
+        } else if (value == VALUE_ABORT) {
+            Serial.println("Статус фермы: ABORT");
+        }
     } else {
         Serial.println("EEPROM не содержит корректных настроек.");
     }
 }
    
-
 // Сохраняет настройки в EEPROM
 void saveSettingsToEEPROM() {
     int address = 0;

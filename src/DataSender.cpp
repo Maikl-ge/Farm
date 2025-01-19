@@ -5,6 +5,9 @@
 #include "WebSocketHandler.h"
 #include "CurrentProfile.h"
 #include <ArduinoJson.h>
+#include <pinout.h>
+#include <SPI.h>
+#include <SD.h>
 
 // Отправка данных
 void sendDataIfNeeded() {
@@ -16,9 +19,9 @@ void sendDataIfNeeded() {
     DynamicJsonDocument doc(512);
     doc["DF"] = CurrentDate;
     doc["TF"] = CurrentTime;
-    doc["start_Button"] = startButtonPressed ? 1 : 0;
-    doc["stop_Button"] = stopButtonPressed ? 1 : 0;
-    doc["mode_Button"] = modeButtonPressed ? 1 : 0;
+    doc["start_Button"] = 1; //startButtonPressed ? 1 : 0;
+    doc["stop_Button"] = 0; //stopButtonPressed ? 1 : 0;
+    doc["mode_Button"] = 0; //modeButtonPressed ? 1 : 0;
     doc["max_osmo_level"] = max_osmo_level ? 1 : 0;
     doc["min_osmo_level"] = min_osmo_level ? 1 : 0;
     doc["max_water_level"] = max_water_level ? 1 : 0;
@@ -132,4 +135,20 @@ void saveMessageToSDCard(const String& message) {
     // Заглушка записи на SD-карту
     Serial.print("Сохраняем сообщение на SD-карту: ");
     Serial.println(message);
+}
+
+void setupCDcard() {
+  Serial.println("Инициализация SD-карты...");
+
+  // Настройка SPI с указанием кастомных пинов
+  SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+
+  // Инициализация SD-карты
+  if (!SD.begin(SD_CS)) {
+    Serial.println("Не удалось инициализировать SD-карту!");
+    return;
+  }
+  Serial.println("SD-карта успешно инициализирована.");
+
+  // Вывод содержимого SD-карты
 }

@@ -10,18 +10,22 @@
 #include "CurrentProfile.h"
 #include "watering.h"
 #include "WebSocketHandler.h"
+#include <SPI.h>
+#include <SD.h>
+#include "menu.h"
 
 #define WEBSOCKETS_MAX_DATA_SIZE 2048 // Максимальный размер данных
 
 // Размер EEPROM
-#define EEPROM_SIZE 0x2A
+#define EEPROM_SIZE 512
 
 // Прототипы функций
 void sendDataTask(void *parameter);
 void updatePCF8574Task(void *parameter);
-void updateButtonWaterTask(void *parameter);
-void updateButtonWater(); // Прототип функции
+//void updateButtonWaterTask(void *parameter);
+void updateWater(); // Прототип функции
 void requestSettings();
+void updateButtonState();  
 
 // Задачи для FreeRTOS
 
@@ -72,18 +76,18 @@ void sendDataTask(void *parameter) {
     }
 }
 
-void updatePCF8574Task(void *parameter) {
+void updateMenuTask(void *parameter) {
     for (;;) {
-        readPCF8574();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);  // Задержка 1000 мс
+        updateButtonState();
+        webSocket.poll(); // Обработка WebSocket событий
+        vTaskDelay(50 / portTICK_PERIOD_MS);  // Задержка 50 мс
     }
 }
 
-void updateButtonWaterTask(void *parameter) {
+void updateWaterTask(void *parameter) {
     for (;;) {
-        updateButtonWater();
-        webSocket.poll(); // Обработка WebSocket событий
-        vTaskDelay(250 / portTICK_PERIOD_MS);  // Задержка 250 мс
+        updateWater();
+        vTaskDelay(1000 / portTICK_PERIOD_MS);  // Задержка 1000 мс
     }
 }
 
@@ -97,6 +101,10 @@ void setup() {
         return;
     }
 
+    initializeSettingsModule(); // Инициализация модуля настроек
+
+    initializeMenu(); // Инициализация модуля меню
+
     setupWatering(); // Инициализация модуля полива
 
     setupLightControl(); // Инициализация модуля управления светом
@@ -108,23 +116,17 @@ void setup() {
     
     connectToWiFi();
 
-    // while (WiFi.status() != WL_CONNECTED) {
-    //     delay(1000);
-    //     Serial.println("Connecting to WiFi...");
-    // }
-    // Serial.println("Connected to WiFi!");
-
     initializeWebSocket();  // Инициализация WebSocket
 
     initTimeModule();    // Инициализируем модуль времени
 
     syncTimeWithNTP("pool.ntp.org", timeZone); // Синхронизируем время с NTP
 
-    initializeSettingsModule(); // Инициализация модуля настроек
-
     initializeSensors();  // Инициализация модуля сенсоров
     
     setupOTA();  // Настройка OTA через модуль
+
+    setupCDcard(); // Инициализация SD карты
     
     if (connected) {
         Serial.println("WebSocket connected started");    
@@ -164,8 +166,8 @@ void setup() {
     );
 
     xTaskCreatePinnedToCore(
-        updatePCF8574Task,
-        "Update PCF8574",
+        updateMenuTask,
+        "Update Menu",
         10000,
         NULL,
         1,
@@ -174,8 +176,8 @@ void setup() {
     );
 
     xTaskCreatePinnedToCore(
-        updateButtonWaterTask,
-        "Update Button Water",
+        updateWaterTask,
+        "Update Water",
         10000,
         NULL,
         1,

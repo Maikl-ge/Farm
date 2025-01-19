@@ -76,7 +76,7 @@ void parceMessageFromServer(const String& messageFromServer) {
     }
     
     // Обработка сообщения ЗАПРОСЫ
-    if (messageFromServer == SERVER_REQ_STATUS) {
+    if (messageFromServer == SERVER_REQ_STATUS) {     // SRST Запрос статуса фермы
         serializeStatus();
         Serial.println("Запрос от сервера: STATUS");
     }

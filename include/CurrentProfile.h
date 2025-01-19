@@ -39,12 +39,16 @@ extern uint16_t CYCLE;
 extern uint16_t GROWE_START;   //  Адрес 0x26-0x27
 extern uint16_t WORK;  // 0x52 - R Адрес 0x24-0x25
                        // 0x45 - E  Ready
-                       //-----------
+                       //--------------------------------
                        // 0x57 - W  Work
                        // 0x4F - O
-                       //-----------
+                       //--------------------------------
                        // 0x45 - E  End
                        // 0x4E - N
+                       //--------------------------------
+                       // 0x41 - A  Abort
+                       // 0x42 - B
+
 extern uint16_t GROWE_START_TIME;  // Время начала цикла роста
 extern uint16_t GROWE_START_DATE;  // Дата начала цикла роста 
 
