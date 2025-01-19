@@ -25,8 +25,8 @@ int HITER_WATER = 0;  // Нагрев воды (PWM) (GPIO14, нога 12)
 int FAN_OPTION = 0;   // Опциональный вентилятор (GPIO25, нога 9)
 
 // Переменные для управления шаговым двигателем
-bool STEP = false;  // Шаговый двигатель (GPIO1, нога 35)
-bool DIR = false;   // Направление (GPIO0, нога 25)
+int STEP = 125;  // Шаговый двигатель (GPIO1, нога 35)
+String DIR = "left";   // Направление (GPIO0, нога 25)
 bool ENABLE = false;   // Включение (GPIO0, нога 25)
 
 String id_farm_ACK = "";

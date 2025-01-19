@@ -134,7 +134,7 @@ async def main():
         logger.error(f"Application error: {e}")
     finally:
         # Логируем время остановки сервера
-        stop_time = datetime.utcnow()
+        stop_time = datetime.now(timezone.utc)
         elapsed_time = stop_time - start_time
         logger.info(f"Server stopped at {stop_time}")
         logger.info(f"Server uptime: {elapsed_time}")

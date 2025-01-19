@@ -41,7 +41,7 @@ void updateWebSocketTask(void *parameter) {
             connectWebSocket();
         } else {
             // Если соединение активно, отправляем PING каждые 5 секунд
-            if (currentMillis - lastPing >= 5000) {  // Проверка интервала
+            if (currentMillis - lastPing >= 4950) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
                 if (missedPongs >= 4) {
                 Serial.println("3 missed Pongs, reconnecting WebSocket...");
@@ -53,7 +53,7 @@ void updateWebSocketTask(void *parameter) {
             }
         }
         // Задержка перед следующим циклом
-        vTaskDelay(3000 / portTICK_PERIOD_MS);  // 3 секунда
+        vTaskDelay(5000 / portTICK_PERIOD_MS);  // 3 секунда
     }
 }
 
@@ -72,6 +72,14 @@ void sendDataTask(void *parameter) {
         // Отправка статуса
         //serializeStatus();
         vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
+    }
+}
+
+void sendStatusTask(void *parameter) {
+    for (;;) {
+        // Отправка статуса
+        serializeStatus();
+        vTaskDelay(70000 / portTICK_PERIOD_MS);  // Задержка 70000 мс             
     }
 }
 
@@ -157,6 +165,16 @@ void setup() {
     xTaskCreatePinnedToCore(
         sendDataTask,
         "Send Data",
+        10000,
+        NULL,
+        1,
+        NULL,
+        0
+    );
+
+    xTaskCreatePinnedToCore(
+        sendStatusTask,
+        "Send Status",
         10000,
         NULL,
         1,

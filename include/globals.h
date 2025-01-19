@@ -27,8 +27,8 @@ extern int HITER_WATER;  // Нагрев воды (PWM) (GPIO14, нога 12)
 extern int FAN_OPTION;   // Опциональный вентилятор (GPIO25, нога 9)
 
 // Переменные для управления шаговым двигателем
-extern bool STEP;  // Шаговый двигатель (GPIO1, нога 35)
-extern bool DIR;   // Направление (GPIO0, нога 25)
+extern int STEP;  // Шаговый двигатель (GPIO1, нога 35)
+extern String DIR;   // Направление (GPIO0, нога 25)
 extern bool ENABLE;   // Включение (GPIO0, нога 25)
 
 

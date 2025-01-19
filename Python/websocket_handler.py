@@ -2,14 +2,14 @@ import asyncio
 import websockets
 import json
 import logging
-import aiohttp_jinja2
 from datetime import datetime
 from typing import Optional, Set
+from message_handler import MessageHandler
 
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Исправлено 'levellevel' на 'levelname'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("websocket_handler.log"),
         logging.StreamHandler()
@@ -17,21 +17,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-# Пример использования логирования
-logger.info("WebSocket handler initialized")
-logger.error("Error in WebSocket handler")
-
-# Глобальный логгер для модуля
-_logger = logging.getLogger('websocket_handler')
-if not _logger.handlers:
-    _logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'  # Исправлено 'levellevel' на 'levelname'
-    ))
-    _logger.addHandler(handler)
-    _logger.propagate = False
 
 class FarmWebSocketHandler:
     def __init__(self, db_manager, ping_interval=5, ping_timeout=15):
@@ -46,7 +31,8 @@ class FarmWebSocketHandler:
         self.connected_clients: Set[websockets.WebSocketServerProtocol] = set()
         self.websocket_state = "disconnected"
         self.frqs_data = None
-        self.logger = _logger
+        self.logger = logger
+        self.message_handler = MessageHandler(db_manager, self)
 
     def update_websocket_state(self, new_state: str) -> None:
         """Обновление состояния WebSocket"""
@@ -82,7 +68,11 @@ class FarmWebSocketHandler:
             try:
                 if len(message) > 1024:  # Ограничение на длину сообщения
                     raise ValueError("Message size exceeds limit")
-                await client.send(message)
+                if client.open:
+                    await client.send(message)
+                else:
+                    disconnected_clients.add(client)
+                    self.logger.warning(f"Cannot send message, connection closed for client {id(client)}")
             except websockets.exceptions.ConnectionClosed:
                 disconnected_clients.add(client)
                 self.logger.info(f"Client {id(client)} connection closed during broadcast")
@@ -145,34 +135,8 @@ class FarmWebSocketHandler:
                     if len(message) > 1024:  # Ограничение на длину сообщения
                         raise ValueError("Message size exceeds limit")
 
-                    parts = message.split(' ', 3)
-                    if len(parts) < 4:
-                        continue
-
-                    # Сразу отправляем ACK, проверив только формат сообщения
-                    id_farm = parts[0]
-                    type_msg = parts[1]
-                    ack_message = f"{id_farm} {type_msg} ACK"
-                    await websocket.send(ack_message)
-
-                    # Теперь можно логировать и обрабатывать данные
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    self.logger.info(f"{timestamp} - Получено сообщение от {client_id}: {message}")
-
-                    json_length = parts[2]
-                    data = json.loads(parts[3])
-
-                    if type_msg == "FRQS":
-                        self.frqs_data = data
-                        self.logger.info(f"FRQS data updated: {data}")
-                    elif type_msg == "FLIN":
-                        success = await self.db_manager.save_sensor_data(data, timestamp)
-                        if success:
-                            self.logger.info(f"{timestamp} - Данные от клиента {id_farm} успешно сохранены")
-                        else:
-                            self.logger.error(f"{timestamp} - Ошибка при сохранении данных")
-                    else:
-                        self.logger.warning(f"Unknown message type from client {client_id}: {type_msg}")
+                    # Используем MessageHandler для обработки сообщения
+                    await self.message_handler.handle_message(message, websocket)
 
                 except json.JSONDecodeError as e:
                     self.logger.error(f"JSON decode error from client {client_id}: {e}")

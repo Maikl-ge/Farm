@@ -138,7 +138,7 @@ void processWebSocket() {
         if (WiFi.status() != WL_CONNECTED) {
             Serial.println("Wi-Fi disconnected, attempting to reconnect...");
             WiFi.reconnect();
-            delay(1000); // Небольшая задержка для стабилизации
+            delay(1500); // Небольшая задержка для стабилизации
             return;      // Не пытаемся подключиться к WebSocket, пока Wi-Fi не восстановится
         }
 

@@ -81,24 +81,24 @@ void serializeStatus() {
     DynamicJsonDocument doc(512);
 
     // Заполняем объект данными
-    doc["OSMOS_ON"] = OSMOS_ON;
-    doc["PUMP_WATERING"] = PUMP_WATERING;
-    doc["PUMP_TRANSFER"] = PUMP_TRANSFER;
-    doc["WATER_OUT"] = WATER_OUT;
-    doc["STEAM_IN"] = STEAM_IN;
+    doc["OSMOS_ON"] = OSMOS_ON ? 1 : 0;           // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
+    doc["PUMP_WATERING"] = PUMP_WATERING ? 1 : 0; // Полив (ON/OFF) (GPIO33, нога 8)
+    doc["PUMP_TRANSFER"] = PUMP_TRANSFER ? 1 : 0; // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
+    doc["WATER_OUT"] = WATER_OUT ? 1 : 0;         // Слив (ON/OFF) (GPIO27, нога 11)
+    doc["STEAM_IN"] = STEAM_IN ? 1 : 0;           // Парогенератор (ON/OFF) (GPIO3, нога 34)
 
-    doc["LIGHT"] = LIGHT;
-    doc["FAN_RACK"] = FAN_RACK;
-    doc["FAN_SHELF"] = FAN_SHELF;
-    doc["FAN_CIRC"] = FAN_CIRC;
-    doc["FAN_INLET"] = FAN_INLET;
-    doc["HITER_AIR"] = HITER_AIR;
-    doc["HITER_WATER"] = HITER_WATER;
-    doc["FAN_OPTION"] = FAN_OPTION;
+    doc["LIGHT"] = LIGHT;                // Свет (PWM) (GPIO02, нога 24)
+    doc["FAN_RACK"] = FAN_RACK;          // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
+    doc["FAN_SHELF"] = FAN_SHELF;        // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+    doc["FAN_CIRC"] = FAN_CIRC;          // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
+    doc["FAN_INLET"] = FAN_INLET;        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
+    doc["HITER_AIR"] = HITER_AIR;        // Обогрев камеры (PWM) (GPIO13, нога 15)
+    doc["HITER_WATER"] = HITER_WATER;    // Нагрев воды (PWM) (GPIO14, нога 12)
+    doc["FAN_OPTION"] = FAN_OPTION;      // Опциональный вентилятор (GPIO25, нога 9)
 
-    doc["STEP"] = STEP;
-    doc["DIR"] = DIR;
-    doc["ENABLE"] = ENABLE;
+    doc["STEP"] = STEP;                 // Шаговый двигатель (GPIO1, нога 35)
+    doc["DIR"] = DIR;                   // Направление (GPIO0, нога 25)
+    doc["ENABLE"] = ENABLE ? 1 : 0;     // Включение (GPIO0, нога 25)
 
     // Сериализуем в строку JSON
     String jsonStatus;
@@ -119,6 +119,8 @@ void serializeStatus() {
             type_msg_ACK = "";
             ack_ACK = "";
             id_farm_ACK = "";
+            Serial.print("Stack High Watermark: ");
+            Serial.println(uxTaskGetStackHighWaterMark(NULL));
             return;
         }
         delay(1);  // Небольшая задержка чтобы не нагружать процессор
