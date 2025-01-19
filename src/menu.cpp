@@ -76,14 +76,6 @@ void processButton(Button &button, uint8_t buttonIndex) {
 // Функция обработки всех кнопок
 void updateButtonState() {
 
-    unsigned long currentTime = millis();
-
-    // Блокировка чтения кнопок, если прошло меньше 0,6 секунды с последнего чтения
-    if (currentTime - lastButtonReadTime < BUTTON_READ_INTERVAL) {
-        return;
-    }
-    lastButtonReadTime = currentTime;
-
     buttonState = 0; // Сброс состояния кнопок
 
     for (uint8_t i = 0; i < buttonCount; i++) {
@@ -163,15 +155,6 @@ void updateButtonState() {
     if (buttonState == 0b00100111) {  // Длинное нажатие всех кнопок
         Serial.println("Клавиатура: длинный Все кнопки");
     }
-
-    //updatePowerMonitor(); // Обновление состояния мониторинга питающей сети
-}
-
-// Функция обновления состояния мониторинга питающей сети
-void updatePowerMonitor() {
-    power_monitor = analogRead(POWER_MONITOR_PIN);
-    Serial.print("Power monitor: ");
-    Serial.println(power_monitor);
 }
 
 // Состояние байта buttonState при коротком нажатии

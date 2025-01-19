@@ -9,7 +9,7 @@ int8_t timeZone = 4; // Часовой пояс
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
-bool PUMP_1 = false;            // Полив (ON/OFF) (GPIO33, нога 8)
+bool PUMP_WATERING = false;            // Полив (ON/OFF) (GPIO33, нога 8)
 bool PUMP_TRANSFER = false;     // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
 bool WATER_OUT = false;         // Слив (ON/OFF) (GPIO27, нога 11)
 bool STEAM_IN = false;          // Парогенератор (ON/OFF) (GPIO3, нога 34)

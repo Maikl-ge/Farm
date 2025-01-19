@@ -63,7 +63,7 @@
 // GPIO34     нога 5 --> STOP_BUTTON_PIN 
 // GPIO35     нога 6 --> MODE_BUTTON_PIN 
 // GPIO32     нога 7  <-- OSMOS_ON_PIN
-// GPIO33     нога 8  <-- PUMP_1_PIN
+// GPIO33     нога 8  <-- PUMP_WATERING_PIN
 // GPIO25     нога 9  <-- FAN_OPTION_PIN
 // GPIO26     нога 10  <-- PUMP_TRANSFER_PIN  
 // GPIO27     нога 11  <-- WATER_OUT_PIN  

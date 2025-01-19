@@ -18,6 +18,12 @@ bool connected = false;
 unsigned long lastReconnectAttempt = 0;
 const unsigned long RECONNECT_INTERVAL = 14000; // Интервал повторного подключения в мс
 
+// Прототипы функций
+void connectWebSocket();
+void resetWebSocketState();
+void handleWebSocketMessage(const String& message);
+void parceMessageFromServer(const String& messageFromServer);
+
 void initializeWebSocket() {
     webSocket.onMessage([](WebsocketsMessage message) {
         handleWebSocketMessage(message.data());
@@ -34,7 +40,6 @@ void webSocketEvent(WebsocketsEvent event, String data) {
     switch (event) {
         case WebsocketsEvent::ConnectionOpened:
             Serial.println("WebSocket connection opened");
-            //Serial.println(data);
             connected = true;
             break;
         case WebsocketsEvent::ConnectionClosed:

@@ -22,7 +22,6 @@
 // Прототипы функций
 void sendDataTask(void *parameter);
 void updatePCF8574Task(void *parameter);
-//void updateButtonWaterTask(void *parameter);
 void updateWater(); // Прототип функции
 void requestSettings();
 void updateButtonState();  
@@ -42,9 +41,9 @@ void updateWebSocketTask(void *parameter) {
             connectWebSocket();
         } else {
             // Если соединение активно, отправляем PING каждые 5 секунд
-            if (currentMillis - lastPing >= 3500) {  // Проверка интервала
+            if (currentMillis - lastPing >= 5000) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
-                if (missedPongs >= 3) {
+                if (missedPongs >= 4) {
                 Serial.println("3 missed Pongs, reconnecting WebSocket...");
                 webSocket.close();  // Закрываем текущий WebSocket
                 missedPongs = 0;   // Сброс счетчика
@@ -54,7 +53,7 @@ void updateWebSocketTask(void *parameter) {
             }
         }
         // Задержка перед следующим циклом
-        vTaskDelay(3000 / portTICK_PERIOD_MS);  // 1 секунда
+        vTaskDelay(3000 / portTICK_PERIOD_MS);  // 3 секунда
     }
 }
 

@@ -209,9 +209,16 @@ void readAllDS18B20() {
     }
 }
 
+// Функция обновления состояния мониторинга питающей сети
+void updatePowerMonitor() {
+    power_monitor = analogRead(POWER_MONITOR_PIN);
+    // Serial.print("Power monitor: ");
+    // Serial.println(power_monitor);
+}
 // Обновление состояния датчиков
 void updateSensors() {
     readAllHTU21D();
     readAllDS18B20();
     readPCF8574(); 
+    updatePowerMonitor(); // Обновление состояния мониторинга питающей сети
 }

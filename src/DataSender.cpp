@@ -82,7 +82,7 @@ void serializeStatus() {
 
     // Заполняем объект данными
     doc["OSMOS_ON"] = OSMOS_ON;
-    doc["PUMP_1"] = PUMP_1;
+    doc["PUMP_WATERING"] = PUMP_WATERING;
     doc["PUMP_TRANSFER"] = PUMP_TRANSFER;
     doc["WATER_OUT"] = WATER_OUT;
     doc["STEAM_IN"] = STEAM_IN;

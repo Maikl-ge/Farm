@@ -11,7 +11,7 @@ extern int8_t timeZone; // Часовой пояс
 
 // Переменные для управления устройствами On/Off
 extern bool OSMOS_ON;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
-extern bool PUMP_1;            // Полив (ON/OFF) (GPIO33, нога 8)
+extern bool PUMP_WATERING;            // Полив (ON/OFF) (GPIO33, нога 8)
 extern bool PUMP_TRANSFER ;     // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
 extern bool WATER_OUT;         // Слив (ON/OFF) (GPIO27, нога 11)
 extern bool STEAM_IN;          // Парогенератор (ON/OFF) (GPIO3, нога 34)
