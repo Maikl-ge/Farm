@@ -59,6 +59,7 @@ float air_temperature_outdoor = 0.0;
 float air_temperature_inlet = 0.0;
 
 // Определение переменных для датчиков качества воды
+float CO2 = 0.0;
 float ph_osmo = 0.0;
 float tds_osmo = 0.0;
 

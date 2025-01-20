@@ -6,6 +6,7 @@ float temperature = 0.0;
 float humidity = 0.0;
 float waterLevel = 0.0;
 int8_t timeZone = 4; // Часовой пояс
+bool sendMessageOK = false;  // Флаг отправки сообщения
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

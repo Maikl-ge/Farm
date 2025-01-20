@@ -5,9 +5,9 @@
 #include "AccessPoint.h"
 
 // Константы времени нажатий (в циклах опроса)
-const uint8_t SHORT_PRESS_THRESHOLD = 5; // Порог короткого нажатия
-const uint8_t MEDIUM_PRESS_THRESHOLD = 20; // Порог среднего нажатия
-const uint8_t LONG_PRESS_THRESHOLD = 60;   // Порог длинного нажатия
+const uint8_t SHORT_PRESS_THRESHOLD = 3; // Порог короткого нажатия
+const uint8_t MEDIUM_PRESS_THRESHOLD = 9; // Порог среднего нажатия
+const uint8_t LONG_PRESS_THRESHOLD = 27;   // Порог длинного нажатия
 
 // Структура для кнопок
 struct Button {
@@ -35,9 +35,6 @@ const uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 uint8_t buttonState = 0; // Байт состояния кнопок
 // Определение переменных для мониторинга питающей сети
 float power_monitor = 0;
-
-// Объект для работы с точкой доступа
-AccessPoint accessPoint;
 
 // Установка пинов в режим входа
 void initializeMenu() {
@@ -81,10 +78,6 @@ void updateButtonState() {
     for (uint8_t i = 0; i < buttonCount; i++) {
         processButton(buttons[i], i);
     }
-
-    // // Вывод состояния кнопок
-    // Serial.print("Button State: ");
-    // Serial.println(buttonState, BIN);
 
     // Обрвботка коротких нажатий
     if (buttonState == 0b00001001) {  // Короткое нажатие START 
@@ -144,7 +137,7 @@ void updateButtonState() {
     }
     if (buttonState == 0b00100011) {  // Длинное нажатие START + STOP
         Serial.println("Клавиатура: длинный START + STOP");
-        accessPoint.start();
+        //accessPoint.start();
     }
     if (buttonState == 0b00100101) {  // Длинное нажатие START + MODE
         Serial.println("Клавиатура: длинный START + MODE");

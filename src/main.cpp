@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <EEPROM.h>
 #include "globals.h"
+#include "pinout.h"
 #include "TimeModule.h"
 #include "SensorsModule.h"
 #include "DataSender.h"
@@ -12,9 +13,10 @@
 #include "WebSocketHandler.h"
 #include <SPI.h>
 #include <SD.h>
+#include <AccessPoint.h>
 #include "menu.h"
 
-#define WEBSOCKETS_MAX_DATA_SIZE 2048 // Максимальный размер данных
+//#define WEBSOCKETS_MAX_DATA_SIZE 4096 // Максимальный размер данных
 
 // Размер EEPROM
 #define EEPROM_SIZE 512
@@ -25,6 +27,9 @@ void updatePCF8574Task(void *parameter);
 void updateWater(); // Прототип функции
 void requestSettings();
 void updateButtonState();  
+
+//Объявление объекта класса AccessPoint
+AccessPoint accessPoint;
 
 // Задачи для FreeRTOS
 
@@ -41,10 +46,10 @@ void updateWebSocketTask(void *parameter) {
             connectWebSocket();
         } else {
             // Если соединение активно, отправляем PING каждые 5 секунд
-            if (currentMillis - lastPing >= 4950) {  // Проверка интервала
+            if (currentMillis - lastPing >= 5000) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
                 if (missedPongs >= 4) {
-                Serial.println("3 missed Pongs, reconnecting WebSocket...");
+                Serial.println("5 missed Pongs, reconnecting WebSocket...");
                 webSocket.close();  // Закрываем текущий WebSocket
                 missedPongs = 0;   // Сброс счетчика
                 connectWebSocket(); // Пробуем подключиться заново
@@ -61,16 +66,22 @@ void updateSensorsTask(void *parameter) {
     for (;;) {
         updateSensors();
         updateLightBrightness();
-        vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс
+        if (connected) {
+        // Отправка ping каждые 10 секунд
+        webSocket.ping();
+        }
+        vTaskDelay(10000 / portTICK_PERIOD_MS);  // Задержка 10000 мс
     }
 }
 
 void sendDataTask(void *parameter) {
     for (;;) {
-        // Отправка параметров
+        // Отправка данных
         sendDataIfNeeded();
-        // Отправка статуса
-        //serializeStatus();
+        if(sendMessageOK = true) {
+            // Отправка статуса
+            serializeStatus();
+        }
         vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
     }
 }
@@ -78,23 +89,24 @@ void sendDataTask(void *parameter) {
 void sendStatusTask(void *parameter) {
     for (;;) {
         // Отправка статуса
-        serializeStatus();
-        vTaskDelay(70000 / portTICK_PERIOD_MS);  // Задержка 70000 мс             
+        //serializeStatus();
+        vTaskDelay(30000 / portTICK_PERIOD_MS);  // Задержка 30000 мс             
     }
 }
 
 void updateMenuTask(void *parameter) {
     for (;;) {
+        static char buffer[128]; // Пример уменьшенного буфера
         updateButtonState();
-        webSocket.poll(); // Обработка WebSocket событий
-        vTaskDelay(50 / portTICK_PERIOD_MS);  // Задержка 50 мс
+        vTaskDelay(70 / portTICK_PERIOD_MS);  // Задержка 70 мс
     }
 }
 
 void updateWaterTask(void *parameter) {
     for (;;) {
+        webSocket.poll(); // Обработка WebSocket событий
         updateWater();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);  // Задержка 1000 мс
+        vTaskDelay(300 / portTICK_PERIOD_MS);  // Задержка 300 мс
     }
 }
 
@@ -108,9 +120,24 @@ void setup() {
         return;
     }
 
-    initializeSettingsModule(); // Инициализация модуля настроек
-
     initializeMenu(); // Инициализация модуля меню
+
+    // Переход в режим Точки доступа, если кнопка MODE нажата в момент включения
+    bool executeOnce = true;
+    if (executeOnce) {
+        if(!analogRead(MODE_BUTTON_PIN)) {
+        Serial.println("Access Point Started");
+        accessPoint.start();
+        while (executeOnce == true) {
+
+        delay(100);
+        }
+        executeOnce = false;
+        }
+    }
+    executeOnce = false;
+
+    initializeSettingsModule(); // Инициализация модуля настроек
 
     setupWatering(); // Инициализация модуля полива
 
@@ -195,7 +222,7 @@ void setup() {
     xTaskCreatePinnedToCore(
         updateWaterTask,
         "Update Water",
-        10000,
+        15000,  // Размер стека задачи
         NULL,
         1,
         NULL,

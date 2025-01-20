@@ -8,6 +8,7 @@ extern String type_msg_ACK;
 extern String ack_ACK;
 extern int missedPongs;
 extern int8_t timeZone; // Часовой пояс
+extern bool sendMessageOK;  // Флаг отправки сообщения
 
 // Переменные для управления устройствами On/Off
 extern bool OSMOS_ON;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

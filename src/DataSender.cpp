@@ -15,7 +15,8 @@ void sendDataIfNeeded() {
     updateSensors();
     static unsigned long lastTime = 0;
     unsigned long currentTime = millis();
-
+    sendMessageOK = false;
+    
     DynamicJsonDocument doc(512);
     doc["DF"] = CurrentDate;
     doc["TF"] = CurrentTime;
@@ -40,6 +41,7 @@ void sendDataIfNeeded() {
     doc["WTW"] = water_temperature_watering;
     doc["ATO"] = air_temperature_outdoor;
     doc["ATI"] = air_temperature_inlet;
+    doc["ph"] = CO2;
     doc["ph"] = ph_osmo;
     doc["tds"] = tds_osmo;
     doc["pm"] = power_monitor ? 1 : 0;
@@ -59,20 +61,20 @@ void sendDataIfNeeded() {
     unsigned long startWait = millis();
     while(millis() - startWait < 4000) {  // ждем 4000 мс
         if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-            Serial.println("Квитанция ACK Параметров получена " +  String(millis() - startWait) + "ms");
+            Serial.println("Квитанция ACK Параметров получена " +  String(millis() - startWait) + " ms");
             type_msg_ACK = "";
             ack_ACK = "";
             id_farm_ACK = "";
+            sendMessageOK = true;
             return;
         }
         delay(1);  // Небольшая задержка чтобы не нагружать процессор
     }
 
-    // Если ACK не получен за 300 мс
+    // Если ACK не получен за 4000 мс
     Serial.println("Таймаут ожидания ACK Параметров");
-    if(connected) {
-        saveMessageToSDCard(jsonMessage);
-    }
+    sendMessageOK = true;
+    saveMessageToSDCard(jsonMessage);
 }
 
 // Функция для сериализации переменных в JSON
@@ -115,22 +117,19 @@ void serializeStatus() {
     unsigned long startWait = millis();
     while(millis() - startWait < 4000) {  // ждем 4000 мс
         if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-            Serial.println("Квитанция ACK Статуса получена " +  String(millis() - startWait) + "ms");
+            Serial.println("Квитанция ACK Статуса получена " +  String(millis() - startWait) + " ms");
             type_msg_ACK = "";
             ack_ACK = "";
             id_farm_ACK = "";
-            Serial.print("Stack High Watermark: ");
-            Serial.println(uxTaskGetStackHighWaterMark(NULL));
+            sendMessageOK = false;
             return;
         }
         delay(1);  // Небольшая задержка чтобы не нагружать процессор
     }
-
-    // Если ACK не получен за 300 мс
+    // Если ACK не получен за 4000 мс
     Serial.println("Таймаут ожидания ACK Статуса");
-    if(connected) {
-        saveMessageToSDCard(jsonStatus);
-    }
+    sendMessageOK = false;
+    saveMessageToSDCard(jsonStatus);
 }
 
 void saveMessageToSDCard(const String& message) {

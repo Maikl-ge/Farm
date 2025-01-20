@@ -1,15 +1,16 @@
 import asyncio
-from aiohttp import web
 import websockets
 import logging
 from database import DatabaseManager
 from websocket_handler import FarmWebSocketHandler
 from http_handler import FarmHTTPHandler
+from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import tracemalloc
 import aiomonitor
 from datetime import datetime, timezone
+from logging_protocol import LoggingWebSocketServerProtocol
 
 async def main():
     # Старт отслеживания утечек памяти
@@ -23,7 +24,7 @@ async def main():
             logging.StreamHandler(),  # Лог в консоль
             logging.FileHandler('server.log'),  # Лог в файл
         ]
-    )  
+    )
 
     # Отключаем логи websockets по умолчанию
     logging.getLogger('websockets').setLevel(logging.WARNING)
@@ -49,7 +50,7 @@ async def main():
         await db_manager.init_pools()
 
         # Создаем приложение aiohttp
-        app = web.Application(middlewares=[security_middleware])
+        app = web.Application()
         app['db_manager'] = db_manager
 
         # Настраиваем шаблонизатор
@@ -65,18 +66,18 @@ async def main():
         http_handler = FarmHTTPHandler(db_manager, websocket_handler)
 
         # Добавляем маршруты
-        app.router.add_get("/", http_handler.index)  # Редирект на /command
-        app.router.add_get("/command", http_handler.command_page)  # Страница управления командами
-        app.router.add_get("/data", http_handler.show_data)  # Страница с данными
-        app.router.add_get("/data.html", http_handler.show_data)  # Альтернативный путь к данным
-        app.router.add_get("/api/data", http_handler.get_data)  # API для получения данных
-        app.router.add_get('/api/command', http_handler.get_command)  # API для получения команды
-        app.router.add_post('/api/command', http_handler.set_command)  # API для установки команды
-        app.router.add_get('/api/frqs', http_handler.get_frqs)  # API для получения FRQS данных
-        app.router.add_get('/api/websocket-state', http_handler.get_websocket_state)  # API для состояния WebSocket
+        app.router.add_get("/", http_handler.index)  # Redirect to /command
+        app.router.add_get("/command", http_handler.command_page)  # Command management page
+        app.router.add_get("/data", http_handler.show_data)  # Data page
+        app.router.add_get("/data.html", http_handler.show_data)  # Alternative path for data
+        app.router.add_get("/api/data", http_handler.get_data)  # API to get data
+        app.router.add_get('/api/command', http_handler.get_command)  # API to get command
+        app.router.add_post('/api/command', http_handler.set_command)  # API to set command
+        app.router.add_get('/api/frqs', http_handler.get_frqs)  # API to get FRQS data
+        app.router.add_get('/api/websocket-state', http_handler.get_websocket_state)  # API for WebSocket state
         app.router.add_get('/parameters', http_handler.show_parameters)
         app.router.add_get('/parameters/{id}/select', http_handler.select_parameter)
-        app.router.add_get('/parameters/{id}/edit', http_handler.edit_parameters)  # Добавьте этот маршрут
+        app.router.add_get('/parameters/{id}/edit', http_handler.edit_parameters)  # Add this route
         app.router.add_post('/parameters/{id}/edit', http_handler.edit_parameters)
         app.router.add_get('/select_parameter/{id}', http_handler.select_parameter)
 
@@ -104,14 +105,15 @@ async def main():
         # Запускаем WebSocket сервер
         websocket_server = await websockets.serve(
             limited_connection_handler,
-            "0.0.0.0", 
+            "0.0.0.0",
             websocket_port,
             ping_interval=5,
             ping_timeout=5,
             max_size=2**20,  # Максимальный размер сообщения 1MB
             max_queue=32,  # Максимальная длина очереди сообщений
             read_limit=2**16,  # Максимальное количество байт для чтения
-            write_limit=2**16  # Максимальное количество байт для записи
+            write_limit=2**16,  # Максимальное количество байт для записи
+            create_protocol=LoggingWebSocketServerProtocol  # Используем наш протокол
         )
         logger.info(f"WebSocket server started on port {websocket_port}")
 
@@ -144,38 +146,6 @@ async def main():
         if 'runner' in locals():
             await runner.cleanup()
         logger.info("Application shutdown complete")
-
-@web.middleware
-async def security_middleware(request, handler):
-    """Middleware для базовой защиты от сканирования"""
-    # Список разрешенных User-Agent
-    allowed_agents = [
-        'Chrome',
-        'Safari',
-        'ESP32'    # Ваши устройства
-    ]
-    
-    # Проверка User-Agent
-    user_agent = request.headers.get('User-Agent', '')
-    if not any(agent in user_agent for agent in allowed_agents):
-        return web.Response(status=403)  # Forbidden
-
-    # Блокировка подозрительных запросов
-    if request.method == 'UNKNOWN' or 'PRI' in str(request.method):
-        return web.Response(status=403)
-
-    # Блокировка сканеров
-    if 'CensysInspect' in user_agent or 'bot' in user_agent.lower():
-        return web.Response(status=403)
-
-    try:
-        response = await handler(request)
-        return response
-    except web.HTTPException as ex:
-        raise
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return web.Response(status=500)
 
 if __name__ == "__main__":
     try:
