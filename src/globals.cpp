@@ -3,6 +3,7 @@
 
 // Глобальные переменные
 String messageToSend = "";
+
 int8_t timeZone = 4; // Часовой пояс
 bool sendMessageOK = false;  // Флаг отправки сообщения
 

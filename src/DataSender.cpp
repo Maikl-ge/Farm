@@ -6,13 +6,8 @@
 #include "CurrentProfile.h"
 #include <ArduinoJson.h>
 #include <pinout.h>
-#include <SPI.h>
-#include <SdFat.h>
-#include <sdios.h>
+#include <SDCard.h>
 
-SdFat sd;
-SdFile file;
-SdFile root;
 
 // Отправка данных
 void sendDataIfNeeded() {
@@ -77,7 +72,8 @@ void sendDataIfNeeded() {
         // Если ACK не получен за 4000 мс
         Serial.println("Таймаут ожидания ACK Статуса");
         sendMessageOK = false;
-        saveMessageToSDCard(messageToSend);
+        //saveMessageToSDCard(messageToSend);
+        enqueue(sd, messageToSend);   
     } 
 }
 
@@ -133,96 +129,8 @@ void serializeStatus() {
         // Если ACK не получен за 4000 мс
         Serial.println("Таймаут ожидания ACK Статуса");
         sendMessageOK = false;
-        saveMessageToSDCard(messageToSend);
+        //saveMessageToSDCard(messageToSend);
+        enqueue(sd, messageToSend);  
     }    
 }
 
-void saveMessageToSDCard(const String& message) {
-    // Инициализация SD-карты для "горячего" подключения 
-    SPI.begin(SD_SCK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
-    sd.begin(SD_CS_PIN, SD_SCK_MHZ(18));
-    //
-    // Запись тестового файла
-    String fileName = String(TYPE_MSG) + String(CurrentTime) + ".log";
-    const char* fileNameToCdCard = fileName.c_str();
-   if (!file.open(fileNameToCdCard, O_WRONLY | O_CREAT | O_TRUNC)) {
-        Serial.println("!!! Ошибка открытия файла для записи.");
-    } else {
-        file.println(message);
-        file.close();
-        Serial.println("Файл  " +  fileName + "  успешно записан на SD-карту");
-        counterFiles();
-        //Serial.println(message);
-    }
-}
-// Инициализация SD-карты
-void setupCDcard() {
-    // Настройка SPI с указанием кастомных пинов
-    SPI.begin(SD_SCK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
-    // Инициализация SD-карты
-    if (!sd.begin(SD_CS_PIN, SD_SCK_MHZ(18))) {
-        Serial.println("Не удалось инициализировать SD-карту!");
-        return;
-    }
-    // Вывод информации о карте
-    Serial.print("SD-карта успешно инициализирована. Card type: ");
-    switch (sd.card()->type()) {
-        case SD_CARD_TYPE_SD1:
-            Serial.println("SD1");
-         break;
-        case SD_CARD_TYPE_SD2:
-            Serial.println("SD2");
-        break;
-        case SD_CARD_TYPE_SDHC:
-            Serial.println("SDHC");
-        break;
-    default:
-      Serial.println("Unknown");
-  }
-  // Вывод содержимого SD-карты
-}
-
-void sendDataFromSDCard() {
-    // Отправка данных из файла на SD-карте
-    Serial.println("Отправка данных из файла на SD-карте...");
-    // Открытие файла
-    if (!file.open("test.log", O_RDONLY)) {
-        Serial.println("Ошибка открытия файла для чтения.");
-    } else {
-        // Чтение файла
-        while (file.available()) {
-            Serial.write(file.read());
-        }
-        // Закрытие файла
-        file.close();
-    }
-}
-
-void counterFiles() {
-    unsigned long timeCounting = millis();
-    // Открываем корневой каталог
-    if (!root.open("/")) {
-        Serial.println("Ошибка открытия корневого каталога.");
-        return;
-    }
-
-    // Переменная для хранения количества файлов
-    int fileCount = 0;
-
-    // Перебираем все файлы в корневом каталоге и считаем их количество
-    SdFile file;
-    while (file.openNext(&root, O_RDONLY)) {
-        if (!file.isDir()) {
-            fileCount++;
-        }
-    file.close();
-    }
-
-    // Закрываем корневой каталог
-    root.close();
-
-    // Выводим количество файлов
-    Serial.print("Количество файлов на SD карте: ");
-    Serial.print(fileCount);
-    Serial.println("  " + (String(millis() - timeCounting) + " ms"));
-}

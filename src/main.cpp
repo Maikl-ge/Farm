@@ -15,6 +15,7 @@
 #include <SD.h>
 #include <AccessPoint.h>
 #include "menu.h"
+#include "SDCard.h"
 
 //#define WEBSOCKETS_MAX_DATA_SIZE 4096 // Максимальный размер данных
 
@@ -49,7 +50,7 @@ void updateWebSocketTask(void *parameter) {
             if (currentMillis - lastPing >= 5000) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
                 if (missedPongs >= 4) {
-                Serial.println("5 missed Pongs, reconnecting WebSocket...");
+                Serial.println(" 4 missed Pongs, reconnecting WebSocket...");
                 webSocket.close();  // Закрываем текущий WebSocket
                 missedPongs = 0;   // Сброс счетчика
                 connectWebSocket(); // Пробуем подключиться заново
@@ -91,15 +92,15 @@ void sendDataTask(void *parameter) {
 
 void sendStatusTask(void *parameter) {
     for (;;) {
-        // Отправка статуса
-        //serializeStatus();
-        vTaskDelay(30000 / portTICK_PERIOD_MS);  // Задержка 30000 мс             
-    }
+        if(connected) {
+        dequeue(); // Удаление элемента из очереди                  
+        }
+        vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс 
+    }              
 }
 
 void updateMenuTask(void *parameter) {
     for (;;) {
-        // static char buffer[128]; // Пример уменьшенного буфера
         updateButtonState();
         vTaskDelay(70 / portTICK_PERIOD_MS);  // Задержка 70 мс
     }

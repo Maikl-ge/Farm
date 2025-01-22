@@ -5,6 +5,7 @@
 #include <DataSender.h>
 #include "Profile.h"
 #include <CurrentProfile.h>
+#include <SDCard.h>
 
 //#define WEBSOCKETS_MAX_DATA_SIZE 1024 // Максимальный размер данных
 
@@ -124,10 +125,10 @@ void sendWebSocketMessage(const String& ID_FARM, const String& TYPE_MSG, const S
         webSocket.send(messageToSend);
         Serial.print("Sent: ");
         Serial.println(TYPE_MSG);
-        //Serial.println(messageToSend);
     } else {
         Serial.println("Соединение отсутствует. Сообщение не отправлено.");
-        saveMessageToSDCard(messageToSend);
+        //saveMessageToSDCard(messageToSend);
+        enqueue(sd, messageToSend);   
     }
     //parseMessageACK();
 }
