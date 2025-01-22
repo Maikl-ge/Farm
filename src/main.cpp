@@ -82,6 +82,9 @@ void sendDataTask(void *parameter) {
             // Отправка статуса
             serializeStatus();
         }
+        // Последовательная пересылка данных сохраненных на SD-карте
+
+        //sendDataFromSDCard();
         vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
     }
 }
@@ -96,7 +99,7 @@ void sendStatusTask(void *parameter) {
 
 void updateMenuTask(void *parameter) {
     for (;;) {
-        static char buffer[128]; // Пример уменьшенного буфера
+        // static char buffer[128]; // Пример уменьшенного буфера
         updateButtonState();
         vTaskDelay(70 / portTICK_PERIOD_MS);  // Задержка 70 мс
     }

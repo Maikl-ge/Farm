@@ -2,9 +2,7 @@
 #include "globals.h"
 
 // Глобальные переменные
-float temperature = 0.0;
-float humidity = 0.0;
-float waterLevel = 0.0;
+String messageToSend = "";
 int8_t timeZone = 4; // Часовой пояс
 bool sendMessageOK = false;  // Флаг отправки сообщения
 

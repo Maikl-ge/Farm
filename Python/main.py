@@ -1,3 +1,6 @@
+# main.py
+import threading
+import watchdog
 import asyncio
 import websockets
 import logging
@@ -19,7 +22,7 @@ async def main():
     # Базовая настройка логирования
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format='%(asctime)s - %(name)s - %(levellevel)s - %(message)s',
         handlers=[
             logging.StreamHandler(),  # Лог в консоль
             logging.FileHandler('server.log'),  # Лог в файл
@@ -148,6 +151,13 @@ async def main():
         logger.info("Application shutdown complete")
 
 if __name__ == "__main__":
+    logging.info("Запуск основного приложения...")
+
+    # Запуск сторожевой собаки в отдельном потоке
+    watchdog_thread = threading.Thread(target=watchdog.monitor_resources)
+    watchdog_thread.daemon = True
+    watchdog_thread.start()
+
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

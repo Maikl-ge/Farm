@@ -6,6 +6,7 @@
 extern String id_farm_ACK;
 extern String type_msg_ACK;
 extern String ack_ACK;
+extern String messageToSend;
 extern int missedPongs;
 extern int8_t timeZone; // Часовой пояс
 extern bool sendMessageOK;  // Флаг отправки сообщения

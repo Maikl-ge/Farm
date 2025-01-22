@@ -17,7 +17,7 @@ String messageACK;
 bool connectedWebSocket = false;
 bool connected = false;
 unsigned long lastReconnectAttempt = 0;
-const unsigned long RECONNECT_INTERVAL = 1400; // Интервал повторного подключения в мс
+const unsigned long RECONNECT_INTERVAL = 5000; // Интервал повторного подключения в мс
 
 // Прототипы функций
 void connectWebSocket();
@@ -119,7 +119,7 @@ void parceMessageFromServer(const String& messageFromServer) {
 }    
 
 void sendWebSocketMessage(const String& ID_FARM, const String& TYPE_MSG, const String& LENGTH_MSG, const String& jsonMessage) {
-    String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
+    messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
     if (connected) {
         webSocket.send(messageToSend);
         Serial.print("Sent: ");
@@ -223,7 +223,7 @@ void handleWebSocketMessage(const String& message) {
 
     // Проверяем, что сообщение не пустое
     if (messageACK.isEmpty()) {
-        //Serial.println("Ошибка: пустое сообщение ACK");
+        Serial.println("Ошибка: пустое сообщение ACK");
         return;
     }
 

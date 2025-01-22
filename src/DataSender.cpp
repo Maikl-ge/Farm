@@ -7,7 +7,12 @@
 #include <ArduinoJson.h>
 #include <pinout.h>
 #include <SPI.h>
-#include <SD.h>
+#include <SdFat.h>
+#include <sdios.h>
+
+SdFat sd;
+SdFile file;
+SdFile root;
 
 // Отправка данных
 void sendDataIfNeeded() {
@@ -16,7 +21,7 @@ void sendDataIfNeeded() {
     static unsigned long lastTime = 0;
     unsigned long currentTime = millis();
     sendMessageOK = false;
-    
+
     DynamicJsonDocument doc(512);
     doc["DF"] = CurrentDate;
     doc["TF"] = CurrentTime;
@@ -41,7 +46,7 @@ void sendDataIfNeeded() {
     doc["WTW"] = water_temperature_watering;
     doc["ATO"] = air_temperature_outdoor;
     doc["ATI"] = air_temperature_inlet;
-    doc["ph"] = CO2;
+    doc["CO2"] = CO2;
     doc["ph"] = ph_osmo;
     doc["tds"] = tds_osmo;
     doc["pm"] = power_monitor ? 1 : 0;
@@ -51,30 +56,29 @@ void sendDataIfNeeded() {
     
     // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
     TYPE_MSG = FARM_LOG_INFO; // Тип сообщения "FLIN" - данные от фермы на сервер данные
-    //ID_FARM = 255;  // ID фермы
     LENGTH_MSG = jsonMessage.length(); // Длина JSON сообщения
 
-    // Отправка сообщения
+    // Отправка Параметров фермы и ожидание ACK 
     sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonMessage);
-    
-    // Ожидание ACK с таймаутом
-    unsigned long startWait = millis();
-    while(millis() - startWait < 4000) {  // ждем 4000 мс
-        if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-            Serial.println("Квитанция ACK Параметров получена " +  String(millis() - startWait) + " ms");
-            type_msg_ACK = "";
-            ack_ACK = "";
-            id_farm_ACK = "";
-            sendMessageOK = true;
-            return;
+    if(connected) {
+        // Ожидание ACK с таймаутом
+        unsigned long startWait = millis();
+        while(millis() - startWait < 4000) {  // ждем 4000 мс
+            if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
+                Serial.println("Квитанция ACK Статуса получена " +  String(millis() - startWait) + " ms");
+                type_msg_ACK = "";
+                ack_ACK = "";
+                id_farm_ACK = "";
+                sendMessageOK = false;
+                return;
+            }
+            delay(1);  // Небольшая задержка чтобы не нагружать процессор
         }
-        delay(1);  // Небольшая задержка чтобы не нагружать процессор
-    }
-
-    // Если ACK не получен за 4000 мс
-    Serial.println("Таймаут ожидания ACK Параметров");
-    sendMessageOK = true;
-    saveMessageToSDCard(jsonMessage);
+        // Если ACK не получен за 4000 мс
+        Serial.println("Таймаут ожидания ACK Статуса");
+        sendMessageOK = false;
+        saveMessageToSDCard(messageToSend);
+    } 
 }
 
 // Функция для сериализации переменных в JSON
@@ -110,46 +114,115 @@ void serializeStatus() {
     TYPE_MSG = FARM_DATA_STATUS; // Тип сообщения "FDST" - Статус от фермы на сервер данные
     LENGTH_MSG = jsonStatus.length(); // Длина JSON сообщения
 
-    // Отправка сообщения Статуса фермы
+    // Отправка сообщения Статуса фермы и ожидание ACK
     sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonStatus);
-
-      // Ожидание ACK с таймаутом
-    unsigned long startWait = millis();
-    while(millis() - startWait < 4000) {  // ждем 4000 мс
-        if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-            Serial.println("Квитанция ACK Статуса получена " +  String(millis() - startWait) + " ms");
-            type_msg_ACK = "";
-            ack_ACK = "";
-            id_farm_ACK = "";
-            sendMessageOK = false;
-            return;
+    if(connected) {
+        // Ожидание ACK с таймаутом
+        unsigned long startWait = millis();
+        while(millis() - startWait < 4000) {  // ждем 4000 мс
+            if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
+                Serial.println("Квитанция ACK Статуса получена " +  String(millis() - startWait) + " ms");
+                type_msg_ACK = "";
+                ack_ACK = "";
+                id_farm_ACK = "";
+                sendMessageOK = false;
+                return;
+            }
+            delay(1);  // Небольшая задержка чтобы не нагружать процессор
         }
-        delay(1);  // Небольшая задержка чтобы не нагружать процессор
-    }
-    // Если ACK не получен за 4000 мс
-    Serial.println("Таймаут ожидания ACK Статуса");
-    sendMessageOK = false;
-    saveMessageToSDCard(jsonStatus);
+        // Если ACK не получен за 4000 мс
+        Serial.println("Таймаут ожидания ACK Статуса");
+        sendMessageOK = false;
+        saveMessageToSDCard(messageToSend);
+    }    
 }
 
 void saveMessageToSDCard(const String& message) {
-    // Заглушка записи на SD-карту
-    Serial.print("Сохраняем сообщение на SD-карту: ");
-    Serial.println(message);
+    // Инициализация SD-карты для "горячего" подключения 
+    SPI.begin(SD_SCK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
+    sd.begin(SD_CS_PIN, SD_SCK_MHZ(18));
+    //
+    // Запись тестового файла
+    String fileName = String(TYPE_MSG) + String(CurrentTime) + ".log";
+    const char* fileNameToCdCard = fileName.c_str();
+   if (!file.open(fileNameToCdCard, O_WRONLY | O_CREAT | O_TRUNC)) {
+        Serial.println("!!! Ошибка открытия файла для записи.");
+    } else {
+        file.println(message);
+        file.close();
+        Serial.println("Файл  " +  fileName + "  успешно записан на SD-карту");
+        counterFiles();
+        //Serial.println(message);
+    }
+}
+// Инициализация SD-карты
+void setupCDcard() {
+    // Настройка SPI с указанием кастомных пинов
+    SPI.begin(SD_SCK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
+    // Инициализация SD-карты
+    if (!sd.begin(SD_CS_PIN, SD_SCK_MHZ(18))) {
+        Serial.println("Не удалось инициализировать SD-карту!");
+        return;
+    }
+    // Вывод информации о карте
+    Serial.print("SD-карта успешно инициализирована. Card type: ");
+    switch (sd.card()->type()) {
+        case SD_CARD_TYPE_SD1:
+            Serial.println("SD1");
+         break;
+        case SD_CARD_TYPE_SD2:
+            Serial.println("SD2");
+        break;
+        case SD_CARD_TYPE_SDHC:
+            Serial.println("SDHC");
+        break;
+    default:
+      Serial.println("Unknown");
+  }
+  // Вывод содержимого SD-карты
 }
 
-void setupCDcard() {
-  Serial.println("Инициализация SD-карты...");
+void sendDataFromSDCard() {
+    // Отправка данных из файла на SD-карте
+    Serial.println("Отправка данных из файла на SD-карте...");
+    // Открытие файла
+    if (!file.open("test.log", O_RDONLY)) {
+        Serial.println("Ошибка открытия файла для чтения.");
+    } else {
+        // Чтение файла
+        while (file.available()) {
+            Serial.write(file.read());
+        }
+        // Закрытие файла
+        file.close();
+    }
+}
 
-  // Настройка SPI с указанием кастомных пинов
-  SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+void counterFiles() {
+    unsigned long timeCounting = millis();
+    // Открываем корневой каталог
+    if (!root.open("/")) {
+        Serial.println("Ошибка открытия корневого каталога.");
+        return;
+    }
 
-  // Инициализация SD-карты
-  if (!SD.begin(SD_CS)) {
-    Serial.println("Не удалось инициализировать SD-карту!");
-    return;
-  }
-  Serial.println("SD-карта успешно инициализирована.");
+    // Переменная для хранения количества файлов
+    int fileCount = 0;
 
-  // Вывод содержимого SD-карты
+    // Перебираем все файлы в корневом каталоге и считаем их количество
+    SdFile file;
+    while (file.openNext(&root, O_RDONLY)) {
+        if (!file.isDir()) {
+            fileCount++;
+        }
+    file.close();
+    }
+
+    // Закрываем корневой каталог
+    root.close();
+
+    // Выводим количество файлов
+    Serial.print("Количество файлов на SD карте: ");
+    Serial.print(fileCount);
+    Serial.println("  " + (String(millis() - timeCounting) + " ms"));
 }

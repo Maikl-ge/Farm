@@ -142,7 +142,8 @@ uint8_t readPCF8574() {
     max_water_level = (sensorState & 0b00100000) != 0; // 5 бит
     min_water_level = (sensorState & 0b00010000) != 0; // 4 бит
     // 3 бит всегда в 0, исключить из опроса
-
+    //Serial.print("Sensor state: ");
+    //Serial.println(sensorState, BIN);
     return sensorState;
 }
 
