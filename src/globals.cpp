@@ -3,7 +3,7 @@
 
 // Глобальные переменные
 String messageToSend = "";
-
+String enqueueASK = "empty";   // Флаг подтверждения ACK из очереди
 int8_t timeZone = 4; // Часовой пояс
 bool sendMessageOK = false;  // Флаг отправки сообщения
 

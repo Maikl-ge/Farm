@@ -79,13 +79,34 @@ void sendDataTask(void *parameter) {
     for (;;) {
         // Отправка данных
         sendDataIfNeeded();
-        if(sendMessageOK = true) {
+        if(!sendMessageOK) {
             // Отправка статуса
             serializeStatus();
         }
-        // Последовательная пересылка данных сохраненных на SD-карте
-
-        //sendDataFromSDCard();
+        if(!sendMessageOK && connected) {
+            // Отправка статуса
+            dequeue(); // Отправка данных из очереди на сервер   
+        }
+        if(!sendMessageOK && connected) {
+            // Отправка статуса
+            dequeue(); // Отправка данных из очереди на сервер   
+        }
+        if(!sendMessageOK && connected) {
+            // Отправка статуса
+            dequeue(); // Отправка данных из очереди на сервер   
+        }        
+         if(!sendMessageOK && connected) {
+            // Отправка статуса
+            dequeue(); // Отправка данных из очереди на сервер   
+        }  
+        if(!sendMessageOK && connected) {
+            // Отправка статуса
+            dequeue(); // Отправка данных из очереди на сервер   
+        }  
+        if(!sendMessageOK && connected) {
+            // Отправка статуса
+            dequeue(); // Отправка данных из очереди на сервер   
+        }                     
         vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
     }
 }
@@ -93,7 +114,7 @@ void sendDataTask(void *parameter) {
 void sendStatusTask(void *parameter) {
     for (;;) {
         if(connected) {
-        dequeue(); // Удаление элемента из очереди                  
+        //dequeue(); // Отправка данных из очереди на сервер               
         }
         vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс 
     }              

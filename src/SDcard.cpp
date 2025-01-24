@@ -21,24 +21,6 @@ long dequeueIndex = 0;
 const char* indexFilename = "index.txt";
 void setupCDcard();
 
-// void saveMessageToSDCard(const String& message) {
-//     // Инициализация SD-карты для "горячего" подключения 
-//     SPI.begin(SD_SCK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
-//     sd.begin(SD_CS_PIN, SD_SCK_MHZ(18));
-//     //
-//     // Запись тестового файла
-//     String fileName = String(TYPE_MSG) + String(CurrentTime) + ".log";
-//     const char* fileNameToCdCard = fileName.c_str();
-//    if (!file.open(fileNameToCdCard, O_WRONLY | O_CREAT | O_TRUNC)) {
-//         Serial.println("!!! Ошибка открытия файла для записи.");
-//     } else {
-//         file.println(message);
-//         file.close();
-//         Serial.println("Файл  " +  fileName + "  успешно записан на SD-карту");
-//         counterFilesSD();
-//         //Serial.println(message);
-//     }
-// }
 // Инициализация SD-карты
 void setupCDcard() {
     // Настройка SPI с указанием кастомных пинов
@@ -78,22 +60,6 @@ void setupCDcard() {
     Serial.printf("Индексы: enqueueIndex = %d, dequeueIndex = %d\n", enqueueIndex, dequeueIndex);
     counterFilesSD();
 }
-
-// void sendDataFromSDCard() {
-//     // Отправка данных из файла на SD-карте
-//     Serial.println("Отправка данных из файла на SD-карте...");
-//     // Открытие файла
-//     if (!file.open("test.log", O_RDONLY)) {
-//         Serial.println("Ошибка открытия файла для чтения.");
-//     } else {
-//         // Чтение файла
-//         while (file.available()) {
-//             Serial.write(file.read());
-//         }
-//         // Закрытие файла
-//         file.close();
-//     }
-// }
 
 void counterFilesSD() {
     unsigned long timeCounting = millis();
@@ -170,19 +136,34 @@ void dequeue() {
         int bytesRead = file.read(buffer, sizeof(buffer) - 1);
         buffer[bytesRead] = '\0';
         Serial.println("Элемент из очереди: " + String(dequeueIndex));
-        // Отправка данных из очереди на сервер
-        Serial.println(buffer);
+        sendMessageOK = true;
+        enqueueASK = "send";
+        Serial.print("Очередь ");
+        //Serial.println(enqueueASK + " enqueueASK");
+        sendWebSocketMessage(buffer);
         // Удаление файла
-        if (sd.remove(filename)) {
-            Serial.println(String(filename) + "Файл успешно удален.");
-        } else {
-            Serial.println("Ошибка при удалении файла " + String(filename));
+        unsigned long dequeueWait = millis();
+        while(millis() - dequeueWait < 4000) {  // ждем 4000 мс
+            if (enqueueASK == "sendOk") {
+            //Serial.println("enqueueASK " + enqueueASK);  
+            if (sd.remove(filename)) {
+                Serial.println(String(filename) + "Файл успешно удален.");
+            } else {
+                Serial.println("Ошибка при удалении файла " + String(filename));
+            }
+            file.close();
+            dequeueIndex++;
+            //Serial.println("Индекс оставшихся " + String(dequeueIndex));
+            saveIndices(sd, enqueueIndex, dequeueIndex);
+                sendMessageOK = false;
+                enqueueASK = "empty";
+            }
+            delay(1);  // Небольшая задержка чтобы не нагружать процессор
         }
-        file.close();
-        dequeueIndex++;
-        saveIndices(sd, enqueueIndex, dequeueIndex);
     } else {
+        enqueueASK = "empty";
         Serial.println("Ошибка при извлечении элемента из очереди.");
     }
+    enqueueASK = "empty";
     Serial.println("Индексы сохранены " + String(enqueueIndex) + " " + String(dequeueIndex));
 }

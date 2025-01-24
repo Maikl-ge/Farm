@@ -6,7 +6,9 @@
 extern websockets::WebsocketsClient webSocket;
 extern bool connected;
 extern String messageFromServer;
-
+extern String messageACK;
+extern String id_farm_message;
+extern String type_msg_message;
 
 void initializeWebSocket();
 void webSocketEvent(websockets::WebsocketsEvent event, String data);

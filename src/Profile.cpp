@@ -209,7 +209,7 @@ void serializeSettings() {
     TYPE_MSG = FARM_RES_SETTINGS; // Тип сообщения "FRQS" - данные от фермы на сервер данные
     ID_FARM = 255;  // ID фермы
     LENGTH_MSG = jsonSettings.length(); // Длина JSON сообщения
-
+    messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonSettings;
     // Отправка сообщения
-    sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonSettings);
+    sendWebSocketMessage(messageToSend);
 }

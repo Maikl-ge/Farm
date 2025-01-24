@@ -15,6 +15,8 @@ using namespace websockets;
 WebsocketsClient webSocket;
 String messageFromServer;
 String messageACK;
+String id_farm_message = "  ";
+String type_msg_message = "  ";
 bool connectedWebSocket = false;
 bool connected = false;
 unsigned long lastReconnectAttempt = 0;
@@ -119,18 +121,73 @@ void parceMessageFromServer(const String& messageFromServer) {
     }
 }    
 
-void sendWebSocketMessage(const String& ID_FARM, const String& TYPE_MSG, const String& LENGTH_MSG, const String& jsonMessage) {
-    messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
+void sendWebSocketMessage(const String& messageToSend) {
     if (connected) {
         webSocket.send(messageToSend);
-        Serial.print("Sent: ");
-        Serial.println(TYPE_MSG);
+        Serial.print("Send: ");
+        Serial.println(TYPE_MSG); // остается от предидущего варианта
     } else {
         Serial.println("Соединение отсутствует. Сообщение не отправлено.");
-        //saveMessageToSDCard(messageToSend);
         enqueue(sd, messageToSend);   
     }
-    //parseMessageACK();
+    handleWebSocketMessage(messageToSend);  // Разбор сообщения
+    if(connected) {
+        // Ожидание ACK с таймаутом
+        unsigned long startWait = millis();
+        while(millis() - startWait < 4000) {  // ждем 4000 мс
+            if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
+                Serial.println("Квитанция ACK " + String(type_msg_ACK) + " получена " +  String(millis() - startWait) + " ms");
+                type_msg_ACK = "";
+                ack_ACK = "";
+                id_farm_ACK = "";
+                TYPE_MSG = "";
+                sendMessageOK = false;
+                enqueueASK = "sendOk";
+                return;
+            }
+            delay(1);  // Небольшая задержка чтобы не нагружать процессор
+        }
+        // Если ACK не получен за 4000 мс
+        Serial.println("Таймаут ожидания ACK Статуса");
+        sendMessageOK = false;
+        if(enqueueASK != "send") {
+        enqueue(sd, messageToSend);   
+        }
+        enqueueASK = "empty";
+    } 
+}
+
+// Функция для разбора сообщения сервера на три переменные
+void handleWebSocketMessage(const String& message) {
+    Serial.print("Received WebSocket message: ");
+    Serial.println(message);
+    messageFromServer = message;
+    messageACK = message;
+
+    // Проверяем, что сообщение не пустое
+    if (messageACK.isEmpty()) {
+        Serial.println("Ошибка: пустое сообщение ACK");
+        return;
+    }
+
+    // Находим позиции пробелов
+    int firstSpace = messageACK.indexOf(' ');  // Позиция первого пробела
+    int secondSpace = messageACK.indexOf(' ', firstSpace + 1);  // Позиция второго пробела
+
+    // Проверяем корректность структуры сообщения
+    if (firstSpace == -1 || secondSpace == -1) {
+        Serial.println("Ошибка разбора сообщения: недостаточно частей");
+        return;
+    }
+
+    // Извлечение частей
+    id_farm_ACK = messageACK.substring(0, firstSpace);                // Первая часть: номер фермы
+    type_msg_ACK = messageACK.substring(firstSpace + 1, secondSpace); // Вторая часть: тип сообщения
+    ack_ACK = messageACK.substring(secondSpace + 1);                  // Третья часть: квитанция
+    parceMessageFromServer(type_msg_ACK);
+    if(enqueueASK == "send") {
+        TYPE_MSG = type_msg_ACK;
+    }
 }
 
 void processWebSocket() {
@@ -214,38 +271,3 @@ void connectWebSocket() {
 
     isConnecting = false;
 } 
-
-// Функция для разбора сообщения сервера на три переменные
-void handleWebSocketMessage(const String& message) {
-    Serial.print("Received WebSocket message: ");
-    Serial.println(message);
-    messageFromServer = message;
-    messageACK = message;
-
-    // Проверяем, что сообщение не пустое
-    if (messageACK.isEmpty()) {
-        Serial.println("Ошибка: пустое сообщение ACK");
-        return;
-    }
-
-    // Находим позиции пробелов
-    int firstSpace = messageACK.indexOf(' ');  // Позиция первого пробела
-    int secondSpace = messageACK.indexOf(' ', firstSpace + 1);  // Позиция второго пробела
-
-    // Проверяем корректность структуры сообщения
-    if (firstSpace == -1 || secondSpace == -1) {
-        Serial.println("Ошибка разбора сообщения: недостаточно частей");
-        return;
-    }
-
-    // Извлечение частей
-    id_farm_ACK = messageACK.substring(0, firstSpace);                 // Первая часть: номер фермы
-    type_msg_ACK = messageACK.substring(firstSpace + 1, secondSpace); // Вторая часть: тип сообщения
-    ack_ACK = messageACK.substring(secondSpace + 1);                  // Третья часть: квитанция
-
-    // Проверка корректности ID фермы
-    if (id_farm_ACK == String(ID_FARM)) {
-        parceMessageFromServer(type_msg_ACK);
-        messageFromServer = type_msg_ACK;
-    } 
-}

@@ -52,29 +52,11 @@ void sendDataIfNeeded() {
     // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
     TYPE_MSG = FARM_LOG_INFO; // Тип сообщения "FLIN" - данные от фермы на сервер данные
     LENGTH_MSG = jsonMessage.length(); // Длина JSON сообщения
+    messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
 
     // Отправка Параметров фермы и ожидание ACK 
-    sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonMessage);
-    if(connected) {
-        // Ожидание ACK с таймаутом
-        unsigned long startWait = millis();
-        while(millis() - startWait < 4000) {  // ждем 4000 мс
-            if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-                Serial.println("Квитанция ACK Статуса получена " +  String(millis() - startWait) + " ms");
-                type_msg_ACK = "";
-                ack_ACK = "";
-                id_farm_ACK = "";
-                sendMessageOK = false;
-                return;
-            }
-            delay(1);  // Небольшая задержка чтобы не нагружать процессор
-        }
-        // Если ACK не получен за 4000 мс
-        Serial.println("Таймаут ожидания ACK Статуса");
-        sendMessageOK = false;
-        //saveMessageToSDCard(messageToSend);
-        enqueue(sd, messageToSend);   
-    } 
+    Serial.print("Параметры  ");
+    sendWebSocketMessage(messageToSend); 
 }
 
 // Функция для сериализации переменных в JSON
@@ -109,28 +91,10 @@ void serializeStatus() {
     // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
     TYPE_MSG = FARM_DATA_STATUS; // Тип сообщения "FDST" - Статус от фермы на сервер данные
     LENGTH_MSG = jsonStatus.length(); // Длина JSON сообщения
+    messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonStatus;
 
     // Отправка сообщения Статуса фермы и ожидание ACK
-    sendWebSocketMessage(String(ID_FARM), String(TYPE_MSG), String(LENGTH_MSG), jsonStatus);
-    if(connected) {
-        // Ожидание ACK с таймаутом
-        unsigned long startWait = millis();
-        while(millis() - startWait < 4000) {  // ждем 4000 мс
-            if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
-                Serial.println("Квитанция ACK Статуса получена " +  String(millis() - startWait) + " ms");
-                type_msg_ACK = "";
-                ack_ACK = "";
-                id_farm_ACK = "";
-                sendMessageOK = false;
-                return;
-            }
-            delay(1);  // Небольшая задержка чтобы не нагружать процессор
-        }
-        // Если ACK не получен за 4000 мс
-        Serial.println("Таймаут ожидания ACK Статуса");
-        sendMessageOK = false;
-        //saveMessageToSDCard(messageToSend);
-        enqueue(sd, messageToSend);  
-    }    
+    Serial.print("Статус  ");
+    sendWebSocketMessage(messageToSend);  
 }
 
