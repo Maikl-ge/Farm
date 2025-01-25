@@ -30,17 +30,33 @@ void setupCDcard() {
         Serial.println("Не удалось инициализировать SD-карту!");
         return;
     }
-    // Вывод информации о карте
+        // Получение общего размера SD-карты
+    uint32_t cardSize = sd.card()->sectorCount();
+    if (cardSize == 0) {
+        Serial.println("Ошибка получения размера SD-карты.");
+    } else {
+        Serial.print("Общий размер SD-карты: ");
+        Serial.print((cardSize / 2) / 1024); // Размер в мегабайтах (1 сектор = 512 байт)
+        Serial.println(" Mb");
+    }
+// Получение свободного пространства на SD-карте
+uint32_t freeClusters = sd.vol()->freeClusterCount();
+uint32_t sectorsPerCluster = sd.vol()->sectorsPerCluster();
+uint64_t clusterSize = sectorsPerCluster * 512; // Размер кластера в байтах
+uint64_t freeSpace = freeClusters * clusterSize; // Свободное пространство в байтах
+freeSpace = freeSpace / 1024 / 1024; // Переводим в мегабайты
+
+// Вывод информации о карте
     Serial.print("SD-карта успешно инициализирована. Card type: ");
     switch (sd.card()->type()) {
         case SD_CARD_TYPE_SD1:
-            Serial.println("SD1");
+            Serial.println(String("SD1 ") + freeSpace + " Mb");
          break;
         case SD_CARD_TYPE_SD2:
-            Serial.println("SD2");
+            Serial.println(String("SD2 ") + freeSpace + " Mb");
         break;
         case SD_CARD_TYPE_SDHC:
-            Serial.println("SDHC");
+            Serial.println(String("SDHC ") + freeSpace + " Mb");
         break;
     default:
       Serial.println("Unknown");
