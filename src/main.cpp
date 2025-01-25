@@ -76,41 +76,33 @@ void updateSensorsTask(void *parameter) {
 }
 
 void sendDataTask(void *parameter) {
-    for (;;) {
-        // Отправка данных
-        sendDataIfNeeded();
+    for (;;) {     
+        timeSlot = 0;
+        unsigned long timeStartSlot = millis(); // Время начала передачи
+        sendDataIfNeeded(); // Отправка данных на сервер
         if(!sendMessageOK) {
-            // Отправка статуса
-            serializeStatus();
+            serializeStatus(); // Отправка статуса фермы
         }
-        if(!sendMessageOK && connected) {
-            // Отправка статуса
-            dequeue(); // Отправка данных из очереди на сервер   
-        }
-        if(!sendMessageOK && connected) {
-            // Отправка статуса
-            dequeue(); // Отправка данных из очереди на сервер   
-        }
-        if(!sendMessageOK && connected) {
-            // Отправка статуса
-            dequeue(); // Отправка данных из очереди на сервер   
-        }        
-         if(!sendMessageOK && connected) {
-            // Отправка статуса
-            dequeue(); // Отправка данных из очереди на сервер   
-        }  
-        if(!sendMessageOK && connected) {
-            // Отправка статуса
-            dequeue(); // Отправка данных из очереди на сервер   
-        }  
-        if(!sendMessageOK && connected) {
-            // Отправка статуса
-            dequeue(); // Отправка данных из очереди на сервер   
-        }                     
-        vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
+            // Отправка данных из очереди               
+            if(dequeueIndex > 0 || enqueueIndex > 0) {
+                while((millis() - timeStartSlot) < 45000) {  // временное окно для пересылки сообщений из SD 45000 мс
+                    if(dequeueIndex == 0 && enqueueIndex == 0) {
+                        break;
+                    }                    
+                    if (!sendMessageOK && connected) {
+                        Serial.println("Отправка сообщения из очереди");
+                        dequeue(); // Отправка данных из очереди на сервер
+                    }
+
+                    delay(1);  // Небольшая задержка чтобы не нагружать процессор
+                }
+            }                     
+        //Serial.println("Время передачи: " + String(timeSlot) + " ms");  
+        timeSlot = (millis() - timeStartSlot);      
+        //Serial.println("Время слота: " + String(timeSlot) + " ms");      
+        vTaskDelay((60000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
 }
-
 void sendStatusTask(void *parameter) {
     for (;;) {
         if(connected) {

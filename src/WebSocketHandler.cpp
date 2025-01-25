@@ -143,6 +143,7 @@ void sendWebSocketMessage(const String& messageToSend) {
                 TYPE_MSG = "";
                 sendMessageOK = false;
                 enqueueASK = "sendOk";
+                timeSlot = timeSlot + (millis() - transmitionTime);
                 return;
             }
             delay(1);  // Небольшая задержка чтобы не нагружать процессор

@@ -6,6 +6,8 @@ String messageToSend = "";
 String enqueueASK = "empty";   // Флаг подтверждения ACK из очереди
 int8_t timeZone = 4; // Часовой пояс
 bool sendMessageOK = false;  // Флаг отправки сообщения
+long transmitionTime = 0; // Время передачи сообщения
+unsigned long timeSlot = 0; // Время Слота передачи сообщения
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

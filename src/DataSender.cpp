@@ -13,8 +13,8 @@
 void sendDataIfNeeded() {
     printCurrentTime();
     updateSensors();
-    static unsigned long lastTime = 0;
-    unsigned long currentTime = millis();
+    // static unsigned long lastTime = 0;
+    // unsigned long currentTime = millis();
     sendMessageOK = false;
 
     DynamicJsonDocument doc(512);
@@ -47,7 +47,7 @@ void sendDataIfNeeded() {
     doc["pm"] = power_monitor ? 1 : 0;
 
     String jsonMessage;
-    serializeJson(doc, jsonMessage);
+    serializeJson(doc, jsonMessage);  // Сериализация в строку JSON Параметров фермы
     
     // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
     TYPE_MSG = FARM_LOG_INFO; // Тип сообщения "FLIN" - данные от фермы на сервер данные
@@ -56,7 +56,8 @@ void sendDataIfNeeded() {
 
     // Отправка Параметров фермы и ожидание ACK 
     Serial.print("Параметры  ");
-    sendWebSocketMessage(messageToSend); 
+    transmitionTime = millis();  // Запоминаем время отправки
+    sendWebSocketMessage(messageToSend);  // Отправка сообщения
 }
 
 // Функция для сериализации переменных в JSON
@@ -86,7 +87,7 @@ void serializeStatus() {
 
     // Сериализуем в строку JSON
     String jsonStatus;
-    serializeJson(doc, jsonStatus);
+    serializeJson(doc, jsonStatus);  // Сериализация в строку JSON Статуса фермы
 
     // Добавление ID фермы и типа сообщения и длинны перед JSON, разделенные пробелом
     TYPE_MSG = FARM_DATA_STATUS; // Тип сообщения "FDST" - Статус от фермы на сервер данные
@@ -95,6 +96,7 @@ void serializeStatus() {
 
     // Отправка сообщения Статуса фермы и ожидание ACK
     Serial.print("Статус  ");
-    sendWebSocketMessage(messageToSend);  
+    transmitionTime = millis();  // Запоминаем время отправки
+    sendWebSocketMessage(messageToSend);  // Отправка сообщения
 }
 

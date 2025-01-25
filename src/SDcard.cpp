@@ -138,8 +138,8 @@ void dequeue() {
         Serial.println("Элемент из очереди: " + String(dequeueIndex));
         sendMessageOK = true;
         enqueueASK = "send";
-        Serial.print("Очередь ");
-        //Serial.println(enqueueASK + " enqueueASK");
+        //Serial.print("Очередь ");
+        transmitionTime = millis();  // Время начала передачи
         sendWebSocketMessage(buffer);
         // Удаление файла
         unsigned long dequeueWait = millis();
