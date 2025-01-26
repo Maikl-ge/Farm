@@ -29,6 +29,9 @@ Button buttons[] = {
     {STOP_BUTTON_PIN, false, 0, false},
     {MODE_BUTTON_PIN, false, 0, false}
 };
+
+
+
 const uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 
 // Переменные состояния
@@ -38,6 +41,8 @@ float power_monitor = 0;
 
 // Установка пинов в режим входа
 void initializeMenu() {
+    pinMode(FAN_RACK_PIN, OUTPUT);
+    analogWrite(FAN_RACK_PIN, 0);
     for (uint8_t i = 0; i < buttonCount; i++) {
         pinMode(buttons[i].pin, INPUT);
     }
@@ -81,9 +86,13 @@ void updateButtonState() {
 
     // Обрвботка коротких нажатий
     if (buttonState == 0b00001001) {  // Короткое нажатие START 
+        analogWrite(LIGHT_PIN, 255);
+        analogWrite(FAN_RACK_PIN, 255);
         Serial.println("Клавиатура: короткий START");
     }
     if (buttonState == 0b00001010) {  // Короткое нажатие STOP
+        analogWrite(LIGHT_PIN, 0);
+        analogWrite(FAN_RACK_PIN, 0);
         Serial.println("Клавиатура: короткий STOP");
     }
     if (buttonState == 0b00001100) {  // Короткое нажатие MODE
@@ -93,9 +102,11 @@ void updateButtonState() {
         Serial.println("Клавиатура: короткий START + STOP");
     }
     if (buttonState == 0b00001101) {  // Короткое нажатие START + MODE
+        analogWrite(FAN_RACK_PIN, 255);
         Serial.println("Клавиатура: короткий START + MODE");
     }
     if (buttonState == 0b00001110) {  // Короткое нажатие STOP + MODE
+        analogWrite(FAN_RACK_PIN, 0);
         Serial.println("Клавиатура: короткий STOP + MODE");
     }
     if (buttonState == 0b00001111) {  // Короткое нажатие всех кнопок
