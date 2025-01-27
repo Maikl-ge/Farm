@@ -1,15 +1,15 @@
 import asyncio
+import websockets
 import json
 import logging
-from typing import Set
-from message_handler import MessageHandler
-from logging_protocol import LoggingWebSocketServerProtocol
-import websockets
+import aiohttp_jinja2
+from datetime import datetime
+from typing import Optional, Set
 
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Исправлено 'levellevel' на 'levelname'
     handlers=[
         logging.FileHandler("websocket_handler.log"),
         logging.StreamHandler()
@@ -18,21 +18,35 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# Пример использования логирования
+logger.info("WebSocket handler initialized")
+logger.error("Error in WebSocket handler")
+
+# Глобальный логгер для модуля
+_logger = logging.getLogger('websocket_handler')
+if not _logger.handlers:
+    _logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'  # Исправлено 'levellevel' на 'levelname'
+    ))
+    _logger.addHandler(handler)
+    _logger.propagate = False
+
 class FarmWebSocketHandler:
-    def __init__(self, db_manager, ping_interval=5, ping_timeout=30):
+    def __init__(self, db_manager, ping_interval=5, ping_timeout=15):
         """
         Инициализация WebSocket обработчика
         ping_interval=5 - интервал пинга в секундах
-        ping_timeout=10 - таймаут в секундах
+        ping_timeout=15 - таймаут в секундах
         """
         self.db_manager = db_manager
         self.ping_interval = ping_interval
         self.ping_timeout = ping_timeout
-        self.connected_clients: Set[LoggingWebSocketServerProtocol] = set()
+        self.connected_clients: Set[websockets.WebSocketServerProtocol] = set()
         self.websocket_state = "disconnected"
         self.frqs_data = None
-        self.logger = logger
-        self.message_handler = MessageHandler(db_manager, self)
+        self.logger = _logger
 
     def update_websocket_state(self, new_state: str) -> None:
         """Обновление состояния WebSocket"""
@@ -68,11 +82,7 @@ class FarmWebSocketHandler:
             try:
                 if len(message) > 1024:  # Ограничение на длину сообщения
                     raise ValueError("Message size exceeds limit")
-                if client.open:
-                    await client.send(message)
-                else:
-                    disconnected_clients.add(client)
-                    self.logger.warning(f"Cannot send message, connection closed for client {id(client)}")
+                await client.send(message)
             except websockets.exceptions.ConnectionClosed:
                 disconnected_clients.add(client)
                 self.logger.info(f"Client {id(client)} connection closed during broadcast")
@@ -120,7 +130,7 @@ class FarmWebSocketHandler:
             self.logger.error(f"Error sending command to farm: {e}")
             return False
 
-    async def handle_connection(self, websocket: LoggingWebSocketServerProtocol, path: str) -> None:
+    async def handle_connection(self, websocket: websockets.WebSocketServerProtocol, path: str) -> None:
         """Обработка WebSocket соединения"""
         client_id = id(websocket)
         self.logger.info(f"New client connected: {client_id}")
@@ -135,8 +145,34 @@ class FarmWebSocketHandler:
                     if len(message) > 1024:  # Ограничение на длину сообщения
                         raise ValueError("Message size exceeds limit")
 
-                    # Используем MessageHandler для обработки сообщения
-                    await self.message_handler.handle_message(message, websocket)
+                    parts = message.split(' ', 3)
+                    if len(parts) < 4:
+                        continue
+
+                    # Сразу отправляем ACK, проверив только формат сообщения
+                    id_farm = parts[0]
+                    type_msg = parts[1]
+                    ack_message = f"{id_farm} {type_msg} ACK"
+                    await websocket.send(ack_message)
+
+                    # Теперь можно логировать и обрабатывать данные
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.logger.info(f"{timestamp} - Получено сообщение от {client_id}: {message}")
+
+                    json_length = parts[2]
+                    data = json.loads(parts[3])
+
+                    if type_msg == "FRQS":
+                        self.frqs_data = data
+                        self.logger.info(f"FRQS data updated: {data}")
+                    elif type_msg == "FLIN":
+                        success = await self.db_manager.save_sensor_data(data, timestamp)
+                        if success:
+                            self.logger.info(f"{timestamp} - Данные от клиента {id_farm} успешно сохранены")
+                        else:
+                            self.logger.error(f"{timestamp} - Ошибка при сохранении данных")
+                    else:
+                        self.logger.warning(f"Unknown message type from client {client_id}: {type_msg}")
 
                 except json.JSONDecodeError as e:
                     self.logger.error(f"JSON decode error from client {client_id}: {e}")
@@ -145,16 +181,19 @@ class FarmWebSocketHandler:
                 except Exception as e:
                     self.logger.error(f"Error processing message from client {client_id}: {e}")
 
-        except websockets.exceptions.ConnectionClosed as e:
-            self.logger.warning(f"Client {client_id} connection closed with error: {e.code} - {e.reason}")
-        except Exception as e:
-            self.logger.error(f"Error in connection handler: {e}")
-        finally:
+        except websockets.exceptions.ConnectionClosed:
+            self.logger.info(f"Client {client_id} connection closed")
             if websocket in self.connected_clients:
                 self.connected_clients.remove(websocket)
-            await websocket.close()
-            self.logger.info(f"Client {client_id} connection closed normally")
-            self.reset_state()
+            if not self.connected_clients:
+                self.reset_state()  # Очищаем состояние если нет подключенных клиентов
+
+        except Exception as e:
+            self.logger.error(f"Error in connection handler: {e}")
+            if websocket in self.connected_clients:
+                self.connected_clients.remove(websocket)
+            if not self.connected_clients:
+                self.reset_state()
 
     async def get_frqs_data(self):
         """Получение текущих FRQS данных"""

@@ -14,15 +14,21 @@ bool isNightTransition = false; // Переход к ночи
 
 // Глобальные переменные
 int currentBrightness = 0; // Текущая яркость (0-100)
-//transitionTime = 15; // Время перехода в минутах
 
 // Константы для значений яркости
-const int MAX_BRIGHTNESS = 255;
+const int MAX_BRIGHTNESS = 1023;
 const int MIN_BRIGHTNESS = 0;
+const int pwmChannel = 0;
+const int pwmFrequency = 5000; // Частота PWM
+const int pwmResolution = 10;  // Разрешение PWM (10 бит)
+
 
 void setupLightControl() {
-    pinMode(LIGHT_PIN, OUTPUT);
-    analogWrite(LIGHT_PIN, 0); // Установить яркость на 0
+    // Настройка канала PWM
+    ledcSetup(pwmChannel, pwmFrequency, pwmResolution);
+    // Привязка канала PWM к пину
+    ledcAttachPin(LIGHT_PIN, pwmChannel);
+    ledcWrite(pwmChannel, MIN_BRIGHTNESS);
     brightnessInterval = ((transitionTime * 60 ) * 1000) / MAX_BRIGHTNESS; // Интервал в миллисекундах
 }
 
@@ -61,7 +67,7 @@ void updateLightBrightness() {
         }
 
         // Применить новую яркость
-        analogWrite(LIGHT_PIN, currentBrightness);
+        ledcWrite(pwmChannel, currentBrightness);
 
         // Обновить время последнего изменения яркости
         lastUpdateTime = millis();

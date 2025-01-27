@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <EEPROM.h>
 #include "globals.h"
+#include "pinout.h"
 #include "TimeModule.h"
 #include "SensorsModule.h"
 #include "DataSender.h"
@@ -12,9 +13,11 @@
 #include "WebSocketHandler.h"
 #include <SPI.h>
 #include <SD.h>
+#include <AccessPoint.h>
 #include "menu.h"
+#include "SDCard.h"
 
-#define WEBSOCKETS_MAX_DATA_SIZE 2048 // Максимальный размер данных
+//#define WEBSOCKETS_MAX_DATA_SIZE 4096 // Максимальный размер данных
 
 // Размер EEPROM
 #define EEPROM_SIZE 512
@@ -22,10 +25,12 @@
 // Прототипы функций
 void sendDataTask(void *parameter);
 void updatePCF8574Task(void *parameter);
-//void updateButtonWaterTask(void *parameter);
 void updateWater(); // Прототип функции
 void requestSettings();
 void updateButtonState();  
+
+//Объявление объекта класса AccessPoint
+AccessPoint accessPoint;
 
 // Задачи для FreeRTOS
 
@@ -42,10 +47,10 @@ void updateWebSocketTask(void *parameter) {
             connectWebSocket();
         } else {
             // Если соединение активно, отправляем PING каждые 5 секунд
-            if (currentMillis - lastPing >= 3500) {  // Проверка интервала
+            if (currentMillis - lastPing >= 5000) {  // Проверка интервала
                 missedPongs++;  // Увеличиваем счетчик пропущенных Pong
-                if (missedPongs >= 3) {
-                Serial.println("3 missed Pongs, reconnecting WebSocket...");
+                if (missedPongs >= 4) {
+                Serial.println(" 4 missed Pongs, reconnecting WebSocket...");
                 webSocket.close();  // Закрываем текущий WebSocket
                 missedPongs = 0;   // Сброс счетчика
                 connectWebSocket(); // Пробуем подключиться заново
@@ -54,7 +59,7 @@ void updateWebSocketTask(void *parameter) {
             }
         }
         // Задержка перед следующим циклом
-        vTaskDelay(3000 / portTICK_PERIOD_MS);  // 1 секунда
+        vTaskDelay(5000 / portTICK_PERIOD_MS);  // 3 секунда
     }
 }
 
@@ -62,32 +67,63 @@ void updateSensorsTask(void *parameter) {
     for (;;) {
         updateSensors();
         updateLightBrightness();
-        vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс
+        if (connected) {
+        // Отправка ping каждые 10 секунд
+        webSocket.ping();
+        }
+        vTaskDelay(10000 / portTICK_PERIOD_MS);  // Задержка 10000 мс
     }
 }
 
 void sendDataTask(void *parameter) {
-    for (;;) {
-        // Отправка параметров
-        sendDataIfNeeded();
-        // Отправка статуса
-        //serializeStatus();
-        vTaskDelay(60000 / portTICK_PERIOD_MS);  // Задержка 60000 мс             
+    for (;;) {     
+        timeSlot = 0;
+        unsigned long timeStartSlot = millis(); // Время начала передачи
+        sendDataIfNeeded(); // Отправка данных на сервер
+        if(!sendMessageOK) {
+            serializeStatus(); // Отправка статуса фермы
+        }
+            // Отправка данных из очереди               
+            if(dequeueIndex > 0 || enqueueIndex > 0) {
+                while((millis() - timeStartSlot) < 45000) {  // временное окно для пересылки сообщений из SD 45000 мс
+                    if(dequeueIndex == 0 && enqueueIndex == 0) {
+                        break;
+                    }                    
+                    if (!sendMessageOK && connected) {
+                        Serial.println("Отправка сообщения из очереди");
+                        dequeue(); // Отправка данных из очереди на сервер
+                    }
+
+                    delay(1);  // Небольшая задержка чтобы не нагружать процессор
+                }
+            }                     
+        //Serial.println("Время передачи: " + String(timeSlot) + " ms");  
+        timeSlot = (millis() - timeStartSlot);      
+        //Serial.println("Время слота: " + String(timeSlot) + " ms");      
+        vTaskDelay((60000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
+}
+void sendStatusTask(void *parameter) {
+    for (;;) {
+        if(connected) {
+        //dequeue(); // Отправка данных из очереди на сервер               
+        }
+        vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс 
+    }              
 }
 
 void updateMenuTask(void *parameter) {
     for (;;) {
         updateButtonState();
-        webSocket.poll(); // Обработка WebSocket событий
-        vTaskDelay(50 / portTICK_PERIOD_MS);  // Задержка 50 мс
+        vTaskDelay(70 / portTICK_PERIOD_MS);  // Задержка 70 мс
     }
 }
 
 void updateWaterTask(void *parameter) {
     for (;;) {
+        webSocket.poll(); // Обработка WebSocket событий
         updateWater();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);  // Задержка 1000 мс
+        vTaskDelay(300 / portTICK_PERIOD_MS);  // Задержка 300 мс
     }
 }
 
@@ -101,9 +137,24 @@ void setup() {
         return;
     }
 
-    initializeSettingsModule(); // Инициализация модуля настроек
-
     initializeMenu(); // Инициализация модуля меню
+
+    // Переход в режим Точки доступа, если кнопка MODE нажата в момент включения
+    bool executeOnce = true;
+    if (executeOnce) {
+        if(!analogRead(MODE_BUTTON_PIN)) {
+        Serial.println("Access Point Started");
+        accessPoint.start();
+        while (executeOnce == true) {
+
+        delay(100);
+        }
+        executeOnce = false;
+        }
+    }
+    executeOnce = false;
+
+    initializeSettingsModule(); // Инициализация модуля настроек
 
     setupWatering(); // Инициализация модуля полива
 
@@ -166,6 +217,16 @@ void setup() {
     );
 
     xTaskCreatePinnedToCore(
+        sendStatusTask,
+        "Send Status",
+        10000,
+        NULL,
+        1,
+        NULL,
+        0
+    );
+
+    xTaskCreatePinnedToCore(
         updateMenuTask,
         "Update Menu",
         10000,
@@ -178,7 +239,7 @@ void setup() {
     xTaskCreatePinnedToCore(
         updateWaterTask,
         "Update Water",
-        10000,
+        15000,  // Размер стека задачи
         NULL,
         1,
         NULL,

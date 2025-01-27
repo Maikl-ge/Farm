@@ -6,7 +6,7 @@ import logging
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Исправлено 'levellevel' на 'levelname'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("http_handler.log"),
         logging.StreamHandler()
@@ -17,13 +17,13 @@ logger = logging.getLogger(__name__)
 
 # Пример использования логирования
 logger.info("HTTP handler initialized")
-logger.error("Error in HTTP handler")
 
 class FarmHTTPHandler:
     def __init__(self, db_manager, websocket_handler=None):
         self.db_manager = db_manager
         self.websocket_handler = websocket_handler
         self.logger = logging.getLogger(__name__)
+        self.logger.info("FarmHTTPHandler initialized")
 
     async def index(self, request):
         """Перенаправление на страницу команд"""

@@ -26,37 +26,20 @@ void setupWater() {
 //Обработка состояния датчиков холла
 void controlWaterLevel() {
     if (max_osmo_level == 1 && min_osmo_level == 0) {
-       digitalWrite (OSMOS_ON_PIN, LOW);
+       digitalWrite (OSMOS_ON_PIN, LOW);  // Выключаем установку обратного осмоса
     }
 
     if (min_osmo_level == 0 && max_osmo_level == 1) {
-        digitalWrite (OSMOS_ON_PIN, HIGH);
+        digitalWrite (OSMOS_ON_PIN, HIGH);  // Включаем установку обратного осмоса
     }
     
     if (max_water_level == 1 && min_water_level == 0) {
-        digitalWrite (PUMP_TRANSFER_PIN, LOW);
+        digitalWrite (PUMP_TRANSFER_PIN, LOW);  // Выключаем насос перекачки в бак полива
     }
     
     if (min_water_level == 0 && max_water_level == 1) {
-        digitalWrite (PUMP_TRANSFER_PIN, HIGH);
+        digitalWrite (PUMP_TRANSFER_PIN, HIGH);  // Включаем насос перекачки в бак полива
     }
-}
-
-void sendMessagetoStatus() {
-    //Serial.println("Power monitor: ERROR");
-}
-
-// Функция мониторинга питания
-void powerMonitor() {
-    // Чтение состояния мониторинга питающей сети
-    if (power_monitor == 0) {
-        sendMessagetoStatus();
-    }
-}
-
-void updateWater() {
-    readPCF8574();
-    controlWaterLevel();
 }
 
 // Функция управления нагревом воды
@@ -79,6 +62,11 @@ void controlWaterHeater() {
     }
 }
 
+void updateWater() {
+    readPCF8574();
+    controlWaterLevel();
+    controlWaterHeater();
+}
 
 
 

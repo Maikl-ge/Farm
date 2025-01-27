@@ -41,6 +41,7 @@ extern float air_temperature_outdoor;
 extern float air_temperature_inlet;
 
 // Объявление переменных для датчиков качества воды
+extern float CO2;
 extern float ph_osmo;
 extern float tds_osmo;
 

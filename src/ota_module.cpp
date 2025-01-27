@@ -1,5 +1,6 @@
 #include "ota_module.h"
 #include <ArduinoOTA.h>
+#include <globals.h>
 #include <WiFi.h>
 
 void setupOTA() {

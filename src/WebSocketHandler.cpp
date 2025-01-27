@@ -5,8 +5,9 @@
 #include <DataSender.h>
 #include "Profile.h"
 #include <CurrentProfile.h>
+#include <SDCard.h>
 
-#define WEBSOCKETS_MAX_DATA_SIZE 1024 // Максимальный размер данных
+//#define WEBSOCKETS_MAX_DATA_SIZE 1024 // Максимальный размер данных
 
 using namespace websockets;
 
@@ -14,9 +15,18 @@ using namespace websockets;
 WebsocketsClient webSocket;
 String messageFromServer;
 String messageACK;
+String id_farm_message = "  ";
+String type_msg_message = "  ";
+bool connectedWebSocket = false;
 bool connected = false;
 unsigned long lastReconnectAttempt = 0;
-const unsigned long RECONNECT_INTERVAL = 14000; // Интервал повторного подключения в мс
+const unsigned long RECONNECT_INTERVAL = 5000; // Интервал повторного подключения в мс
+
+// Прототипы функций
+void connectWebSocket();
+void resetWebSocketState();
+void handleWebSocketMessage(const String& message);
+void parceMessageFromServer(const String& messageFromServer);
 
 void initializeWebSocket() {
     webSocket.onMessage([](WebsocketsMessage message) {
@@ -34,15 +44,15 @@ void webSocketEvent(WebsocketsEvent event, String data) {
     switch (event) {
         case WebsocketsEvent::ConnectionOpened:
             Serial.println("WebSocket connection opened");
-            //Serial.println(data);
             connected = true;
             break;
         case WebsocketsEvent::ConnectionClosed:
-            Serial.println("WebSocket connection closed");
-            resetWebSocketState();  // Очищаем состояние при закрытии
+            Serial.println("WebSocket connection closed !!!");
+            connectedWebSocket = false;
+            processWebSocket();  // Переподключаем
             break;
         case WebsocketsEvent::GotPing:
-            webSocket.ping();  // Отправка PING
+            webSocket.pong(); // Отправка PONG-сообщения
             //Serial.println("Got a Ping!");
             break;
         case WebsocketsEvent::GotPong:
@@ -111,75 +121,42 @@ void parceMessageFromServer(const String& messageFromServer) {
     }
 }    
 
-void sendWebSocketMessage(const String& ID_FARM, const String& TYPE_MSG, const String& LENGTH_MSG, const String& jsonMessage) {
-    String messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
+void sendWebSocketMessage(const String& messageToSend) {
     if (connected) {
         webSocket.send(messageToSend);
-        Serial.print("Sent: ");
-        Serial.println(messageToSend);
+        Serial.print("Send: ");
+        Serial.println(TYPE_MSG); // остается от предидущего варианта
     } else {
         Serial.println("Соединение отсутствует. Сообщение не отправлено.");
-        saveMessageToSDCard(messageToSend);
+        enqueue(sd, messageToSend);   
     }
-    //parseMessageACK();
-}
-
-void processWebSocket() {
-    static unsigned long lastPing = 0;
-    unsigned long currentMillis = millis();
-    //webSocket.ping();
-    if (!connected) {
-        // Проверка состояния Wi-Fi
-        if (WiFi.status() != WL_CONNECTED) {
-            Serial.println("Wi-Fi disconnected, attempting to reconnect...");
-            WiFi.reconnect();
-            delay(1000); // Небольшая задержка для стабилизации
-            return;      // Не пытаемся подключиться к WebSocket, пока Wi-Fi не восстановится
+    handleWebSocketMessage(messageToSend);  // Разбор сообщения
+    if(connected) {
+        // Ожидание ACK с таймаутом
+        unsigned long startWait = millis();
+        while(millis() - startWait < 4000) {  // ждем 4000 мс
+            if (type_msg_ACK == TYPE_MSG && ack_ACK == "ACK") {
+                Serial.println("Квитанция ACK " + String(type_msg_ACK) + " получена " +  String(millis() - startWait) + " ms");
+                type_msg_ACK = "";
+                ack_ACK = "";
+                id_farm_ACK = "";
+                TYPE_MSG = "";
+                sendMessageOK = false;
+                enqueueASK = "sendOk";
+                timeSlot = timeSlot + (millis() - transmitionTime);
+                return;
+            }
+            delay(1);  // Небольшая задержка чтобы не нагружать процессор
         }
-
-        // Если Wi-Fi в порядке, проверяем необходимость переподключения WebSocket
-        if (currentMillis - lastReconnectAttempt >= RECONNECT_INTERVAL) {
-            lastReconnectAttempt = currentMillis;
-            connectWebSocket();
+        // Если ACK не получен за 4000 мс
+        Serial.println("Таймаут ожидания ACK Статуса");
+        sendMessageOK = false;
+        if(enqueueASK != "send") {
+        enqueue(sd, messageToSend);   
         }
-    }
+        enqueueASK = "empty";
+    } 
 }
-
-void resetWebSocketState() {
-    // Очистка буферов сообщений
-    messageFromServer = "";
-    messageACK = "";
-    
-    // Очистка переменных ACK
-    type_msg_ACK = "";
-    ack_ACK = "";
-    id_farm_ACK = "";
-    
-    // Сброс счетчиков
-    missedPongs = 0;
-    
-    // Очистка флагов
-    connected = false;
-}
-
-void connectWebSocket() {
-    static bool isConnecting = false;
-    if (isConnecting) return;  // Если уже идет подключение, то выходим
-    
-    isConnecting = true;
-    
-    // Очищаем состояние перед новым подключением
-    resetWebSocketState();
-    
-    connected = webSocket.connect(ws_server);
-    if (connected) {
-        Serial.println("WebSocket connected");
-    } else {
-        Serial.println("WebSocket connection failed");
-    }
-    
-    isConnecting = false;
-}    
 
 // Функция для разбора сообщения сервера на три переменные
 void handleWebSocketMessage(const String& message) {
@@ -190,7 +167,7 @@ void handleWebSocketMessage(const String& message) {
 
     // Проверяем, что сообщение не пустое
     if (messageACK.isEmpty()) {
-        //Serial.println("Ошибка: пустое сообщение ACK");
+        Serial.println("Ошибка: пустое сообщение ACK");
         return;
     }
 
@@ -205,13 +182,93 @@ void handleWebSocketMessage(const String& message) {
     }
 
     // Извлечение частей
-    id_farm_ACK = messageACK.substring(0, firstSpace);                 // Первая часть: номер фермы
+    id_farm_ACK = messageACK.substring(0, firstSpace);                // Первая часть: номер фермы
     type_msg_ACK = messageACK.substring(firstSpace + 1, secondSpace); // Вторая часть: тип сообщения
     ack_ACK = messageACK.substring(secondSpace + 1);                  // Третья часть: квитанция
+    parceMessageFromServer(type_msg_ACK);
+    if(enqueueASK == "send") {
+        TYPE_MSG = type_msg_ACK;
+    }
+}
 
-    // Проверка корректности ID фермы
-    if (id_farm_ACK == String(ID_FARM)) {
-        parceMessageFromServer(type_msg_ACK);
-        messageFromServer = type_msg_ACK;
+void processWebSocket() {
+    static unsigned long lastPing = 0;
+    unsigned long currentMillis = millis();
+
+    if (!connected) {
+        // Проверка состояния Wi-Fi
+        if (WiFi.status() != WL_CONNECTED) {
+            Serial.println("Wi-Fi disconnected, attempting to reconnect...");
+            WiFi.reconnect();
+            delay(1000); // Небольшая задержка для стабилизации
+            return;      // Не пытаемся подключиться к WebSocket, пока Wi-Fi не восстановится
+        }
+
+        // Если Wi-Fi в порядке, проверяем необходимость переподключения WebSocket
+        if (currentMillis - lastReconnectAttempt >= RECONNECT_INTERVAL) {
+           lastReconnectAttempt = currentMillis;
+            connectWebSocket();
+        }
     } 
 }
+
+void resetWebSocketState() {
+    Serial.println("Resetting WebSocket state...");
+
+    // Очистка буферов сообщений
+    messageFromServer = "";
+    messageACK = "";
+    
+    // Очистка переменных ACK
+    type_msg_ACK = "";
+    ack_ACK = "";
+    id_farm_ACK = "";
+    
+    // Сброс счётчиков
+    missedPongs = 0;
+    lastReconnectAttempt = 0;
+
+    // Очистка флагов
+    connected = false;
+
+    // Очистка дополнительных буферов или очередей
+    //  pendingMessages.clear();  // Если используется очередь сообщений
+    
+    try {
+        // Закрытие WebSocket соединения
+        Serial.println("Закрываем соединение, если оно есть: ");
+        webSocket.close();  // Закрываем соединение, если оно есть
+    } catch (const std::exception& e) {
+        Serial.print("Exception during WebSocket close: ");
+        Serial.println(e.what());
+    }
+
+    Serial.println("WebSocket state has been reset");
+}
+
+void connectWebSocket() {
+    static bool isConnecting = false;
+    if (isConnecting) return;  // Если уже идет подключение, то выходим
+
+    Serial.println("Attempting to connect to WebSocket...");
+
+    // Очищаем состояние перед новым подключением    
+    resetWebSocketState();
+
+    isConnecting = true;
+    
+    try {
+        connected = webSocket.connect(ws_server);
+        if (connected) {
+            Serial.println("WebSocket connected");
+            connectedWebSocket = true;
+        } else {
+            Serial.println("WebSocket connection failed");
+        }
+    } catch (const std::exception& e) {
+        Serial.print("Exception during WebSocket connection: ");
+        Serial.println(e.what());
+    }
+
+    isConnecting = false;
+} 

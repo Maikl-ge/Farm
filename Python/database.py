@@ -1,6 +1,7 @@
 import asyncpg
 import logging
 from typing import Optional, Dict, Any
+from datetime import datetime
 
 class DatabaseManager:
     def __init__(self):
@@ -20,11 +21,11 @@ class DatabaseManager:
         self.params_db_config = {
             'user': 'CytiFarm',
             'password': 'Farm',
-            'database': 'SystemParams',
+            'database': 'SystemParams',  # Имя базы данных, содержащей таблицу status_farm
             'host': 'localhost',
             'port': 5432        
         }
-        
+
         # Пулы подключений
         self.sensor_pool: Optional[asyncpg.Pool] = None
         self.params_pool: Optional[asyncpg.Pool] = None
@@ -37,7 +38,7 @@ class DatabaseManager:
         """Настройка параметров логирования"""
         logging.basicConfig(
             level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            format='%(asctime)s - %(name)s - %(levellevel)s - %(message)s'
         )
 
     async def init_pools(self) -> None:
@@ -61,26 +62,20 @@ class DatabaseManager:
             await self.params_pool.close()
         self.logger.info("Database pools closed")
 
-    # Метод для обратной совместимости со старым кодом
-    @classmethod
-    async def create_db_pool(cls):
-        """
-        Создает пул подключений к БД (для обратной совместимости)
-        """
-        manager = cls()
-        await manager.init_pools()
-        return manager.sensor_pool
-
     async def save_sensor_data(self, data: Dict[str, Any], timestamp: str) -> bool:
         """Сохранение данных сенсоров"""
         if not self.sensor_pool:
             raise RuntimeError("Sensor database pool not initialized")
             
         try:
+            # Преобразование строки timestamp в объект datetime
+            timestamp_dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+            # Преобразование объекта datetime в строку
+            timestamp_str = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S")
             async with self.sensor_pool.acquire() as conn:
                 await conn.execute('''
                     INSERT INTO sensor_data(
-                        timestamp, current_date, current_time, 
+                        timestamp, "current_date", "current_time", 
                         start_button, stop_button, mode_button,
                         max_osmo_level, min_osmo_level, max_water_level, min_water_level,
                         temperature_1, humidity_1, temperature_2, humidity_2, 
@@ -91,7 +86,7 @@ class DatabaseManager:
                     ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 
                             $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, 
                             $23, $24, $25, $26, $27)
-                ''', timestamp, data["DF"], data["TF"], data["start_Button"], 
+                ''', timestamp_str, data["DF"], data["TF"], data["start_Button"], 
                     data["stop_Button"], data["mode_Button"], data["max_osmo_level"], 
                     data["min_osmo_level"], data["max_water_level"], data["min_water_level"], 
                     data["T1"], data["H1"], data["T2"], data["H2"], data["T3"], 
@@ -102,6 +97,38 @@ class DatabaseManager:
                 return True
         except Exception as e:
             self.logger.error(f"Error saving sensor data: {e}")
+            return False
+
+    async def save_status_data(self, data: Dict[str, Any], timestamp: str) -> bool:
+        """Сохранение статусных данных"""
+        if not self.params_pool:
+            raise RuntimeError("Status database pool not initialized")
+        
+        try:
+            # Преобразование строки timestamp в объект datetime
+            timestamp_dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+            # Преобразование целочисленных значений в булевые
+            data["OSMOS_ON"] = bool(data["OSMOS_ON"])
+            data["PUMP_WATERING"] = bool(data["PUMP_WATERING"])
+            data["PUMP_TRANSFER"] = bool(data["PUMP_TRANSFER"])
+            data["WATER_OUT"] = bool(data["WATER_OUT"])
+            data["STEAM_IN"] = bool(data["STEAM_IN"])
+            data["ENABLE"] = bool(data["ENABLE"])
+            async with self.params_pool.acquire() as conn:
+                await conn.execute('''
+                    INSERT INTO status_farm(
+                        timestamp, osmos_on, pump_watering, pump_transfer, water_out, steam_in,
+                        light, fan_rack, fan_shelf, fan_circ, fan_inlet, hiter_air, hiter_water, fan_option,
+                        step, dir, enable
+                    ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                ''',
+                timestamp_dt, data["OSMOS_ON"], data["PUMP_WATERING"], data["PUMP_TRANSFER"], data["WATER_OUT"], data["STEAM_IN"],
+                data["LIGHT"], data["FAN_RACK"], data["FAN_SHELF"], data["FAN_CIRC"], data["FAN_INLET"], data["HITER_AIR"], data["HITER_WATER"], data["FAN_OPTION"],
+                data["STEP"], data["DIR"], data["ENABLE"])
+                self.logger.info(f"Status data saved successfully at {timestamp}")
+                return True
+        except Exception as e:
+            self.logger.error(f"Error saving status data: {e}")
             return False
 
     async def get_system_params(self, profile_id: int = 10) -> Optional[Dict[str, Any]]:
