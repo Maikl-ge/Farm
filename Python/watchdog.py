@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Конфигурация сторожевой собаки
 CPU_THRESHOLD = 80  # Пороговое значение для использования CPU в процентах
 MEMORY_THRESHOLD = 80  # Пороговое значение для использования памяти в процентах
-CHECK_INTERVAL = 5  # Интервал проверки в секундах
+CHECK_INTERVAL = 30  # Интервал проверки в секундах
 SERVER_COMMAND = "python main.py"  # Команда для запуска сервера
 
 def is_server_running():

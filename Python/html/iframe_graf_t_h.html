@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"> <!-- Устанавливаем кодировку страницы -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Устанавливаем параметр viewport для корректного отображения на мобильных устройствах -->
+    <title>Monitoring grow box</title> <!-- Устанавливаем заголовок страницы -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script> <!-- Подключаем библиотеку ECharts -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Устанавливаем шрифт для страницы */
+            margin: 0; /* Убираем внешние отступы */
+            padding: 10px; /* Устанавливаем внутренние отступы */
+            background-color: #1e1e1e; /* Устанавливаем цвет фона */
+            display: flex; /* Используем flexbox для выравнивания */
+            align-items: center; /* Выравниваем элементы по вертикали */
+            height: 100vh; /* Устанавливаем высоту на весь экран */
+            flex-direction: column; /* Размещаем элементы в колонку */
+        }
+        
+        .card {
+            width: 100%; /* Устанавливаем ширину на 100% */
+            height: 100%; /* Устанавливаем высоту на 100% */
+            background-color: #2e2e2e; /* Устанавливаем цвет фона */
+            border-radius: 5px; /* Скругляем углы */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Добавляем тень */
+            padding: 8px; /* Устанавливаем внутренние отступы */
+            color: white; /* Устанавливаем цвет текста */
+            position: relative; /* Устанавливаем относительное позиционирование */
+        }
+
+        .header {
+            display: flex; /* Используем flexbox для выравнивания */
+            justify-content: flex-start; /* Размещаем элементы по левому краю */
+            align-items: center; /* Выравниваем элементы по вертикали */
+            margin-bottom: 1px; /* Устанавливаем нижний отступ */
+        }
+
+        .header .title {
+            margin-left: 25px; /* Сдвигаем заголовок влево */
+            font-family: Arial, sans-serif; /* Устанавливаем шрифт */
+            font-size: 20px; /* Устанавливаем размер шрифта */
+            color: #bbb; /* Устанавливаем цвет текста */
+        }
+
+        #chart {
+            left: 0px; /* Устанавливаем левый отступ */	        
+            width: 100%; /* Устанавливаем ширину на 100% */
+            height: calc(100% - 60px); /* Устанавливаем высоту с учетом отступа */
+        }
+
+        .time-range {
+            position: absolute; /* Устанавливаем абсолютное позиционирование */
+            bottom: 20px; /* Устанавливаем нижний отступ */
+            left: 40px; /* Устанавливаем левый отступ */
+            display: flex; /* Используем flexbox для выравнивания */
+            gap: 25px; /* Устанавливаем разрыв между элементами */
+            font-family: Arial, sans-serif; /* Устанавливаем шрифт */
+            font-size: 16px; /* Устанавливаем размер шрифта */
+            color: #bbb; /* Устанавливаем цвет текста */
+        }
+
+        .time-range span {
+            cursor: pointer; /* Устанавливаем указатель курсора */
+        }
+
+        .time-range span:hover {
+            color: white; /* Изменяем цвет текста при наведении */
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="legend" id="legend"></div>
+        </div>
+        <div id="chart"></div>
+        <div class="time-range">
+            <span onclick="loadData(20)">Live</span> <!-- Кнопка для загрузки последних 20 записей -->
+            <span onclick="loadData(60)">1 hour</span> <!-- Кнопка для загрузки последних 60 записей -->
+            <span onclick="loadData(240)">4 hours</span> <!-- Кнопка для загрузки последних 240 записей -->
+            <span onclick="loadData(720)">12 o'clock</span> <!-- Кнопка для загрузки последних 720 записей -->
+            <span onclick="loadData(1440)">1 day</span> <!-- Кнопка для загрузки последних 1440 записей -->
+        </div>
+    </div>
+    
+    <script>
+        let chart = echarts.init(document.getElementById('chart')); // Инициализируем график ECharts
+
+        async function loadData(records) {
+            try {
+                const response = await fetch(`/api/data_watering?limit=${records}`); // Запрашиваем данные с сервера
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`); // Обрабатываем ошибки запроса
+                }
+                const data = await response.json(); // Преобразуем ответ в JSON
+                updateChart(data); // Обновляем график с новыми данными
+            } catch (error) {
+                console.error('Error loading data:', error); // Логируем ошибки
+            }
+        }
+
+        function updateChart(data) {
+            if (!data || data.length === 0) {
+                console.warn('No data available to update chart'); // Логируем предупреждение, если данных нет
+                return;
+            }
+            
+            let labels = data.map(d => new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); // Форматируем метки времени
+            let temperatureData = data.map(d => d.water_temperature_watering || 0); // Извлекаем данные температуры
+            let humidityData = data.map(d => d.water_temperature_osmo || 0); // Извлекаем данные влажности
+
+            let option = {
+                backgroundColor: '#2e2e2e', // Устанавливаем цвет фона графика
+                tooltip: { 
+                    trigger: 'axis' // Включаем всплывающие подсказки при наведении на ось
+                },
+               legend: { 
+                    textStyle: { color: '#bbb', fontSize: 16 }, // Настройки для текста легенды
+                    data: ['Temperature', 'Humidity'], // Метки данных для легенды
+                    right: '2%', // Позиция легенды справа
+                    top: 'top', // Вертикальное выравнивание легенды по верхнему краю (возможные варианты: 'top', 'middle', 'bottom')
+                    orient: 'horizontal', // Горизонтальное расположение легенды (возможные варианты: 'horizontal', 'vertical')
+                    itemWidth: 20, // Ширина элемента легенды
+                    itemHeight: 10, // Высота элемента легенды
+                    itemStyle: { // Стиль элемента легенды
+                        borderWidth: 0, // Толщина границы элемента легенды
+                        borderColor: '#bbb' // Цвет границы элемента легенды
+                    },
+                    icon: 'rect' // Форма элемента легенды (возможные варианты: 'circle', 'rect', 'roundRect', 'triangle', 'diamond', 'pin', 'arrow', 'none')
+                },
+                grid: {
+                    left: '2%', // Позиционирование сетки
+                    right: '2%',
+                    bottom: '3%',
+                    top: '10%', // Устанавливаем верхний отступ для области сетки
+                    containLabel: true // Включаем в сетку метки
+                },
+                xAxis: {
+                    type: 'category', // Тип оси
+                    data: labels, // Метки для оси X
+                    axisLine: { lineStyle: { color: '#bbb' } }, // Стиль линии оси
+                    axisLabel: { 
+                        color: '#bbb', // Цвет меток оси
+                        fontSize: 12 // Размер шрифта меток оси
+                    },
+                    splitLine: { // Линии сетки на оси X
+                        show: true,
+                        lineStyle: {
+                            color: '#444', // Цвет линий сетки
+                            type: 'dashed' // Тип линий сетки
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value', // Тип оси
+                    axisLine: { lineStyle: { color: '#bbb' } }, // Стиль линии оси
+                    axisLabel: { 
+                        color: '#bbb', // Цвет меток оси
+                        fontSize: 12 // Размер шрифта меток оси
+                    },
+                    splitLine: { // Линии сетки на оси Y
+                        show: true,
+                        lineStyle: {
+                            color: '#444', // Цвет линий сетки
+                            type: 'dashed' // Тип линий сетки
+                        }
+                    },
+                    min: 10, // Минимальное значение оси Y
+                    max: 30 // Максимальное значение оси Y
+                },
+                series: [
+                    {
+                        name: 'Temperature',
+                        type: 'line', // Тип серии
+                        smooth: true, // Сглаживаем линию
+                        data: temperatureData, // Данные для серии
+                        color: '#00ff7f', // Цвет линии
+                        lineStyle: {
+                            width: 2 // Ширина линии
+                        },
+                        areaStyle: {
+                            color: 'rgba(0, 255, 127, 0.1)' // Цвет заливки области
+                        },
+                        symbol: 'none' // Убираем точки с линии
+                    },
+                    {
+                        name: 'Humidity',
+                        type: 'line', // Тип серии
+                        smooth: true, // Сглаживаем линию
+                        data: humidityData, // Данные для серии
+                        color: '#08e8de', // Цвет линии
+                        lineStyle: {
+                            width: 2 // Ширина линии
+                        },
+                        areaStyle: {
+                            color: 'rgba(8, 232, 222, 0.1)' // Цвет заливки области
+                        },
+                        symbol: 'none' // Убираем точки с линии
+                    }
+                ]
+            };
+            chart.setOption(option); // Устанавливаем опции для графика
+        }
+
+        loadData(40); // Загружаем начальные данные
+        setInterval(() => loadData(40), 5000); // Обновляем данные каждые 5 секунд для режима живого просмотра
+    </script>
+</body>
+</html>

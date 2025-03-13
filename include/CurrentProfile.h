@@ -28,8 +28,8 @@ extern uint16_t NIGHT_VENTILATION;
 extern uint16_t NIGHT_WATERING_INTERVAL;
 
 // Параметры времени
-extern uint16_t SUNRISE;
-extern uint16_t SUNSET;
+extern uint16_t SUNRISE;  // Время восхода
+extern uint16_t SUNSET;   // Время заката
 
 // Температура воды
 extern uint16_t WATER_TEMPERATURE;

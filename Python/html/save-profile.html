@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <!-- Подключаем библиотеку CBOR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cbor-js/0.1.0/cbor.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            background-color: #1e1e1e;
+            margin: 10px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #aaa;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        form {
+            background: #2e2e2e;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            color: #aaa;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .form-column {
+            width: 48%;
+        }
+        label {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-container {
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .input-container label {
+            width: 65%;
+            text-align: left;
+        }
+        .input-container input {
+            width: 30%;
+            padding: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            color: #aaa;
+            background-color: transparent;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .tab {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+            padding: 8px;
+            background: #3e3e3e;
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 2px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+        .tab.active {
+            background: #aaa;
+            color: #1e1e1e;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        input[type="submit"] {
+            background-color: transparent;
+            color: #aaa;
+            border: 1px solid #aaa;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+        }
+        input[type="submit"]:hover {
+            background-color: #aaa;
+            color: #1e1e1e;
+        }
+        .error-message {
+            color: #ff5555;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+            }
+            .form-column {
+                width: 100%;
+            }
+            .input-container label {
+                width: 50%;
+            }
+            .input-container input {
+                width: 45%;
+            }
+            .tabs {
+                font-size: 12px;
+            }
+            .tab {
+                padding: 6px;
+            }
+            input[type="submit"] {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form id="profileForm" method="post" onsubmit="return handleSubmit(event)">
+        <h1>Edit Profile</h1>
+        
+        <!-- Общие параметры -->
+        <div class="form-row">
+            <div class="form-column">
+                <div class="input-container">
+                    <label for="nameProfile">Name Profile:</label>
+                    <input type="text" id="nameProfile" name="nameProfile" value="Floor III" required>
+                </div>
+                <div class="input-container">
+                    <label for="cycle">Cycle (days):</label>
+                    <input type="number" id="cycle" name="cycle" value="7" required>
+                </div>
+            </div>
+            <div class="form-column">
+                <div class="input-container">
+                    <label for="sunrise">Sunrise:</label>
+                    <input type="time" id="sunrise" name="sunrise" value="06:00" required>
+                </div>
+                <div class="input-container">
+                    <label for="sunset">Sunset:</label>
+                    <input type="time" id="sunset" name="sunset" value="22:00" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладки -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab(1)">1. Soak</div>
+            <div class="tab" onclick="showTab(2)">2. Germ</div>
+            <div class="tab" onclick="showTab(3)">3. Act</div>
+            <div class="tab" onclick="showTab(4)">4. Early</div>
+            <div class="tab" onclick="showTab(5)">5. Grow</div>
+            <div class="tab" onclick="showTab(6)">6. Finish</div>
+        </div>
+
+        <!-- Вкладка 1 -->
+        <div id="tab1" class="tab-content active">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase1_duration">Duration (h):</label>
+                        <input type="number" id="phase1_duration" name="phase1_duration" value="6" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_day_temp">Day Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase1_day_temp" name="phase1_day_temp" value="24.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_night_temp">Night Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase1_night_temp" name="phase1_night_temp" value="24.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_day_hum">Day Hum (%):</label>
+                        <input type="number" step="0.1" id="phase1_day_hum" name="phase1_day_hum" value="95.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_night_hum">Night Hum (%):</label>
+                        <input type="number" step="0.1" id="phase1_night_hum" name="phase1_night_hum" value="95.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_day_water">Day Water (MM):</label>
+                        <input type="number" id="phase1_day_water" name="phase1_day_water" value="30" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase1_night_water">Night Water (MM):</label>
+                        <input type="number" id="phase1_night_water" name="phase1_night_water" value="30" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase1_water_temp" name="phase1_water_temp" value="24.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_day_vent">Day Vent (MM):</label>
+                        <input type="number" id="phase1_day_vent" name="phase1_day_vent" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_night_vent">Night Vent (MM):</label>
+                        <input type="number" id="phase1_night_vent" name="phase1_night_vent" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_day_circ">Day Circ (MM):</label>
+                        <input type="number" id="phase1_day_circ" name="phase1_day_circ" value="0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_night_circ">Night Circ (MM):</label>
+                        <input type="number" id="phase1_night_circ" name="phase1_night_circ" value="0" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase1_day_rot">Day Rot (MM):</label>
+                        <input type="number" id="phase1_day_rot" name="phase1_day_rot" value="15" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_night_rot">Night Rot (MM):</label>
+                        <input type="number" id="phase1_night_rot" name="phase1_night_rot" value="15" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase1_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase1_light" name="phase1_light" value="0" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 2 -->
+        <div id="tab2" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase2_duration">Duration (h):</label>
+                        <input type="number" id="phase2_duration" name="phase2_duration" value="30" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_day_temp">Day Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase2_day_temp" name="phase2_day_temp" value="24.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_night_temp">Night Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase2_night_temp" name="phase2_night_temp" value="22.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_day_hum">Day Hum (%):</label>
+                        <input type="number" step="0.1" id="phase2_day_hum" name="phase2_day_hum" value="90.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_night_hum">Night Hum (%):</label>
+                        <input type="number" step="0.1" id="phase2_night_hum" name="phase2_night_hum" value="92.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_day_water">Day Water (MM):</label>
+                        <input type="number" id="phase2_day_water" name="phase2_day_water" value="90" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase2_night_water">Night Water (MM):</label>
+                        <input type="number" id="phase2_night_water" name="phase2_night_water" value="180" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase2_water_temp" name="phase2_water_temp" value="24.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_day_vent">Day Vent (MM):</label>
+                        <input type="number" id="phase2_day_vent" name="phase2_day_vent" value="180" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_night_vent">Night Vent (MM):</label>
+                        <input type="number" id="phase2_night_vent" name="phase2_night_vent" value="240" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_day_circ">Day Circ (MM):</label>
+                        <input type="number" id="phase2_day_circ" name="phase2_day_circ" value="180" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_night_circ">Night Circ (MM):</label>
+                        <input type="number" id="phase2_night_circ" name="phase2_night_circ" value="0" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase2_day_rot">Day Rot (MM):</label>
+                        <input type="number" id="phase2_day_rot" name="phase2_day_rot" value="20" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_night_rot">Night Rot (MM):</label>
+                        <input type="number" id="phase2_night_rot" name="phase2_night_rot" value="30" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase2_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase2_light" name="phase2_light" value="0" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 3 -->
+        <div id="tab3" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase3_duration">Duration (h):</label>
+                        <input type="number" id="phase3_duration" name="phase3_duration" value="36" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_day_temp">Day Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase3_day_temp" name="phase3_day_temp" value="23.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_night_temp">Night Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase3_night_temp" name="phase3_night_temp" value="21.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_day_hum">Day Hum (%):</label>
+                        <input type="number" step="0.1" id="phase3_day_hum" name="phase3_day_hum" value="85.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_night_hum">Night Hum (%):</label>
+                        <input type="number" step="0.1" id="phase3_night_hum" name="phase3_night_hum" value="87.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_day_water">Day Water (MM):</label>
+                        <input type="number" id="phase3_day_water" name="phase3_day_water" value="120" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase3_night_water">Night Water (MM):</label>
+                        <input type="number" id="phase3_night_water" name="phase3_night_water" value="240" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase3_water_temp" name="phase3_water_temp" value="23.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_day_vent">Day Vent (MM):</label>
+                        <input type="number" id="phase3_day_vent" name="phase3_day_vent" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_night_vent">Night Vent (MM):</label>
+                        <input type="number" id="phase3_night_vent" name="phase3_night_vent" value="240" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_day_circ">Day Circ (MM):</label>
+                        <input type="number" id="phase3_day_circ" name="phase3_day_circ" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_night_circ">Night Circ (MM):</label>
+                        <input type="number" id="phase3_night_circ" name="phase3_night_circ" value="240" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase3_day_rot">Day Rot (MM):</label>
+                        <input type="number" id="phase3_day_rot" name="phase3_day_rot" value="20" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_night_rot">Night Rot (MM):</label>
+                        <input type="number" id="phase3_night_rot" name="phase3_night_rot" value="30" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase3_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase3_light" name="phase3_light" value="100" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 4 -->
+        <div id="tab4" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase4_duration">Duration (h):</label>
+                        <input type="number" id="phase4_duration" name="phase4_duration" value="36" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_day_temp">Day Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase4_day_temp" name="phase4_day_temp" value="22.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_night_temp">Night Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase4_night_temp" name="phase4_night_temp" value="20.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_day_hum">Day Hum (%):</label>
+                        <input type="number" step="0.1" id="phase4_day_hum" name="phase4_day_hum" value="80.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_night_hum">Night Hum (%):</label>
+                        <input type="number" step="0.1" id="phase4_night_hum" name="phase4_night_hum" value="82.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_day_water">Day Water (MM):</label>
+                        <input type="number" id="phase4_day_water" name="phase4_day_water" value="120" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase4_night_water">Night Water (MM):</label>
+                        <input type="number" id="phase4_night_water" name="phase4_night_water" value="240" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase4_water_temp" name="phase4_water_temp" value="22.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_day_vent">Day Vent (MM):</label>
+                        <input type="number" id="phase4_day_vent" name="phase4_day_vent" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_night_vent">Night Vent (MM):</label>
+                        <input type="number" id="phase4_night_vent" name="phase4_night_vent" value="240" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_day_circ">Day Circ (MM):</label>
+                        <input type="number" id="phase4_day_circ" name="phase4_day_circ" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_night_circ">Night Circ (MM):</label>
+                        <input type="number" id="phase4_night_circ" name="phase4_night_circ" value="240" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase4_day_rot">Day Rot (MM):</label>
+                        <input type="number" id="phase4_day_rot" name="phase4_day_rot" value="20" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase4_night_rot">Night Rot (MM):</label>
+                        <input type="number" id="phase4_night_rot" name="phase4_night_rot" value="30" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase4_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase4_light" name="phase4_light" value="150" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 5 -->
+        <div id="tab5" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase5_duration">Duration (h):</label>
+                        <input type="number" id="phase5_duration" name="phase5_duration" value="48" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_day_temp">Day Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase5_day_temp" name="phase5_day_temp" value="21.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_night_temp">Night Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase5_night_temp" name="phase5_night_temp" value="19.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_day_hum">Day Hum (%):</label>
+                        <input type="number" step="0.1" id="phase5_day_hum" name="phase5_day_hum" value="75.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_night_hum">Night Hum (%):</label>
+                        <input type="number" step="0.1" id="phase5_night_hum" name="phase5_night_hum" value="77.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_day_water">Day Water (MM):</label>
+                        <input type="number" id="phase5_day_water" name="phase5_day_water" value="180" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase5_night_water">Night Water (MM):</label>
+                        <input type="number" id="phase5_night_water" name="phase5_night_water" value="360" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase5_water_temp" name="phase5_water_temp" value="21.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_day_vent">Day Vent (MM):</label>
+                        <input type="number" id="phase5_day_vent" name="phase5_day_vent" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_night_vent">Night Vent (MM):</label>
+                        <input type="number" id="phase5_night_vent" name="phase5_night_vent" value="240" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_day_circ">Day Circ (MM):</label>
+                        <input type="number" id="phase5_day_circ" name="phase5_day_circ" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_night_circ">Night Circ (MM):</label>
+                        <input type="number" id="phase5_night_circ" name="phase5_night_circ" value="240" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase5_day_rot">Day Rot (MM):</label>
+                        <input type="number" id="phase5_day_rot" name="phase5_day_rot" value="20" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase5_night_rot">Night Rot (MM):</label>
+                        <input type="number" id="phase5_night_rot" name="phase5_night_rot" value="30" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase5_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase5_light" name="phase5_light" value="200" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 6 -->
+        <div id="tab6" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase6_duration">Duration (h):</label>
+                        <input type="number" id="phase6_duration" name="phase6_duration" value="12" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_day_temp">Day Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase6_day_temp" name="phase6_day_temp" value="20.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_night_temp">Night Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase6_night_temp" name="phase6_night_temp" value="18.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_day_hum">Day Hum (%):</label>
+                        <input type="number" step="0.1" id="phase6_day_hum" name="phase6_day_hum" value="70.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_night_hum">Night Hum (%):</label>
+                        <input type="number" step="0.1" id="phase6_night_hum" name="phase6_night_hum" value="72.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_day_water">Day Water (MM):</label>
+                        <input type="number" id="phase6_day_water" name="phase6_day_water" value="9999" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase6_night_water">Night Water (MM):</label>
+                        <input type="number" id="phase6_night_water" name="phase6_night_water" value="9999" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase6_water_temp" name="phase6_water_temp" value="20.0" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_day_vent">Day Vent (MM):</label>
+                        <input type="number" id="phase6_day_vent" name="phase6_day_vent" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_night_vent">Night Vent (MM):</label>
+                        <input type="number" id="phase6_night_vent" name="phase6_night_vent" value="240" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_day_circ">Day Circ (MM):</label>
+                        <input type="number" id="phase6_day_circ" name="phase6_day_circ" value="120" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_night_circ">Night Circ (MM):</label>
+                        <input type="number" id="phase6_night_circ" name="phase6_night_circ" value="240" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase6_day_rot">Day Rot (MM):</label>
+                        <input type="number" id="phase6_day_rot" name="phase6_day_rot" value="30" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase6_night_rot">Night Rot (MM):</label>
+                        <input type="number" id="phase6_night_rot" name="phase6_night_rot" value="60" required>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase6_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase6_light" name="phase6_light" value="150" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка Save -->
+        <input type="submit" value="Save">
+        <div id="errorMessage" class="error-message"></div>
+    </form>
+
+    <script>
+        function showTab(tabNumber) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`.tab:nth-child(${tabNumber})`).classList.add('active');
+            document.getElementById(`tab${tabNumber}`).classList.add('active');
+        }
+
+        function validateForm(data) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+
+            // Проверка общих параметров
+            if (!data.nameProfile) return "Name Profile cannot be empty";
+            if (data.cycle < 1 || data.cycle > 365) return "Cycle must be between 1 and 365 days";
+            if (!data.sunrise || !data.sunset) return "Sunrise and Sunset times are required";
+
+            // Проверка фаз
+            let totalDuration = 0;
+            for (let i = 0; i < data.phases.length; i++) {
+                const phase = data.phases[i];
+                totalDuration += phase.duration;
+
+                if (phase.duration < 0) return `Phase ${i + 1}: Duration must be non-negative`;
+                if (phase.dayTemp < -10 || phase.dayTemp > 50) return `Phase ${i + 1}: Day Temp must be between -10 and 50°C`;
+                if (phase.nightTemp < -10 || phase.nightTemp > 50) return `Phase ${i + 1}: Night Temp must be between -10 and 50°C`;
+                if (phase.dayHum < 0 || phase.dayHum > 100) return `Phase ${i + 1}: Day Humidity must be between 0 and 100%`;
+                if (phase.nightHum < 0 || phase.nightHum > 100) return `Phase ${i + 1}: Night Humidity must be between 0 and 100%`;
+                if (phase.dayWater < 0) return `Phase ${i + 1}: Day Water must be non-negative`;
+                if (phase.nightWater < 0) return `Phase ${i + 1}: Night Water must be non-negative`;
+                if (phase.waterTemp < 0 || phase.waterTemp > 50) return `Phase ${i + 1}: Water Temp must be between 0 and 50°C`;
+                if (phase.dayVent < 0) return `Phase ${i + 1}: Day Vent must be non-negative`;
+                if (phase.nightVent < 0) return `Phase ${i + 1}: Night Vent must be non-negative`;
+                if (phase.dayCirc < 0) return `Phase ${i + 1}: Day Circ must be non-negative`;
+                if (phase.nightCirc < 0) return `Phase ${i + 1}: Night Circ must be non-negative`;
+                if (phase.dayRot < 0) return `Phase ${i + 1}: Day Rot must be non-negative`;
+                if (phase.nightRot < 0) return `Phase ${i + 1}: Night Rot must be non-negative`;
+                if (phase.light < 0 || phase.light > 1000) return `Phase ${i + 1}: Light must be between 0 and 1000 µmol/m²/s`;
+            }
+
+            // Проверка общей длительности
+            const cycleHours = data.cycle * 24;
+            if (totalDuration > cycleHours) return `Total duration (${totalDuration}h) exceeds cycle (${cycleHours}h)`;
+
+            return null; // Нет ошибок
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+
+            // Собираем данные из формы
+            const form = document.getElementById('profileForm');
+            const formData = {
+                nameProfile: form.nameProfile.value,
+                cycle: parseInt(form.cycle.value),
+                sunrise: form.sunrise.value,
+                sunset: form.sunset.value,
+                phases: []
+            };
+
+            for (let i = 1; i <= 6; i++) {
+                formData.phases.push({
+                    duration: parseInt(form[`phase${i}_duration`].value),
+                    dayTemp: parseFloat(form[`phase${i}_day_temp`].value),
+                    nightTemp: parseFloat(form[`phase${i}_night_temp`].value),
+                    dayHum: parseFloat(form[`phase${i}_day_hum`].value),
+                    nightHum: parseFloat(form[`phase${i}_night_hum`].value),
+                    dayWater: parseInt(form[`phase${i}_day_water`].value),
+                    nightWater: parseInt(form[`phase${i}_night_water`].value),
+                    waterTemp: parseFloat(form[`phase${i}_water_temp`].value),
+                    dayVent: parseInt(form[`phase${i}_day_vent`].value),
+                    nightVent: parseInt(form[`phase${i}_night_vent`].value),
+                    dayCirc: parseInt(form[`phase${i}_day_circ`].value),
+                    nightCirc: parseInt(form[`phase${i}_night_circ`].value),
+                    dayRot: parseInt(form[`phase${i}_day_rot`].value),
+                    nightRot: parseInt(form[`phase${i}_night_rot`].value),
+                    light: parseInt(form[`phase${i}_light`].value)
+                });
+            }
+
+            // Верификация данных
+            const error = validateForm(formData);
+            if (error) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = error;
+                errorMessage.style.display = 'block';
+                return false;
+            }
+
+            // Сериализация в CBOR
+            const cborData = CBOR.encode(formData);
+            console.log('CBOR Data:', cborData); // Для отладки
+
+            // Пример отправки через fetch (раскомментируйте и настройте URL)
+            /*
+            fetch('/save-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/cbor'
+                },
+                body: cborData
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+            */
+
+            alert('Data validated and serialized to CBOR successfully! Check console for details.');
+            return false; // Предотвращаем стандартную отправку формы
+        }
+    </script>
+</body>
+</html>

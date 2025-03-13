@@ -13,52 +13,48 @@ float tempRange;
 void setupWater() {
     pinMode(OSMOS_ON_PIN, OUTPUT);
     pinMode(PUMP_TRANSFER_PIN, OUTPUT);
-    pinMode(HITER_WATER_PIN, OUTPUT);
 
     digitalWrite(OSMOS_ON_PIN, LOW);
-    digitalWrite(PUMP_TRANSFER_PIN, LOW);
-    digitalWrite(HITER_WATER_PIN, LOW);
+    digitalWrite(PUMP_TRANSFER_PIN, LOW);  
+
+    ledcSetup(6, 5000, 10); // Настройка канала PWM для нагрева воды
+    ledcAttachPin(HITER_WATER_PIN, 6); // Привязка канала PWM к пину нагрева воды
 
     hysteresis = 0.5; // Гистерезис ±0.5°C для стабильности
     tempRange = 10;  // Диапазон пропорционального регулирования (в °C)
 }
 
-//Обработка состояния датчиков холла
+// Обработка состояния датчиков уровня воды
 void controlWaterLevel() {
-    if (max_osmo_level == 1 && min_osmo_level == 0) {
-       digitalWrite (OSMOS_ON_PIN, LOW);  // Выключаем установку обратного осмоса
+    if (max_osmo_level == 1) {
+        digitalWrite(OSMOS_ON_PIN, LOW);  // Выключаем осмос
+    } else if (min_osmo_level == 0) {
+        digitalWrite(OSMOS_ON_PIN, HIGH); // Включаем осмос
     }
 
-    if (min_osmo_level == 0 && max_osmo_level == 1) {
-        digitalWrite (OSMOS_ON_PIN, HIGH);  // Включаем установку обратного осмоса
-    }
-    
-    if (max_water_level == 1 && min_water_level == 0) {
-        digitalWrite (PUMP_TRANSFER_PIN, LOW);  // Выключаем насос перекачки в бак полива
-    }
-    
-    if (min_water_level == 0 && max_water_level == 1) {
-        digitalWrite (PUMP_TRANSFER_PIN, HIGH);  // Включаем насос перекачки в бак полива
+    if (max_water_level == 1) {
+        digitalWrite(PUMP_TRANSFER_PIN, LOW);  // Выключаем насос
+    } else if (min_water_level == 0) {
+        digitalWrite(PUMP_TRANSFER_PIN, HIGH); // Включаем насос
     }
 }
 
-// Функция управления нагревом воды
+// Управление нагревателем воды
 void controlWaterHeater() {
-    // Вычисление ошибки температуры
     float tempError = WATER_TEMPERATURE - water_temperature_osmo;
 
-    // Управление нагревателем
     if (tempError > hysteresis) {
-        // Температура ниже диапазона - включаем нагрев на максимум
-        analogWrite(HITER_WATER_PIN, 255);
+        // Температура ниже - включаем нагрев
+        ledcWrite(6, 1023);
     } else if (tempError < -hysteresis) {
-        // Температура выше диапазона - полностью выключаем нагрев
-        analogWrite(HITER_WATER_PIN, 0);
+        // Температура выше - выключаем нагрев
+        ledcWrite(6, 0);
     } else {
-        // Пропорциональное регулирование внутри диапазона
-        int pwmValue = map(tempError, -hysteresis, hysteresis, 0, 255);
-        pwmValue = constrain(pwmValue, 0, 255); // Ограничение значения PWM
-        analogWrite(HITER_WATER_PIN, pwmValue);
+        // Пропорциональное управление
+        float scaledError = tempError / tempRange; // Масштабируем ошибку
+        int pwmValue = map(scaledError * 1023, -1023, 1023, 0, 1023);
+        pwmValue = constrain(pwmValue, 0, 1023);
+        ledcWrite(6, pwmValue);
     }
 }
 
@@ -67,8 +63,3 @@ void updateWater() {
     controlWaterLevel();
     controlWaterHeater();
 }
-
-
-
-
-

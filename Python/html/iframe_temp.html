@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"> <!-- Задает кодировку документа как UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Устанавливает масштаб страницы и адаптирует её под ширину экрана устройства -->
+    <title>Температурный спидометр</title> <!-- Название вкладки браузера -->
+    <style>
+        body {
+            margin: 0; /* Убирает стандартные отступы браузера */
+            display: flex; /* Использует flexbox для выравнивания содержимого */
+            justify-content: center; /* Горизонтальное центрирование содержимого */
+            align-items: center; /* Вертикальное центрирование содержимого */
+            height: 100vh; /* Устанавливает высоту страницы на 100% высоты окна браузера */
+        }
+
+        .card {
+            width: 300px; /* Ширина карточки */
+            height: 300px; /* Высота карточки */
+            background-color: #2e2e2e; /* Цвет фона карточки */
+            border-radius: 5px; /* Скругленные углы карточки */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Тень вокруг карточки */
+            position: relative; /* Позиционирование для внутреннего содержимого */
+            display: flex; /* Использует flexbox для выравнивания содержимого */
+            justify-content: center; /* Горизонтальное центрирование содержимого */
+            align-items: center; /* Вертикальное центрирование содержимого */
+            flex-direction: column; /* Располагает содержимое по вертикали */
+        }
+
+        .card-title {
+            position: absolute;
+            top: 10px;
+            left: 5%;
+            font-size: 18px;
+            font-family: monospace;
+            font-weight: lighter;
+            color: #aaa;
+        }
+
+        .gauge {
+            width: 250px; /* Ширина элемента gauge */
+            height: 250px; /* Высота элемента gauge */
+            position: relative; /* Позиционирование для внутреннего содержимого */
+        }
+
+        canvas {
+            width: 100%; /* Ширина canvas равна 100% от родительского элемента */
+            height: 100%; /* Высота canvas равна 100% от родительского элемента */
+        }
+
+        .temperature-value {
+            position: absolute; /* Абсолютное позиционирование внутри родительского элемента */
+            top: 50%; /* Вертикальное центрирование */
+            left: 50%; /* Горизонтальное центрирование */
+            transform: translate(-50%, -50%); /* Смещение для точного центрирования */
+            font-size: 24px; /* Размер шрифта */
+            font-weight: bold; /* Полужирное начертание */
+            color: #00ff99;
+        }
+
+        .temp-labels {
+            position: absolute; /* Абсолютное позиционирование внутри родительского элемента */
+            width: 100%; /* Ширина равна 100% от родительского элемента */
+            top: 80%; /* Отступ сверху */
+            display: flex; /* Использует flexbox для выравнивания содержимого */
+            justify-content: space-between; /* Распределяет элементы по краям */
+            font-size: 18px; /* Размер шрифта */
+            color: #aaa; /* Цвет текста */
+        }
+
+        .label-left {
+            position: absolute;
+            top: 89%;
+            left: 18%;
+            font-family: Arial, sans-serif;
+            color: #aaa; /* Цвет текста */
+            transform: translate(-50%, -50%);
+        }
+
+        .label-right {
+            position: absolute;
+            top: 89%;
+            left: 83%;
+            font-family: Arial, sans-serif;
+            color: #aaa; /* Цвет текста */
+            transform: translate(-50%, -50%);
+        }
+
+        .label-center {
+            position: absolute;
+            top: 53%;
+            left: 50%;
+            font-family: Arial, sans-serif;
+            transform: translate(-50%, -50%);
+            font-size: 37px;
+            font-weight: bold;
+            color: #00ff99;
+        }
+
+        .card-image {
+            position: absolute;
+            bottom: -10px;
+            left: 55%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="card-title">Water temperature</div> <!-- Название карточки -->
+        <div class="gauge">
+            <canvas id="gaugeCanvas" width="300" height="300"></canvas> <!-- Элемент canvas для рисования спидометра -->
+            <div class="temperature-value label-center" id="tempValue">--°C</div> <!-- Элемент для отображения текущей температуры -->
+            <div class="label-left" id="minTemp">--</div> <!-- Элемент для отображения минимальной температуры -->
+            <div class="label-right" id="maxTemp">--</div> <!-- Элемент для отображения максимальной температуры -->
+            <img src="./templates/temperature.png" alt="Image" class="card-image"> <!-- Изображение, прижатое к низу по центру -->
+        </div>
+    </div>
+
+    <script>
+        const minTemperature = 10; // Минимальное значение температуры
+        const maxTemperature = 35; // Максимальное значение температуры
+        let currentTemperature = 28.5; // Текущее значение температуры
+
+        document.getElementById("minTemp").textContent = minTemperature + "°"; // Устанавливаем текст для минимальной температуры
+        document.getElementById("maxTemp").textContent = maxTemperature + "°"; // Устанавливаем текст для максимальной температуры
+
+        function drawGauge(value) {
+            const canvas = document.getElementById("gaugeCanvas"); // Получаем элемент canvas
+            const ctx = canvas.getContext("2d"); // Получаем контекст рисования
+
+            const centerX = canvas.width / 2; // Координата X центра canvas
+            const centerY = canvas.height / 1.8; // Координата Y центра canvas
+            const radius = 120; // Радиус дуги спидометра
+            const startAngle = Math.PI * 0.85; // Начальный угол для дуги
+            const endAngle = Math.PI * 2.15; // Конечный угол для дуги
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Очищаем canvas
+
+            // Градиентная шкала
+            const gradient = ctx.createLinearGradient(50, 0, 250, 0); // Создаем градиент
+            gradient.addColorStop(0, "#00ff99"); // Цвет начала градиента
+            gradient.addColorStop(1, "#00ff99"); // Цвет конца градиента
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle); // Рисуем дугу
+            ctx.lineWidth = 20; // Ширина линии дуги
+            ctx.strokeStyle = "#555555"; // Цвет дуги
+            ctx.lineCap = "round"; // Закругленные концы линии
+            ctx.stroke(); // Отображаем линию
+
+            // Активная зона температуры
+            const percentage = (value - minTemperature) / (maxTemperature - minTemperature); // Рассчитываем процент заполнения
+            const activeEndAngle = startAngle + percentage * (endAngle - startAngle); // Конечный угол активной зоны
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, activeEndAngle); // Рисуем активную зону
+            ctx.lineWidth = 20; // Ширина линии активной зоны
+            ctx.strokeStyle = gradient; // Цвет активной зоны
+            ctx.lineCap = "round"; // Закругленные концы линии
+            ctx.stroke(); // Отображаем линию
+
+            // Обновляем цифровое значение
+            document.getElementById("tempValue").textContent = value.toFixed(1) + "°C"; // Устанавливаем текст для текущей температуры
+        }
+
+        drawGauge(currentTemperature); // Рисуем спидометр с текущей температурой
+    </script>
+
+</body>
+</html>

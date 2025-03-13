@@ -1,4 +1,3 @@
-# main.py
 import threading
 import watchdog
 import asyncio
@@ -22,10 +21,10 @@ async def main():
     # Базовая настройка логирования
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levellevel)s - %(message)s',
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(),  # Лог в консоль
-            logging.FileHandler('server.log'),  # Лог в файл
+#            logging.FileHandler('server.log'),  # Лог в файл
         ]
     )
 
@@ -58,7 +57,7 @@ async def main():
 
         # Настраиваем шаблонизатор
         aiohttp_jinja2.setup(app,
-            loader=jinja2.FileSystemLoader('./html'))
+            loader=jinja2.FileSystemLoader('./templates'))
 
         # Создаем обработчики
         websocket_handler = FarmWebSocketHandler(
@@ -71,9 +70,42 @@ async def main():
         # Добавляем маршруты
         app.router.add_get("/", http_handler.index)  # Redirect to /command
         app.router.add_get("/command", http_handler.command_page)  # Command management page
+          
+        
+        # Маршруты для iFrame
+        app.router.add_get("/iframe_line_temp", http_handler.show_iframe_temp)  # iFrame Water temperature        
+        
+        app.router.add_get("/iframe_line_temp_out", http_handler.show_iframe_temp_out)  # iFrame Water temperature        
+         
+        app.router.add_get("/iframe_line_circulation", http_handler.show_iframe_circulation)  # iFrame Inlet
+        
+        app.router.add_get("/iframe_line_inlet", http_handler.show_iframe_inlet)  # iFrame Inlet    
+           
+        app.router.add_get("/iframe_line_rotation", http_handler.show_iframe_rotation)  # iFrame rotation
+        
+        app.router.add_get("/iframe_line_pH", http_handler.show_iframe_pH)  # iFrame rotation                   
+        
+        app.router.add_get("/iframe_line_TDS", http_handler.show_line_TDS)  # iFrame rotation  
+        
+        app.router.add_get("/iframe_line_light", http_handler.show_line_light)  # iFrame rotation 
+        
+        app.router.add_get("/iframe_graf_t_h", http_handler.show_iframe_graf_t_h)  # iFrame rotation
+        app.router.add_get("/iframe_graf_t_h.html", http_handler.show_iframe_graf_t_h)  # iFrame rotation
+                
+        app.router.add_get("/pump_watering", http_handler.show_pump_watering)  # iFrame rotation 
+        
+        app.router.add_get("/pump_mixing", http_handler.show_pump_mixing)  # iFrame rotation 
+        
+        app.router.add_get("/us_humidifier", http_handler.show_us_humidifier)  # iFrame rotation 
+
+        app.router.add_get("/api/data_iframe", http_handler.get_data_iframe)  # API to get data
+        
         app.router.add_get("/data", http_handler.show_data)  # Data page
         app.router.add_get("/data.html", http_handler.show_data)  # Alternative path for data
         app.router.add_get("/api/data", http_handler.get_data)  # API to get data
+        app.router.add_get("/data_watering", http_handler.show_data_watering)  # Data page
+        app.router.add_get("/data_watering.html", http_handler.show_data_watering)  # Alternative path for data
+        app.router.add_get("/api/data_watering", http_handler.get_data_watering)  # API to get data
         app.router.add_get('/api/command', http_handler.get_command)  # API to get command
         app.router.add_post('/api/command', http_handler.set_command)  # API to set command
         app.router.add_get('/api/frqs', http_handler.get_frqs)  # API to get FRQS data
@@ -83,6 +115,16 @@ async def main():
         app.router.add_get('/parameters/{id}/edit', http_handler.edit_parameters)  # Add this route
         app.router.add_post('/parameters/{id}/edit', http_handler.edit_parameters)
         app.router.add_get('/select_parameter/{id}', http_handler.select_parameter)
+        
+        # Новый маршрут для сохранения профиля
+        
+        app.router.add_post('/save_profile_db', http_handler.save_new_profile)
+        app.router.add_get("/save_profile", http_handler.show_save_profile)
+        app.router.add_get("/save_profile.html", http_handler.show_save_profile)  
+        app.router.add_get('/templates/read_profile_db', http_handler.read_profile_db)		
+                        
+        # Маршруты для статических файлов
+        app.router.add_static('/templates/', path='./templates', name='templates')
 
         # Запускаем HTTP сервер
         runner = web.AppRunner(app)
