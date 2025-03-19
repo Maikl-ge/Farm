@@ -174,7 +174,7 @@
     </style>
 </head>
 <body>
-
+    <input type="hidden" id="profileId" name="profileId">
     <form id="profileForm" method="post" onsubmit="return handleSubmit(event)">
     <!-- Контейнер с профилями -->
     <h1>List profile</h1> 
@@ -699,6 +699,43 @@
         });
     };
 
+	function handleSubmit(event) {
+		event.preventDefault();
+	
+		const form = document.getElementById('profileForm');
+		const formData = {
+			id: parseInt(form.profileId.value) || null,
+			nameProfile: form.nameProfile.value,
+			cycle: parseInt(form.cycle.value) || 0,
+			sunrise: form.sunrise.value,
+			sunset: form.sunset.value,
+			phases: []
+		};
+	
+		for (let i = 1; i <= 6; i++) {
+			const phase = {
+				duration: parseInt(form[`phase${i}_duration`].value) || 0,
+				dayTemp: parseFloat(form[`phase${i}_day_temp`].value) || 0.0,
+				nightTemp: parseFloat(form[`phase${i}_night_temp`].value) || 0.0,
+				dayHum: parseFloat(form[`phase${i}_day_hum`].value) || 0.0,
+				nightHum: parseFloat(form[`phase${i}_night_hum`].value) || 0.0,
+				dayWater: parseInt(form[`phase${i}_day_water`].value) || 0,
+				nightWater: parseInt(form[`phase${i}_night_water`].value) || 0,
+				waterTemp: parseFloat(form[`phase${i}_water_temp`].value) || 0.0,
+				dayVent: parseInt(form[`phase${i}_day_vent`].value) || 0,
+				nightVent: parseInt(form[`phase${i}_night_vent`].value) || 0,
+				dayCirc: parseInt(form[`phase${i}_day_circ`].value) || 0,
+				nightCirc: parseInt(form[`phase${i}_night_circ`].value) || 0,
+				dayRot: parseInt(form[`phase${i}_day_rot`].value) || 0,
+				nightRot: parseInt(form[`phase${i}_night_rot`].value) || 0,
+				light: parseInt(form[`phase${i}_light`].value) || 0
+			};
+			formData.phases.push(phase);
+		}
+	
+		const jsonData = JSON.stringify(formData, null, 2);
+		console.log('Отправка данных на сервер:', jsonData);
+
     async function selectProfile(profileID) {
         try {
             let response = await fetch(`http://207.244.250.144:8080/templates/read_profile_db?id=${profileID}`);
@@ -725,10 +762,11 @@
     }
 
     function populateForm(data) {
-        document.getElementById('nameProfile').value = data.nameProfile || '';
-        document.getElementById('cycle').value = data.cycle || '';
-        document.getElementById('sunrise').value = data.sunrise || '';
-        document.getElementById('sunset').value = data.sunset || '';
+		document.getElementById('profileId').value = data.id || '';
+		document.getElementById('nameProfile').value = data.nameProfile || '';
+		document.getElementById('cycle').value = data.cycle || '';
+		document.getElementById('sunrise').value = data.sunrise || '';
+		document.getElementById('sunset').value = data.sunset || '';
 
         if (data.phases && Array.isArray(data.phases)) {
             data.phases.forEach((phase, index) => {

@@ -104,6 +104,22 @@ class FarmWebSocketHandler:
             self.logger.error(f"Error sending command: {e}")
             return False
 
+    async def send_raw_command(self, command) -> bool:
+        """Отправка команды контроллеру без изменений"""
+        try:
+            if not isinstance(command, (str, bytes)):
+                raise ValueError(f"Expected command to be str or bytes, got {type(command)}")
+
+            if len(command) > 2048:  # Ограничение на длину команды
+                raise ValueError("Command size exceeds limit")
+
+            await self.broadcast_message(command)
+            self.logger.info(f"Raw command sent: {command}")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error sending raw command: {e}")
+            return False
+
     async def command_to_farm(self, parameter: dict) -> bool:
         """Асинхронная отправка команды на ферму"""
         try:
@@ -166,3 +182,31 @@ class FarmWebSocketHandler:
         self.websocket_state = "disconnected"
         self.frqs_data = None
         self.logger.info("WebSocket handler state reset")
+        
+
+    async def send_cmd(self, request):
+        """Метод для отправки команд по клику"""
+        try:
+            data = await request.json()  # Получаем JSON из запроса
+            cmd = data.get("command")  # Извлекаем команду
+
+            if not cmd:
+                raise web.HTTPBadRequest(text="Missing 'command' parameter")
+
+            farm_id = "255"
+            command_str = f"{farm_id} {cmd} {cmd}"  # Формируем строку команды
+
+            if self.websocket_handler:
+                result = await self.websocket_handler.send_raw_command(command_str)
+            else:
+                raise web.HTTPInternalServerError(text="WebSocket handler is not initialized")
+
+            print(f"Sent command: {command_str}")
+
+            return aiohttp_jinja2.render_template(
+                'command.html', request, {'command': command_str, 'result': result}
+            )
+
+        except Exception as e:
+            print(f"Error sending command: {e}")
+            raise web.HTTPInternalServerError(text=f"Internal Server Error: {str(e)}")

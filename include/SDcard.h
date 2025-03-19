@@ -1,6 +1,7 @@
 #ifndef SDCARD_H
 #define SDCARD_H
 
+#include <FS.h>
 #include <Arduino.h>
 #include <SdFat.h>
 

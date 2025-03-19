@@ -8,7 +8,6 @@
 #include "DataSender.h"
 #include "ota_module.h"
 #include "Profile.h"
-#include "CurrentProfile.h"
 #include "watering.h"
 #include "WebSocketHandler.h"
 #include <AccessPoint.h>
@@ -142,7 +141,9 @@ void setup() {
         Serial.println("Failed to initialize EEPROM");
         return;
     }
- 
+
+    // printEEPROMValues(0x00, 0xC0);
+
     initializeMenu(); // Инициализация модуля меню   
 
     // Переход в режим Точки доступа, если кнопка MODE нажата в момент включения

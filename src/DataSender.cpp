@@ -3,7 +3,7 @@
 #include "TimeModule.h"
 #include "SensorsModule.h"
 #include "WebSocketHandler.h"
-#include "CurrentProfile.h"
+#include "Profile.h"
 #include <ArduinoJson.h>
 #include <pinout.h>
 #include <SDCard.h>

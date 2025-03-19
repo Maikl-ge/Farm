@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <watering.h>
-#include <CurrentProfile.h>
+#include <Profile.h>
 #include <pinout.h>
 #include <TimeModule.h>
 
@@ -41,7 +41,7 @@ void updateWatering() {
     }
 
     // Определение интервала полива (в секундах)
-    unsigned long wateringIntervalSeconds = isDayTime ? DAY_WATERING_INTERVAL : NIGHT_WATERING_INTERVAL;
+    unsigned long wateringIntervalSeconds = isDayTime ;//? DAY_WATERING_INTERVAL : NIGHT_WATERING_INTERVAL;
 
     // Проверка, прошло ли достаточно времени с последнего полива
     if (!pumpIsOn && ((currentTimeSeconds + 86400 - lastWateringTimeSeconds) % 86400 >= wateringIntervalSeconds)) {

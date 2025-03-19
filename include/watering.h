@@ -2,7 +2,6 @@
 #define WATERING_H
 
 #include <Arduino.h>
-#include <CurrentProfile.h>
 #include <pinout.h>
 
 // Объявление функций

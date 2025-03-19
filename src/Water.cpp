@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "SensorsModule.h"
+#include <Profile.h>
 #include "water.h"
-#include <CurrentProfile.h>
 #include <globals.h>
 #include <pinout.h>
 
@@ -41,7 +41,7 @@ void controlWaterLevel() {
 
 // Управление нагревателем воды
 void controlWaterHeater() {
-    float tempError = WATER_TEMPERATURE - water_temperature_osmo;
+    float tempError = 0; //WATER_TEMPERATURE - water_temperature_osmo;
 
     if (tempError > hysteresis) {
         // Температура ниже - включаем нагрев

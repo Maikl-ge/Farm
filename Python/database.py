@@ -188,43 +188,46 @@ class DatabaseManager:
             return False
 
     async def save_profile_data(self, profile_data: Dict[str, Any]) -> bool:
-        """Сохранение данных профиля с фазами"""
-        if not self.params_pool:
-            raise RuntimeError("Parameters database pool not initialized")
-
         if 'nameProfile' not in profile_data or 'phases' not in profile_data:
             self.logger.error("Missing required profile fields")
             return False
 
         try:
             self.logger.info(f"Received profile data: {profile_data}")
-
             async with self.params_pool.acquire() as conn:
                 async with conn.transaction():
-                    try:
-                        sunrise_hours, sunrise_minutes = map(int, profile_data['sunrise'].split(':'))
-                        sunset_hours, sunset_minutes = map(int, profile_data['sunset'].split(':'))
-                    except ValueError:
-                        self.logger.error(f"Invalid time format: {profile_data['sunrise']} / {profile_data['sunset']}")
-                        return False
-
+                    sunrise_hours, sunrise_minutes = map(int, profile_data['sunrise'].split(':'))
+                    sunset_hours, sunset_minutes = map(int, profile_data['sunset'].split(':'))
                     sunrise_total = sunrise_hours * 60 + sunrise_minutes
                     sunset_total = sunset_hours * 60 + sunset_minutes
 
-                    profile_id = await conn.fetchval('''
-                        INSERT INTO system_params (nameprofile, cycle, sunrise, sunset)
-                        VALUES ($1, $2, $3, $4)
-                        ON CONFLICT (nameprofile) DO UPDATE
-                        SET cycle = EXCLUDED.cycle,
-                            sunrise = EXCLUDED.sunrise,
-                            sunset = EXCLUDED.sunset
-                        RETURNING id
-                    ''', profile_data['nameProfile'], profile_data['cycle'], sunrise_total, sunset_total)
+                    profile_id = profile_data.get('id')
+                    if profile_id:
+                        # Проверяем, существует ли запись, и обновляем её
+                        result = await conn.execute('''
+                            UPDATE system_params 
+                            SET nameprofile = $1, cycle = $2, sunrise = $3, sunset = $4
+                            WHERE id = $5
+                        ''', profile_data['nameProfile'], profile_data['cycle'], sunrise_total, sunset_total, profile_id)
+                        if result == "UPDATE 0":  # Если запись не найдена
+                            self.logger.error(f"No profile found with id {profile_id}")
+                            return False
+                    else:
+                        # Создаем новую запись
+                        profile_id = await conn.fetchval('''
+                            INSERT INTO system_params (nameprofile, cycle, sunrise, sunset)
+                            VALUES ($1, $2, $3, $4)
+                            ON CONFLICT (nameprofile) DO UPDATE
+                            SET cycle = EXCLUDED.cycle,
+                                sunrise = EXCLUDED.sunrise,
+                                sunset = EXCLUDED.sunset
+                            RETURNING id
+                        ''', profile_data['nameProfile'], profile_data['cycle'], sunrise_total, sunset_total)
 
-                    self.logger.info(f"Profile saved with ID: {profile_id}")
-
+                    # Удаляем старые фазы
                     await conn.execute('DELETE FROM profile_phases WHERE profile_id = $1', profile_id)
 
+                    # Вставляем новые фазы
                     for i, phase in enumerate(profile_data['phases'], 1):
                         if not isinstance(phase, dict):
                             self.logger.error(f"Phase {i} is not a dictionary: {phase}")
@@ -243,7 +246,7 @@ class DatabaseManager:
                             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
                         ''', profile_id, i, phase.get('duration', 0),
                             phase.get('dayTemp', 0.0), phase.get('nightTemp', 0.0),
-                            phase.get('dayHum', 0), phase.get('nightHum', 0),
+                            phase.get('dayHum', 0.0), phase.get('nightHum', 0.0),
                             phase.get('dayWater', 0), phase.get('nightWater', 0),
                             phase.get('waterTemp', 0.0), phase.get('dayVent', 0),
                             phase.get('nightVent', 0), phase.get('dayCirc', 0),
@@ -252,7 +255,88 @@ class DatabaseManager:
 
                     self.logger.info(f"Profile data saved successfully with ID: {profile_id}")
                     return True
+        except Exception as e:
+            self.logger.error(f"Error saving profile data: {e}")
+            return False
+        
+    async def save_profile_data(self, profile_data: Dict[str, Any]) -> bool:
+        if 'nameProfile' not in profile_data or 'phases' not in profile_data:
+            self.logger.error("Missing required profile fields")
+            return False
 
+        try:
+            self.logger.info(f"Received profile data: {profile_data}")
+            async with self.params_pool.acquire() as conn:
+                async with conn.transaction():
+                    sunrise_hours, sunrise_minutes = map(int, profile_data['sunrise'].split(':'))
+                    sunset_hours, sunset_minutes = map(int, profile_data['sunset'].split(':'))
+                    sunrise_total = sunrise_hours * 60 + sunrise_minutes
+                    sunset_total = sunset_hours * 60 + sunset_minutes
+
+                    profile_id = profile_data.get('id')
+                    if profile_id:
+                        result = await conn.execute('''
+                            UPDATE system_params 
+                            SET nameprofile = $1, cycle = $2, sunrise = $3, sunset = $4
+                            WHERE id = $5
+                        ''', profile_data['nameProfile'], profile_data['cycle'], sunrise_total, sunset_total, profile_id)
+                        if result == "UPDATE 0":
+                            self.logger.error(f"No profile found with id {profile_id}")
+                            return False
+                    else:
+                        profile_id = await conn.fetchval('''
+                            INSERT INTO system_params (nameprofile, cycle, sunrise, sunset)
+                            VALUES ($1, $2, $3, $4)
+                            ON CONFLICT (nameprofile) DO UPDATE
+                            SET cycle = EXCLUDED.cycle,
+                                sunrise = EXCLUDED.sunrise,
+                                sunset = EXCLUDED.sunset
+                            RETURNING id
+                        ''', profile_data['nameProfile'], profile_data['cycle'], sunrise_total, sunset_total)
+
+                    await conn.execute('DELETE FROM profile_phases WHERE profile_id = $1', profile_id)
+
+                    for phase_num in range(1, 7):
+                        phase_key = f"phase{phase_num}"
+                        if phase_key not in profile_data:
+                            continue
+                        phase = profile_data[phase_key]
+
+                        if not isinstance(phase, dict):
+                            self.logger.error(f"Phase {phase_num} is not a dictionary: {phase}")
+                            return False
+
+                        await conn.execute('''
+                            INSERT INTO profile_phases (
+                                profile_id, phase_number, duration,
+                                day_temperature, night_temperature,
+                                day_humidity, night_humidity,
+                                day_watering_interval, night_watering_interval,
+                                water_temperature, day_ventilation,
+                                night_ventilation, day_circulation,
+                                night_circulation, day_rotation,
+                                night_rotation, light_intensity
+                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                        ''', profile_id, phase_num, 
+                            phase.get(f'phase{phase_num}_duration', 0),
+                            phase.get(f'phase{phase_num}_temp', 0.0), 
+                            phase.get(f'phase{phase_num}_temp', 0.0), 
+                            phase.get(f'phase{phase_num}_hum', 0.0),
+                            phase.get(f'phase{phase_num}_hum', 0.0),
+                            phase.get(f'phase{phase_num}_watering', 0),
+                            phase.get(f'phase{phase_num}_watering', 0),
+                            phase.get(f'phase{phase_num}_water_temp', 0.0),
+                            phase.get(f'phase{phase_num}_vent', 0),
+                            phase.get(f'phase{phase_num}_vent', 0),
+                            phase.get(f'phase{phase_num}_circ', 0),
+                            phase.get(f'phase{phase_num}_circ', 0),
+                            phase.get(f'phase{phase_num}_rot', 0),
+                            phase.get(f'phase{phase_num}_rot', 0),
+                            phase.get(f'phase{phase_num}_light', 0)
+                        )
+
+                    self.logger.info(f"Profile data saved successfully with ID: {profile_id}")
+                    return True
         except Exception as e:
             self.logger.error(f"Error saving profile data: {e}")
             return False

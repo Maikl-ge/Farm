@@ -37,6 +37,7 @@ String ack_ACK = "";       // Инициализация переменной д
 int missedPongs = 0;
 
 // Константы для WiFi и WebSocket
-const char* ssid = "TORNIKE";       // Название WiFi-сети  "iPhone (M)";  //
-const char* password = "20000718";  // Пароль  "dlt654321";   //
+const char* ssid = "78A2D8"; // "TORNIKE";       // Название WiFi-сети  "iPhone (M)";  //
+const char* password = "mu9fvavddu";  // "20000718";  // Пароль  "dlt654321";   //
 const char* ws_server = "ws://207.244.250.144:5001"; // WebSocket сервер
+

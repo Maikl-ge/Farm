@@ -4,10 +4,9 @@
 #include "globals.h"
 #include <DataSender.h>
 #include "Profile.h"
-#include <CurrentProfile.h>
 #include <SDCard.h>
 
-//#define WEBSOCKETS_MAX_DATA_SIZE 1024 // Максимальный размер данных
+#define WEBSOCKETS_MAX_DATA_SIZE 2048 // Максимальный размер данных
 
 using namespace websockets;
 
@@ -66,11 +65,11 @@ void parceMessageFromServer(const String& messageFromServer) {
 
     // Обработка сообщения КОМАНДЫ
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
-        saveUint16ToEEPROM(EEPROM_WORK_ADDRESS, (0x57 << 8 | 0x4F)); // W O - WORK
+        saveUint16ToEEPROM(EEPROM_STATUS_BOX_ADDRESS, (0x57 << 8 | 0x4F)); // W O - WORK
         Serial.println("Команда от сервера: START");
     }
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
-        saveUint16ToEEPROM(EEPROM_WORK_ADDRESS, (0x45 << 8 | 0x4E)); // E N - END
+        saveUint16ToEEPROM(EEPROM_STATUS_BOX_ADDRESS, (0x45 << 8 | 0x4E)); // E N - END
         Serial.println("Команда от сервера: STOP");
     }
     if (messageFromServer == SERVER_CMD_RESTART) {    // SCMR Перезагрузка фермы
@@ -98,7 +97,7 @@ void parceMessageFromServer(const String& messageFromServer) {
         Serial.println("Запрос от сервера: DATA");
     }
     if (messageFromServer == SERVER_REQ_SETTINGS) {
-        Serial.println(readUint16FromEEPROM(EEPROM_WORK_ADDRESS));  // SRSE Запрос на отправку Настройки фермы
+        Serial.println(readUint16FromEEPROM(EEPROM_STATUS_BOX_ADDRESS));  // SRSE Запрос на отправку Настройки фермы
         serializeSettings();
         Serial.println("Настройки из EEPROM");
     }
@@ -132,6 +131,7 @@ void sendWebSocketMessage(const String& messageToSend) {
     }
     handleWebSocketMessage(messageToSend);  // Разбор сообщения
     if(connected) {
+
         // Ожидание ACK с таймаутом
         unsigned long startWait = millis();
         while(millis() - startWait < 4000) {  // ждем 4000 мс
@@ -148,10 +148,11 @@ void sendWebSocketMessage(const String& messageToSend) {
             }
             delay(1);  // Небольшая задержка чтобы не нагружать процессор
         }
+    
         // Если ACK не получен за 4000 мс
-        Serial.println("Таймаут ожидания ACK Статуса");
+        Serial.println("Таймаут ожидания ACK " + String(type_msg_ACK));
         sendMessageOK = false;
-        if(enqueueASK != "send") {
+        if(enqueueASK != "send" && type_msg_ACK != "FRQS") {
         enqueue(sd, messageToSend);   
         }
         enqueueASK = "empty";

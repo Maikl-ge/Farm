@@ -4,7 +4,6 @@
 #include <SdFat.h>
 #include <globals.h>
 #include <sdios.h>
-#include <CurrentProfile.h>
 #include <TimeModule.h>
 #include <DataSender.h>
 #include <SDCard.h>

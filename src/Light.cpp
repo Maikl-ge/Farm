@@ -1,8 +1,8 @@
-#include <CurrentProfile.h>
 #include <Arduino.h>
 #include <pinout.h>
 #include <globals.h>
 #include <TimeModule.h>
+#include <Profile.h>
 
 
 uint16_t transitionTime = 15 * 60; // Длительность (в секундах) перехода от рассвета ко дню и от дня к закату
