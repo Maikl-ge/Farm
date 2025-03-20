@@ -6,12 +6,18 @@
 extern String id_farm_ACK;
 extern String type_msg_ACK;
 extern String ack_ACK;
+extern String statusFarm;
+extern String messageToSend;
+extern String enqueueASK;
 extern int missedPongs;
 extern int8_t timeZone; // Часовой пояс
+extern bool sendMessageOK;  // Флаг отправки сообщения
+extern long transmitionTime; // Время передачи сообщения
+extern unsigned long timeSlot; // Время Слота передачи сообщения
 
 // Переменные для управления устройствами On/Off
 extern bool OSMOS_ON;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
-extern bool PUMP_1;            // Полив (ON/OFF) (GPIO33, нога 8)
+extern bool PUMP_WATERING;            // Полив (ON/OFF) (GPIO33, нога 8)
 extern bool PUMP_TRANSFER ;     // Подача в бак полива osmo воды (ON/OFF) (GPIO26, нога 10)
 extern bool WATER_OUT;         // Слив (ON/OFF) (GPIO27, нога 11)
 extern bool STEAM_IN;          // Парогенератор (ON/OFF) (GPIO3, нога 34)
@@ -27,8 +33,8 @@ extern int HITER_WATER;  // Нагрев воды (PWM) (GPIO14, нога 12)
 extern int FAN_OPTION;   // Опциональный вентилятор (GPIO25, нога 9)
 
 // Переменные для управления шаговым двигателем
-extern bool STEP;  // Шаговый двигатель (GPIO1, нога 35)
-extern bool DIR;   // Направление (GPIO0, нога 25)
+extern int STEP;  // Шаговый двигатель (GPIO1, нога 35)
+extern String DIR;   // Направление (GPIO0, нога 25)
 extern bool ENABLE;   // Включение (GPIO0, нога 25)
 
 

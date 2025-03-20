@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контейнеры на странице</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 5px;
+            background-color: #1e1e1e; /* Фон страницы */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background-color: #252525; /* Фон контейнера */
+            border-radius: 5px;
+            box-shadow: 0 4px 5px rgba(0, 0, 0, 0.3);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px; /* Равномерные отступы */
+        }
+
+        .container-title {
+            width: 1245px;
+            height: 50px;
+        }            
+
+        .container-large {
+            width: 1245px;
+            height: 320px;
+        }
+
+        .container-square {
+            width: 300px;
+            height: 300px;
+        }
+
+        .container-slim {
+            width: 300px;
+            height: 75px;
+        }
+
+        .container-control {
+            width: 300px;
+            height: 50px;
+        }
+        
+        .row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 1260px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container container-title"></div>	
+    <div class="container container-large">
+	    <iframe src="grow_box_monitor.html" style="border: none; width: 100%; height: 100%;"></iframe>
+    </div>
+    
+    <div class="row">
+        <div class="container container-square">
+            <iframe src="temp_water.html" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-square">
+	        <iframe src="cyrulation.html" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-square">
+	        <iframe src="inlet.html" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-square">
+	        <iframe src="rotation.html" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>       
+    </div>
+    
+    <div class="row">
+        <div class="container container-slim"></div>
+        <div class="container container-slim"></div>
+        <div class="container container-slim"></div>
+        <div class="container container-slim"></div>
+    </div>
+    
+    <div class="row">
+        <div class="container container-control"></div>
+        <div class="container container-control"></div>
+        <div class="container container-control"></div>
+        <div class="container container-control"></div>
+    </div>    
+</body>
+</html>

@@ -1,52 +1,61 @@
 #include <Arduino.h>
 #include <watering.h>
-#include <CurrentProfile.h>
+#include <Profile.h>
 #include <pinout.h>
 #include <TimeModule.h>
 
 // Глобальные переменные
-unsigned long lastWateringTime = 0;
-unsigned long pumpOnTime = 0;
-bool isDayTime = false;
-bool pumpIsOn = false;
-const unsigned long PUMP_RUN_TIME = 1000; // Время работы насоса в миллисекундах
+unsigned long lastWateringTimeSeconds = 0;  // Время последнего полива в секундах
+unsigned long pumpOnTimeSeconds = 0;        // Время включения насоса в секундах
+bool isDayTime = false;                     // День или ночь
+bool pumpIsOn = false;                      // Состояние насоса
+const unsigned long PUMP_RUN_TIME_SECONDS = 3 * 60; // Время работы насоса (секунды)
 
 // Инициализация пина для управления насосом
 void setupWatering() {
-    pinMode(PUMP_WATERING_PIN, OUTPUT);
+    pinMode(PUMP_WATERING_PIN, OUTPUT);   // Пин для насоса полива
+    pinMode(WATER_OUT_PIN, OUTPUT);       // Пин для слива
     digitalWrite(PUMP_WATERING_PIN, LOW); // Выключить насос по умолчанию
+    digitalWrite(WATER_OUT_PIN, LOW);     // Выключить слив по умолчанию
 }
 
 // Функция для обновления состояния полива
 void updateWatering() {
-    unsigned long currentTime = millis();
-    int currentTimeMinutes = CurrentTime; // Предполагается, что CurrentTime определен глобально
+    // Вывести текущее время (для отладки)
+    printCurrentTime();
 
-    // Определение времени дня/ночи
-    if (currentTimeMinutes >= SUNRISE && currentTimeMinutes < SUNSET) {
+    // Преобразование времени в секунды с начала дня
+    unsigned long currentTimeSeconds = (CurrentTime / 10000) * 3600 +  // Часы
+                                       ((CurrentTime / 100) % 100) * 60 +  // Минуты
+                                       (CurrentTime % 100); // Секунды
+
+    // Преобразование времени восхода и заката в секунды
+    unsigned long sunriseTimeSeconds = SUNRISE * 60;
+    unsigned long sunsetTimeSeconds = SUNSET * 60;
+
+    // Проверка, день или ночь
+    if (currentTimeSeconds >= sunriseTimeSeconds && currentTimeSeconds < sunsetTimeSeconds) {
         isDayTime = true;
     } else {
         isDayTime = false;
     }
 
-    // Определение интервала полива
-    unsigned long wateringInterval = isDayTime ? DAY_WATERING_INTERVAL : NIGHT_WATERING_INTERVAL;
+    // Определение интервала полива (в секундах)
+    unsigned long wateringIntervalSeconds = isDayTime ;//? DAY_WATERING_INTERVAL : NIGHT_WATERING_INTERVAL;
 
     // Проверка, прошло ли достаточно времени с последнего полива
-    if (!pumpIsOn && (currentTime - lastWateringTime >= wateringInterval)) {
+    if (!pumpIsOn && ((currentTimeSeconds + 86400 - lastWateringTimeSeconds) % 86400 >= wateringIntervalSeconds)) {
         // Включение насоса
         digitalWrite(PUMP_WATERING_PIN, HIGH);
-        pumpOnTime = currentTime;
+        pumpOnTimeSeconds = currentTimeSeconds;
         pumpIsOn = true;
     }
 
     // Проверка, прошло ли время работы насоса
-    if (pumpIsOn && (currentTime - pumpOnTime >= PUMP_RUN_TIME)) {
+    if (pumpIsOn && ((currentTimeSeconds + 86400 - pumpOnTimeSeconds) % 86400 >= PUMP_RUN_TIME_SECONDS)) {
         // Выключение насоса
         digitalWrite(PUMP_WATERING_PIN, LOW);
         pumpIsOn = false;
-        lastWateringTime = currentTime;
+        lastWateringTimeSeconds = currentTimeSeconds;
     }
 }
-
-

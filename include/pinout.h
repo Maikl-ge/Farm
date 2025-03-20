@@ -22,10 +22,10 @@
 #define MODE_BUTTON_PIN 35  // Кнопка режима (GPIO35, нога 6)
 
 // Пины для SD-карты (SPI)
-#define SD_MOSI 23 // MOSI для SD-карты (GPIO23, нога 37)
-#define SD_MISO 19 // MISO для SD-карты (GPIO19, нога 31)
-#define SD_SCK 18  // SCK для SD-карты (GPIO18, нога 30)
-#define SD_CS 5    // Выбор устройства (CS) для SD-карты (GPIO5, нога 29)
+#define SD_MOSI_PIN 23 // MOSI для SD-карты (GPIO23, нога 37)
+#define SD_MISO_PIN 19 // MISO для SD-карты (GPIO19, нога 31)
+#define SD_SCK_PIN 18  // SCK для SD-карты (GPIO18, нога 30)
+#define SD_CS_PIN 5    // Выбор устройства (CS) для SD-карты (GPIO5, нога 29)
 
 // Выходы для управления фермой ----------------------------
 // Пины для управления устройствами PWM
@@ -63,7 +63,7 @@
 // GPIO34     нога 5 --> STOP_BUTTON_PIN 
 // GPIO35     нога 6 --> MODE_BUTTON_PIN 
 // GPIO32     нога 7  <-- OSMOS_ON_PIN
-// GPIO33     нога 8  <-- PUMP_1_PIN
+// GPIO33     нога 8  <-- PUMP_WATERING_PIN
 // GPIO25     нога 9  <-- FAN_OPTION_PIN
 // GPIO26     нога 10  <-- PUMP_TRANSFER_PIN  
 // GPIO27     нога 11  <-- WATER_OUT_PIN  

@@ -59,6 +59,7 @@ float air_temperature_outdoor = 0.0;
 float air_temperature_inlet = 0.0;
 
 // Определение переменных для датчиков качества воды
+float CO2 = 0.0;
 float ph_osmo = 0.0;
 float tds_osmo = 0.0;
 
@@ -141,7 +142,8 @@ uint8_t readPCF8574() {
     max_water_level = (sensorState & 0b00100000) != 0; // 5 бит
     min_water_level = (sensorState & 0b00010000) != 0; // 4 бит
     // 3 бит всегда в 0, исключить из опроса
-
+    //Serial.print("Sensor state: ");
+    //Serial.println(sensorState, BIN);
     return sensorState;
 }
 
@@ -209,9 +211,16 @@ void readAllDS18B20() {
     }
 }
 
+// Функция обновления состояния мониторинга питающей сети
+void updatePowerMonitor() {
+    power_monitor = analogRead(POWER_MONITOR_PIN);
+    // Serial.print("Power monitor: ");
+    // Serial.println(power_monitor);
+}
 // Обновление состояния датчиков
 void updateSensors() {
     readAllHTU21D();
     readAllDS18B20();
     readPCF8574(); 
+    updatePowerMonitor(); // Обновление состояния мониторинга питающей сети
 }

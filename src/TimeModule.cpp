@@ -13,7 +13,7 @@ uint32_t CurrentTime = 0; // Текущее время фермы
 // Инициализация экземпляра RTC
 Rtc_Pcf8563 rtc;
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000);
+NTPClient timeClient(ntpUDP, "pool.ntp.org", -10800, 60000);
 
 void checkRtcPresence() {
     Wire.beginTransmission(0x51); // Адрес RTC PCF8563

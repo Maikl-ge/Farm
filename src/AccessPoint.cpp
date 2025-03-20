@@ -1,4 +1,5 @@
 #include "AccessPoint.h"
+#include <Arduino.h>
 
 AccessPoint::AccessPoint() : server(80) {}
 

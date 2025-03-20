@@ -3,27 +3,19 @@ import aiohttp_jinja2
 from aiohttp import web
 import logging
 
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Исправлено 'levellevel' на 'levelname'
-    handlers=[
-        logging.FileHandler("http_handler.log"),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
-
-# Пример использования логирования
-logger.info("HTTP handler initialized")
-logger.error("Error in HTTP handler")
-
 class FarmHTTPHandler:
     def __init__(self, db_manager, websocket_handler=None):
         self.db_manager = db_manager
         self.websocket_handler = websocket_handler
-        self.logger = logging.getLogger(__name__)
+
+    async def save_profile(self, request):
+        """Сохранение профиля из CBOR-данных"""
+        try:
+            cbor_data = await request.read()  # Используем read() для получения байтов
+            success = await self.db_manager.save_profile_from_cbor(cbor_data)
+            return web.json_response({"status": "success" if success else "error"})
+        except Exception as e:
+            return web.json_response({"error": str(e)}, status=500)
 
     async def index(self, request):
         """Перенаправление на страницу команд"""
@@ -34,28 +26,124 @@ class FarmHTTPHandler:
         try:
             return web.FileResponse('./templates/command.html')
         except Exception as e:
-            self.logger.error(f"Error serving command page: {e}")
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_iframe_temp(self, request):
+        """iframe Спидометр температуры воды"""
+        try:
+            return web.FileResponse('./templates/iframe_line_temp.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_iframe_temp_out(self, request):
+        """iframe Спидометр температуры чистой воды"""
+        try:
+            return web.FileResponse('./templates/iframe_line_temp_out.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_iframe_circulation(self, request):
+        """iframe Спидометр циркуляция в боксе"""
+        try:
+            return web.FileResponse('./templates/iframe_line_circulation.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_iframe_inlet(self, request):
+        """iframe Спидометр вытяжка из бокса"""
+        try:
+            return web.FileResponse('./templates/iframe_line_inlet.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_iframe_rotation(self, request):
+        """iframe Спидометр вращения барабана"""
+        try:
+            return web.FileResponse('./templates/iframe_line_rotation.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_iframe_pH(self, request):
+        """iframe Уровень pH"""
+        try:
+            return web.FileResponse('./templates/iframe_line_pH.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_line_TDS(self, request):
+        """iframe Уровень TDS"""
+        try:
+            return web.FileResponse('./templates/iframe_line_TDS.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_line_light(self, request):
+        """iframe Уровень света"""
+        try:
+            return web.FileResponse('./templates/iframe_line_light.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_pump_watering(self, request):
+        """iframe Насос полива"""
+        try:
+            return web.FileResponse('./templates/pump_watering.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_pump_mixing(self, request):
+        """iframe Насос смешивания"""
+        try:
+            return web.FileResponse('./templates/pump_mixing.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_us_humidifier(self, request):
+        """iframe Увлажнитель"""
+        try:
+            return web.FileResponse('./templates/us_humidifier.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+
+    async def show_iframe_graf_t_h(self, request):
+        """iframe Отображение графиков"""
+        try:
+            return web.FileResponse('./templates/iframe_graf_t_h.html')
+        except Exception as e:
             return web.Response(text="Error loading command page", status=500)
 
     async def show_data(self, request):
         """Отображение данных сенсоров"""
         try:
             async with self.db_manager.sensor_pool.acquire() as conn:
-                records = await conn.fetch('SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 100')
+                records = await conn.fetch('SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 20')
 
-            # Проверяем, запрошен ли JSON формат
             if request.query.get('format') == 'json':
                 return web.json_response([dict(record) for record in records])
 
-            # Для HTML-запроса возвращаем файл data.html
             try:
                 return web.FileResponse('./templates/data.html')
             except Exception as e:
-                self.logger.error(f"Error serving data page: {e}")
                 return web.Response(text="Error loading data page", status=500)
 
         except Exception as e:
-            self.logger.error(f"Error showing data: {e}")
+            return web.Response(text=str(e), status=500)
+
+    async def show_data_watering(self, request):
+        """Отображение данных сенсоров полива"""
+        try:
+            async with self.db_manager.sensor_pool.acquire() as conn:
+                records = await conn.fetch('SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1')
+
+            if request.query.get('format') == 'json':
+                return web.json_response([dict(record) for record in records])
+
+            try:
+                return web.FileResponse('./templates/data_watering.html')
+            except Exception as e:
+                return web.Response(text="Error loading data page", status=500)
+
+        except Exception as e:
             return web.Response(text=str(e), status=500)
 
     async def get_data(self, request):
@@ -65,7 +153,32 @@ class FarmHTTPHandler:
                 records = await conn.fetch('SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 100')
             return web.json_response([dict(record) for record in records])
         except Exception as e:
-            self.logger.error(f"Error getting data: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def get_data_watering(self, request):
+        """API для получения данных полива в формате JSON"""
+        try:
+            limit = request.query.get('limit', '40')
+            limit = int(limit)
+
+            async with self.db_manager.sensor_pool.acquire() as conn:
+                records = await conn.fetch(f'SELECT temperature_1, humidity_1 FROM sensor_data ORDER BY timestamp DESC LIMIT {limit}')
+                
+            return web.json_response([dict(record) for record in records])
+        except Exception as e:
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def get_data_iframe(self, request):
+        """API для получения данных для iframe в формате JSON"""
+        try:
+            limit = request.query.get('limit', '40')
+            limit = int(limit)
+
+            async with self.db_manager.sensor_pool.acquire() as conn:
+                records = await conn.fetch(f'SELECT water_temperature_osmo, water_temperature_watering, ph_osmo, tds_osmo FROM sensor_data ORDER BY timestamp DESC LIMIT {limit}')
+                
+            return web.json_response([dict(record) for record in records])
+        except Exception as e:
             return web.json_response({"error": str(e)}, status=500)
 
     async def get_command(self, request):
@@ -90,8 +203,6 @@ class FarmHTTPHandler:
 
         try:
             data = await request.json()
-            self.logger.info(f"Received data for setting command: {data}")
-
             command_str = data.get('command')
 
             if not command_str:
@@ -100,7 +211,6 @@ class FarmHTTPHandler:
                     status=400
                 )
 
-            # Отправляем команду как строку
             success = await self.websocket_handler.send_command(command_str)
 
             if success:
@@ -120,7 +230,6 @@ class FarmHTTPHandler:
                 status=400
             )
         except Exception as e:
-            self.logger.error(f"Error setting command: {e}")
             return web.json_response(
                 {"error": str(e)},
                 status=500)
@@ -168,7 +277,6 @@ class FarmHTTPHandler:
                 context
             )
         except Exception as e:
-            self.logger.error(f"Error showing parameters: {e}")
             return web.Response(text=str(e), status=500)
 
     async def edit_parameters(self, request):
@@ -185,11 +293,9 @@ class FarmHTTPHandler:
                 if not params:
                     raise web.HTTPNotFound(text="Profile not found")
 
-                # Если это POST запрос, обновляем данные
                 if request.method == 'POST':
                     data = await request.post()
                     
-                    # Конвертируем время в минуты
                     sunrise = data['sunrise'].split(':')
                     sunrise_minutes = int(sunrise[0]) * 60 + int(sunrise[1])
                     
@@ -249,7 +355,6 @@ class FarmHTTPHandler:
                     
                     raise web.HTTPFound('/parameters')
 
-            # Преобразуем минуты в формат HH:MM для отображения
             params = dict(params)
             params['sunrise'] = f"{params['sunrise'] // 60:02d}:{params['sunrise'] % 60:02d}"
             params['sunset'] = f"{params['sunset'] // 60:02d}:{params['sunset'] % 60:02d}"
@@ -265,7 +370,6 @@ class FarmHTTPHandler:
         except web.HTTPFound:
             raise
         except Exception as e:
-            self.logger.error(f"Error editing parameters: {e}")
             return web.Response(text=str(e), status=500)
 
     async def select_parameter(self, request):
@@ -275,34 +379,88 @@ class FarmHTTPHandler:
         type_msg = 'SCME'
 
         try:
-            # Получаем параметр из БД
             async with self.db_manager.params_pool.acquire() as conn:
                 settings = await conn.fetchrow(
                     "SELECT * FROM system_params WHERE id = $1",
                     int(param_id)
                 )
 
-            if settings:  # Проверяем, существует ли параметр
-                # Формируем JSON-строку из настроек
+            if settings:
                 settings_json = json.dumps(dict(settings), ensure_ascii=False)
-                
-                # Выводим в консоль для отладки
                 print(f"Selected parameter ID: {param_id}")
                 print(f"Setting command: {settings_json}")
 
-                # Формируем сообщение для отправки
                 message = f"{id_farm} {type_msg} {settings_json}"
 
-                # Отправляем команду на ферму через WebSocket
                 await self.websocket_handler.broadcast_message(message)
-                # Перенаправляем обратно на страницу параметров
                 return web.HTTPFound('/parameters')
             else:
                 return web.Response(text="Parameter not found", status=404)
 
-        except asyncpg.PostgresError as e:
-            self.logger.error(f"Database error selecting parameter: {e}")
-            return web.Response(text="Database error", status=500)
         except Exception as e:
-            self.logger.error(f"Error selecting parameter: {e}")
+            return web.Response(text=str(e), status=500)
+
+    async def save_new_profile(self, request):
+        """Сохранение нового профиля из JSON-данных в profile_phases """
+        try:
+            json_data = await request.json()  # Читаем JSON из запроса
+            print("Received JSON data:", json_data)
+            success = await self.db_manager.save_profile_data(json_data)
+
+            if success:
+                return web.json_response({"status": "success"})
+            else:
+                return web.json_response({"error": "Failed to save profile"}, status=500)
+
+        except json.JSONDecodeError:
+            return web.json_response({"error": "Invalid JSON format"}, status=400)
+        except Exception as e:
+            return web.json_response({"error": str(e)}, status=500)
+            
+    async def show_save_profile(self, request):
+        """Отображение страницы сохранения профиля"""
+        try:
+            return web.FileResponse('./templates/save_profile.html')
+        except Exception as e:
+            return web.Response(text="Error loading command page", status=500)
+            
+    
+    async def read_profile_db(self, request):
+        profile_id = request.query.get('id')  # Используем параметр запроса
+        print(f"ID профиля: {profile_id}")
+        
+        try:
+            async with self.db_manager.params_pool.acquire() as conn:
+                # Получаем общие данные профиля
+                profile = await conn.fetchrow(
+                    "SELECT nameprofile AS \"nameProfile\", cycle, sunrise, sunset FROM system_params WHERE id = $1",
+                    int(profile_id)
+                )
+                if not profile:
+                    return web.Response(text="Профиль не найден", status=404)
+                
+                # Получаем все фазы для профиля
+                phases = await conn.fetch(
+                    "SELECT duration, day_temperature AS \"dayTemp\", night_temperature AS \"nightTemp\", "
+                    "day_humidity AS \"dayHum\", night_humidity AS \"nightHum\", "
+                    "day_watering_interval AS \"dayWater\", night_watering_interval AS \"nightWater\", "
+                    "water_temperature AS \"waterTemp\", day_ventilation AS \"dayVent\", "
+                    "night_ventilation AS \"nightVent\", day_circulation AS \"dayCirc\", "
+                    "night_circulation AS \"nightCirc\", day_rotation AS \"dayRot\", "
+                    "night_rotation AS \"nightRot\", light_intensity AS \"light\" "
+                    "FROM profile_phases WHERE profile_id = $1 ORDER BY phase_number",
+                    int(profile_id)
+                )
+                
+                profile_data = dict(profile)
+                # Преобразуем sunrise/sunset из минут в формат HH:MM
+                profile_data['sunrise'] = f"{profile_data['sunrise'] // 60:02d}:{profile_data['sunrise'] % 60:02d}"
+                profile_data['sunset'] = f"{profile_data['sunset'] // 60:02d}:{profile_data['sunset'] % 60:02d}"
+                profile_data['phases'] = [dict(phase) for phase in phases]
+                
+                profile_json = json.dumps(profile_data, ensure_ascii=False)
+                print(f"Прочитано: {profile_json}")
+                return web.Response(text=profile_json, content_type="application/json")
+            
+        except Exception as e:
             return web.Response(text=str(e), status=500)
