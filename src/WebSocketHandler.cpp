@@ -62,24 +62,31 @@ void webSocketEvent(WebsocketsEvent event, String data) {
 }
 
 void parceMessageFromServer(const String& messageFromServer) {
-
     // Обработка сообщения КОМАНДЫ
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
-        saveUint16ToEEPROM(EEPROM_STATUS_BOX_ADDRESS, (0x57 << 8 | 0x4F)); // W O - WORK
+        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, "Work");
         Serial.println("Команда от сервера: START");
+        statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5); // Обновление глобальной переменной
+        Serial.println("Прочитанное значение из EEPROM: ");
+        Serial.println(statusFarm);
     }
+    
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
-        saveUint16ToEEPROM(EEPROM_STATUS_BOX_ADDRESS, (0x45 << 8 | 0x4E)); // E N - END
+        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, "Stop");
         Serial.println("Команда от сервера: STOP");
+        statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5); // Обновление глобальной переменной
+        Serial.println("Прочитанное значение из EEPROM: ");
+        Serial.println(statusFarm);
     }
+
     if (messageFromServer == SERVER_CMD_RESTART) {    // SCMR Перезагрузка фермы
         Serial.println("Команда от сервера: RESTART");
         esp_restart();
     }
-    if (messageFromServer == SERVER_CMD_UPDATE) {
+    if (messageFromServer == SERVER_CMD_UPDATE) {      // SCMU Обновление ПО контроллера фермы
         Serial.println("Команда от сервера: UPDATE");
     }
-    if (messageFromServer == SERVER_CMD_SETTINGS) {         // Получена команда Обновление настроек
+    if (messageFromServer == SERVER_CMD_SETTINGS) {    // Получена команда Обновление настроек
         fetchAndSaveSettings();
         Serial.println("Команда от сервера: SETTINGS NEW");
     }
@@ -96,8 +103,7 @@ void parceMessageFromServer(const String& messageFromServer) {
         serializeStatus();
         Serial.println("Запрос от сервера: DATA");
     }
-    if (messageFromServer == SERVER_REQ_SETTINGS) {
-        Serial.println(readUint16FromEEPROM(EEPROM_STATUS_BOX_ADDRESS));  // SRSE Запрос на отправку Настройки фермы
+    if (messageFromServer == SERVER_REQ_SETTINGS) {  // SRSE Запрос на отправку Настройки фермы
         serializeSettings();
         Serial.println("Настройки из EEPROM");
     }

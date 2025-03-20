@@ -12,6 +12,7 @@
 #include "WebSocketHandler.h"
 #include <AccessPoint.h>
 #include "menu.h"
+#include <FS.h>
 #include "SDcard.h"
 #include "fanControl.h"
 
@@ -80,10 +81,12 @@ void sendDataTask(void *parameter) {
     for (;;) {     
         timeSlot = 0;
         unsigned long timeStartSlot = millis(); // Время начала передачи
-        sendDataIfNeeded(); // Отправка данных на сервер
-        if(!sendMessageOK) {
-            serializeStatus(); // Отправка статуса фермы
-        }
+            if(statusFarm == "Work") {
+                sendDataIfNeeded(); // Отправка данных на сервер
+                if(!sendMessageOK) {
+                    serializeStatus(); // Отправка статуса фермы
+                }
+            }
             // Отправка данных из очереди               
             if(dequeueIndex > 0 || enqueueIndex > 0) {
                 while((millis() - timeStartSlot) < 45000) {  // временное окно для пересылки сообщений из SD 45000 мс
@@ -104,12 +107,6 @@ void sendDataTask(void *parameter) {
         vTaskDelay((60000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
 }
-// void sendTestTask(void *parameter) {
-//     for (;;) {
-
-//         vTaskDelay(5000 / portTICK_PERIOD_MS);  // Задержка 5000 мс 
-//     }              
-// }
 
 void updateMenuTask(void *parameter) {
     for (;;) {
@@ -141,8 +138,8 @@ void setup() {
         Serial.println("Failed to initialize EEPROM");
         return;
     }
-
-    // printEEPROMValues(0x00, 0xC0);
+    Serial.begin(115200);
+    EEPROM.begin(512); // Инициализация EEPROM с размером 512 байт
 
     initializeMenu(); // Инициализация модуля меню   
 
@@ -162,7 +159,7 @@ void setup() {
     executeOnce = false;
 
     initializeSettingsModule(); // Инициализация модуля настроек
-
+ 
     setupWatering(); // Инициализация модуля полива
 
     setupLightControl(); // Инициализация модуля управления светом
@@ -225,16 +222,6 @@ void setup() {
         NULL,
         0
     );
-
-    // xTaskCreatePinnedToCore(
-    //     sendTestTask,
-    //     "Send Test",
-    //     10000,
-    //     NULL,
-    //     1,
-    //     NULL,
-    //     0
-    // );
 
     xTaskCreatePinnedToCore(
         updateMenuTask,

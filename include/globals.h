@@ -6,6 +6,7 @@
 extern String id_farm_ACK;
 extern String type_msg_ACK;
 extern String ack_ACK;
+extern String statusFarm;
 extern String messageToSend;
 extern String enqueueASK;
 extern int missedPongs;

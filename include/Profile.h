@@ -10,6 +10,8 @@ uint16_t readUint16FromEEPROM(int address);
 void serializeSettings();
 void fetchAndSaveSettings();
 void printEEPROMValues(int startAddress, int endAddress);
+void saveStringToEEPROM(int address, const String& value);
+String readStringFromEEPROM(int address, int maxLength);
 
 // Глобальные переменные профиля
 
@@ -23,18 +25,18 @@ extern uint16_t SUNSET;   // Время заката
 
 // Цикл работы
 extern uint16_t CYCLE;
-extern uint16_t STATUS_BOX;  // 0x52 - R Адрес 0x24-0x25
-                             // 0x45 - E  Ready
-                             //--------------------------------
-                       // 0x57 - W  Work
-                       // 0x4F - O
-                       //--------------------------------
-                       // 0x45 - E  End
-                       // 0x4E - N
-                       //--------------------------------
-                       // 0x41 - A  Abort
-                       // 0x42 - B
-
+extern uint16_t STATUS_BOX; // 0x52 - R Адрес 0x24-0x25
+                            // 0x45 - E  Ready
+                            //--------------------------------
+                            // 0x57 - W  Work
+                            // 0x4F - O
+                            //--------------------------------
+                            // 0x45 - E  End
+                            // 0x4E - N
+                            //--------------------------------
+                            // 0x41 - A  Abort
+                            // 0x42 - B
+extern String statusFarm; // Статус фермы                          
 extern uint16_t GROWE_START_TIME;  // Время начала цикла роста
 extern uint16_t GROWE_STOP_DATE;  // Дата начала цикла роста 
 

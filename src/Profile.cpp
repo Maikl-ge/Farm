@@ -10,20 +10,16 @@
 uint8_t ID_FARM = 255;  // ID фермы
 String TYPE_MSG = " "; // Тип сообщения
 uint16_t LENGTH_MSG = 0; // Длина сообщения
-
-const uint16_t VALUE_READY = 0x5245;  // RE - Ready статус фермы в EEPROM
-const uint16_t VALUE_WORK = 0x574F;   // WO - Work статус фермы в EEPROM
-const uint16_t VALUE_END = 0x454E;    // EN - End статус фермы в EEPROM
-const uint16_t VALUE_ABORT = 0x4142;  // AB - Abort статус фермы в EEPROM
+String statusFarm = ""; // Определение переменной statusMode
 
 // Константы для адресов и значений
 const int EEPROM_START_ADDRESS = 0x30;  // Адрес начала EEPROM
 
 int EEPROM_PHASE_ADDRESS = 0x02;                // Текущая фаза
 int EEPROM_STATUS_BOX_ADDRESS = 0x04;           // Текущий статус
-int EEPROM_GROWE_START_TIME_ADDRESS = 0x08;  // Адрес 0x2A-0x2B
-int EEPROM_GROWE_STOP_DATE_ADDRESS = 0x0A;  // Адрес 0x2C-0x2D
-int EEPROM_CULTURE_ADDRESS = 0x0A;     // Текущая культура
+int EEPROM_GROWE_START_TIME_ADDRESS = 0x0C;  // Адрес 0x2A-0x2B
+int EEPROM_GROWE_STOP_DATE_ADDRESS = 0x0E;  // Адрес 0x2C-0x2D
+int EEPROM_CULTURE_ADDRESS = 0x10;     // Текущая культура
 
 String FARM_RES_STATUS = "FRQW";        // Ответ статуса фермы на запрос сервера
 String FARM_RES_DATA = "FRQD";          // Ответ с данными фермы на запрос сервера
@@ -133,9 +129,6 @@ uint16_t PHASE6_VENTILATION = 0;
 uint16_t PHASE6_WATERING = 0;
 uint16_t PHASE6_DRAINING = 0;
 uint16_t PHASE6_ROTATION = 0;
-
-
-
 
 // Сохраняет `uint16_t` значение в EEPROM
 void saveUint16ToEEPROM(int address, uint16_t value) {
@@ -254,24 +247,28 @@ void printEEPROMValues(int startAddress, int endAddress) {
 
 // Инициализация модуля
 void initializeSettingsModule() {
-    // Чтение двух байт и объединение в uint16_t
-    uint16_t value = readUint16FromEEPROM(STATUS_BOX);
+
+    // Чтение Статуса фермы из EEPROM
+    String statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5);
+    Serial.println("Текущий статус фермы из EEPROM: ");
+    Serial.println(statusFarm);
 
     // Проверка значения
-    if (value == VALUE_READY || value == VALUE_END || value == VALUE_WORK || value == VALUE_ABORT) {  // Проверка статусов
-        EEPROMRead();  // Чтение настроек из EEPROM    
+    if (statusFarm == "Stop" || statusFarm == "End" || statusFarm == "Work" || statusFarm == "Abotr" || statusFarm == "Ready") {  // Проверка статусов
         Serial.println("Настройки из EEPROM загружены");
 
         // Определение статуса фермы
-        if (value == VALUE_READY) {
+        if (statusFarm == "Ready") {
             Serial.println("Статус фермы: READY");
-        } else if (value == VALUE_WORK) {
+        } else if (statusFarm == "Work") {
             Serial.println("Статус фермы: WORK");
-        } else if (value == VALUE_END) {
+        } else if (statusFarm == "End") {
             Serial.println("Статус фермы: END");
-        } else if (value == VALUE_ABORT) {
+        } else if (statusFarm == "Abotr") {
             Serial.println("Статус фермы: ABORT");
-        }
+        } else if (statusFarm == "Stop") {
+            Serial.println("Статус фермы: STOP");
+        } 
     } else {
         Serial.println("EEPROM не содержит корректных настроек.");
     }
@@ -360,9 +357,6 @@ void saveSettingsToEEPROM() {
     saveUint16ToEEPROM(address, PHASE6_ROTATION); address += 2;
    
     saveStringToEEPROM(EEPROM_CULTURE_ADDRESS, CULTURE);
-
-    // saveUint16ToEEPROM(EEPROM_STATUS_BOX_ADDRESS, '57'); address += 1;
-    // saveUint16ToEEPROM(EEPROM_STATUS_BOX_ADDRESS, '4F');    
 
     EEPROM.commit(); // Запись изменений в EEPROM
     Serial.println("Настройки сохранены в EEPROM.");
@@ -463,8 +457,6 @@ String readStringFromEEPROM(int address, int maxLength) {
         STATUS_BOX = readUint16FromEEPROM(EEPROM_STATUS_BOX_ADDRESS); 
         PHASE = readUint16FromEEPROM(EEPROM_PHASE_ADDRESS);
         CULTURE = readStringFromEEPROM(EEPROM_CULTURE_ADDRESS, 20);
-        Serial.println(CULTURE);
-        Serial.println(STATUS_BOX);
 }
 
 // Сереализация настроек считанных из EEPROM и отправка на сервер

@@ -7,6 +7,8 @@
 
 using namespace websockets;
 
+extern String statusFarm;
+
 // Объявления функций
 void initializeWebSocket();
 void processWebSocket();
