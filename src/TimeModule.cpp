@@ -5,10 +5,14 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 #include <Pinout.h>
+#include <TimeLib.h>
+#include <Profile.h>
+
 
 //int8_t timeZone = 3; // Часовой пояс
 uint32_t CurrentDate = 0; // Текущая дата фермы
 uint32_t CurrentTime = 0; // Текущее время фермы
+uint16_t CurrentTimeInMinutes = 0; // Текущее время в минутах
 
 // Инициализация экземпляра RTC
 Rtc_Pcf8563 rtc;
@@ -76,4 +80,19 @@ void printCurrentTime() {
 
     // Формирование времени в формате HHMMSS
     CurrentTime = rtc.getHour() * 10000 + rtc.getMinute() * 100 + rtc.getSecond();
+}
+
+// Получение текущего времени в минутах
+uint16_t getCurrentTimeInMinutes() {
+    rtc.getDateTime();
+    uint16_t currentTimeInMinutes = rtc.getHour() * 60 + rtc.getMinute();
+    return currentTimeInMinutes;
+}
+
+// Сохранение текущей даты в GROWE_STOP_DATE 
+void saveCurrentDateToGroweStopDate() {
+    rtc.getDateTime();
+    uint16_t currentDate = (rtc.getDay() * 10000) + (rtc.getMonth() * 100) + (rtc.getYear() % 100);
+    GROWE_STOP_DATE = currentDate;
+    Serial.println("Текущая дата сохранена в GROWE_STOP_DATE: " + String(GROWE_STOP_DATE));
 }

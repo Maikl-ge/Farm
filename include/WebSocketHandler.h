@@ -9,6 +9,8 @@ extern String messageFromServer;
 extern String messageACK;
 extern String id_farm_message;
 extern String type_msg_message;
+extern uint16_t currentTimeInMinutes;
+extern uint16_t GROWE_START_TIME;  // Время начала цикла роста
 
 void initializeWebSocket();
 void webSocketEvent(websockets::WebsocketsEvent event, String data);

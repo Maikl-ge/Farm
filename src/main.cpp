@@ -31,12 +31,19 @@ void initializePins(); // Прототип функции
 void updateLightBrightness(); // Прототип функции
 void updateWatering(); // Прототип функции
 void updateFanControl(); // Прототип функции
+void currentStatusFarm();  // Определение текущего статуса фермы
 
 // Объявление объекта класса AccessPoint
 AccessPoint accessPoint;
 
-// Задачи для FreeRTOS
+// Определение текущего статуса фермы
+void currentStatusFarm()  {
+    
+    //PHASE1_DURATION
 
+}
+
+// Задачи для FreeRTOS
 void updateWebSocketTask(void *parameter) {
     static unsigned long lastPing = 0; // Время последнего отправленного PING
     // Если пропущено 11 Pong подряд, убиваем текущий сокет и подключаем новый
@@ -119,6 +126,7 @@ void updateMenuTask(void *parameter) {
 void updateWaterTask(void *parameter) {
     for (;;) {
         webSocket.poll(); // Обработка WebSocket событий
+        currentStatusFarm(); // Определение текущего статуса фермы
         updateWater();
         updateWatering();
         updateLightBrightness();

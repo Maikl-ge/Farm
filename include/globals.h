@@ -50,5 +50,6 @@ void updateLightBrightness(); // Обновление яркости света
 void connectToWiFi(); // Подключение к WiFi
 void saveUint16ToEEPROM(int address, uint16_t value); 
 void serializeStatus(); // Сериализация и отправка Статуса фермы серверу
+void someFunction();
 
 #endif // GLOBALS_H

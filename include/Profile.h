@@ -12,6 +12,7 @@ void fetchAndSaveSettings();
 void printEEPROMValues(int startAddress, int endAddress);
 void saveStringToEEPROM(int address, const String& value);
 String readStringFromEEPROM(int address, int maxLength);
+void updateCurrentTimeInMinutes();
 
 // Глобальные переменные профиля
 
@@ -36,7 +37,8 @@ extern uint16_t STATUS_BOX; // 0x52 - R Адрес 0x24-0x25
                             //--------------------------------
                             // 0x41 - A  Abort
                             // 0x42 - B
-extern String statusFarm; // Статус фермы                          
+extern String statusFarm; // Статус фермы    
+extern uint16_t currentTimeInMinutes; // Текущее время в минутах                     
 extern uint16_t GROWE_START_TIME;  // Время начала цикла роста
 extern uint16_t GROWE_STOP_DATE;  // Дата начала цикла роста 
 

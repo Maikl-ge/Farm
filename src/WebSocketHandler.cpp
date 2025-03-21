@@ -5,6 +5,10 @@
 #include <DataSender.h>
 #include "Profile.h"
 #include <SDCard.h>
+#include <queue>
+#include "TimeModule.h"
+
+std::queue<String> ackQueue;  // Очередь для хранения ACK
 
 #define WEBSOCKETS_MAX_DATA_SIZE 2048 // Максимальный размер данных
 
@@ -16,6 +20,7 @@ String messageFromServer;
 String messageACK;
 String id_farm_message = "  ";
 String type_msg_message = "  ";
+uint16_t currentTimeInMinutes = 0;
 bool connectedWebSocket = false;
 bool connected = false;
 unsigned long lastReconnectAttempt = 0;
@@ -63,9 +68,16 @@ void webSocketEvent(WebsocketsEvent event, String data) {
 
 void parceMessageFromServer(const String& messageFromServer) {
     // Обработка сообщения КОМАНДЫ
+    currentTimeInMinutes = getCurrentTimeInMinutes();
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, "Work");
         Serial.println("Команда от сервера: START");
+
+        saveCurrentDateToGroweStopDate();
+        Serial.println("GROWE_STOP_DATE: " + String(GROWE_STOP_DATE));
+        GROWE_START_TIME = currentTimeInMinutes;
+        Serial.println("Время начала цикла роста: " + String(GROWE_START_TIME));
+
         statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5); // Обновление глобальной переменной
         Serial.println("Прочитанное значение из EEPROM: ");
         Serial.println(statusFarm);
