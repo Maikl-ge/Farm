@@ -10,14 +10,13 @@ uint16_t readUint16FromEEPROM(int address);
 void serializeSettings();
 void fetchAndSaveSettings();
 void printEEPROMValues(int startAddress, int endAddress);
-void saveStringToEEPROM(int address, const String& value);
 String readStringFromEEPROM(int address, int maxLength);
 void updateCurrentTimeInMinutes();
 
 // Глобальные переменные профиля
 
 extern uint8_t ID_FARM;  // ID фермы
-extern String TYPE_MSG; // Тип сообщения
+extern String TYPE_MSG; // Тип сообщения 
 extern uint16_t LENGTH_MSG; // Длина сообщения
 
 // Параметры времени
@@ -26,28 +25,17 @@ extern uint16_t SUNSET;   // Время заката
 
 // Цикл работы
 extern uint16_t CYCLE;
-extern uint16_t STATUS_BOX; // 0x52 - R Адрес 0x24-0x25
-                            // 0x45 - E  Ready
-                            //--------------------------------
-                            // 0x57 - W  Work
-                            // 0x4F - O
-                            //--------------------------------
-                            // 0x45 - E  End
-                            // 0x4E - N
-                            //--------------------------------
-                            // 0x41 - A  Abort
-                            // 0x42 - B
 extern String statusFarm; // Статус фермы    
 extern uint16_t currentTimeInMinutes; // Текущее время в минутах                     
-extern uint16_t GROWE_START_TIME;  // Время начала цикла роста
-extern uint16_t GROWE_STOP_DATE;  // Дата начала цикла роста 
+extern uint16_t GROWE_MODE_TIME;  // Время начала цикла роста
+extern uint16_t GROWE_MODE_DATE;  // Дата начала цикла роста 
 
 extern int EEPROM_PHASE_ADDRESS;
 extern int EEPROM_CULTURE_ADDRESS;
 extern int EEPROM_CYCLE_ADDRESS;
 extern int EEPROM_STATUS_BOX_ADDRESS;
-extern int EEPROM_GROWE_START_TIME_ADDRESS;
-extern int EEPROM_GROWE_STOP_DATE_ADDRESS;
+extern int EEPROM_GROWE_MODE_TIME_ADDRESS;
+extern int EEPROM_GROWE_MODE_DATE_ADDRESS;
 
 //Типы сообщений от фермы серверу
 // Типы запросов
@@ -131,13 +119,13 @@ extern String SERVER_EVENT_SYNC;        // Событие синхронизац
 
 // Переменные
 extern uint16_t PHASE;       // Текущая фаза    
-extern uint16_t STATUS_BOX;  // Текущее состояние фермы       
-extern String CULTURE;     // Текущая культура
+extern String  STATUS_BOX;   // Текущее состояние фермы       
+extern String CULTURE;       // Текущая культура
 extern uint16_t CYCLE;       // Адрес 0x22-0x23
 extern uint16_t SUNRISE;     // Время восхода
 extern uint16_t SUNSET;      // Время заката
-extern uint16_t GROWE_START_TIME; // Время начала цикла роста
-extern uint16_t GROWE_STOP_DATE ;  // Дата начала цикла роста      
+extern uint16_t GROWE_MODE_TIME; // Время начала цикла роста
+extern uint16_t GROWE_MODE_DATE ;  // Дата начала цикла роста      
 
 // Переменные 6 фаз
 extern uint16_t PHASE1_DURATION;     
@@ -237,7 +225,7 @@ extern uint16_t PHASE6_ROTATION;
 // uint16_t WATER_TEMPERATURE = 0; // Адрес 0x20-0x21
 // uint16_t CYCLE = 0; // Адрес 0x22-0x23
 // uint16_t WORK = 0;  // Адрес 0x24-0x25
-// uint16_t GROWE_START_TIME = 0;  // Адрес 0x2A-0x2B
+// uint16_t GROWE_MODE_TIME = 0;  // Адрес 0x2A-0x2B
 // uint16_t GROWE_START_DATE = 0;  // Адрес 0x2C-0x2D
 
 
@@ -262,7 +250,7 @@ extern uint16_t PHASE6_ROTATION;
 // int EEPROM_WATER_TEMPERATURE_ADDRESS = 0x20; // Адрес 0x20-0x21
 // int EEPROM_CYCLE_ADDRESS = 0x22; // Адрес 0x22-0x23
 // int EEPROM_WORK_ADDRESS = 0x24;  // Адрес 0x24-0x25
-// int EEPROM_GROWE_START_TIME_ADDRESS = 0x2A;  // Адрес 0x2A-0x2B
+// int EEPROM_GROWE_MODE_TIME_ADDRESS = 0x2A;  // Адрес 0x2A-0x2B
 // int EEPROM_GROWE_START_DATE_ADDRESS = 0x2C;  // Адрес 0x2C-0x2D
 
 

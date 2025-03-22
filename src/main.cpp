@@ -19,7 +19,7 @@
 //#define WEBSOCKETS_MAX_DATA_SIZE 4096 // Максимальный размер данных
 
 // Размер EEPROM
-#define EEPROM_SIZE 512
+#define EEPROM_SIZE 2048    
 
 // Прототипы функций
 void sendDataTask(void *parameter);
@@ -34,14 +34,7 @@ void updateFanControl(); // Прототип функции
 void currentStatusFarm();  // Определение текущего статуса фермы
 
 // Объявление объекта класса AccessPoint
-AccessPoint accessPoint;
-
-// Определение текущего статуса фермы
-void currentStatusFarm()  {
-    
-    //PHASE1_DURATION
-
-}
+AccessPoint accessPoint;   
 
 // Задачи для FreeRTOS
 void updateWebSocketTask(void *parameter) {
@@ -110,7 +103,8 @@ void sendDataTask(void *parameter) {
             }                     
         //Serial.println("Время передачи: " + String(timeSlot) + " ms");  
         timeSlot = (millis() - timeStartSlot);      
-        //Serial.println("Время слота: " + String(timeSlot) + " ms");      
+        //Serial.println("Время слота: " + String(timeSlot) + " ms");   
+        currentStatusFarm(); // Определение текущего статуса фермы   
         vTaskDelay((60000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
 }
@@ -126,7 +120,7 @@ void updateMenuTask(void *parameter) {
 void updateWaterTask(void *parameter) {
     for (;;) {
         webSocket.poll(); // Обработка WebSocket событий
-        currentStatusFarm(); // Определение текущего статуса фермы
+        //currentStatusFarm(); // Определение текущего статуса фермы
         updateWater();
         updateWatering();
         updateLightBrightness();
@@ -139,15 +133,15 @@ void setup() {
     Serial.begin(115200);
     Serial.setDebugOutput(false); // Отключение вывода отладочных сообщений
 
-    initializePins(); // Инициализация пинов
+    EEPROM.begin(2048); // Инициализация EEPROM с размером 512 байт
 
     // Инициализация EEPROM
     if (!EEPROM.begin(EEPROM_SIZE)) {
         Serial.println("Failed to initialize EEPROM");
         return;
     }
-    Serial.begin(115200);
-    EEPROM.begin(512); // Инициализация EEPROM с размером 512 байт
+
+    initializePins(); // Инициализация пинов
 
     initializeMenu(); // Инициализация модуля меню   
 

@@ -13,13 +13,12 @@ uint16_t LENGTH_MSG = 0; // Длина сообщения
 String statusFarm = ""; // Определение переменной statusMode
 
 // Константы для адресов и значений
-const int EEPROM_START_ADDRESS = 0x30;  // Адрес начала EEPROM
-
+int EEPROM_START_ADDRESS = 0x30;  // Адрес начала EEPROM
 int EEPROM_PHASE_ADDRESS = 0x02;                // Текущая фаза
 int EEPROM_STATUS_BOX_ADDRESS = 0x04;           // Текущий статус
-int EEPROM_GROWE_START_TIME_ADDRESS = 0x0C;  // Адрес 0x2A-0x2B
-int EEPROM_GROWE_STOP_DATE_ADDRESS = 0x0E;  // Адрес 0x2C-0x2D
-int EEPROM_CULTURE_ADDRESS = 0x10;     // Текущая культура
+int EEPROM_GROWE_MODE_TIME_ADDRESS = 0x0C;  // Адрес 0x2A-0x2B
+int EEPROM_GROWE_MODE_DATE_ADDRESS = 0x0E;  // Адрес 0x2C-0x2D
+int EEPROM_CULTURE_ADDRESS = 0x12;     // Текущая культура
 
 String FARM_RES_STATUS = "FRQW";        // Ответ статуса фермы на запрос сервера
 String FARM_RES_DATA = "FRQD";          // Ответ с данными фермы на запрос сервера
@@ -56,13 +55,13 @@ String SERVER_EVENT_SYNC = "SEVN";
 
 // Глобальные переменные
 uint16_t PHASE = 0;                // Текущая фаза
-uint16_t STATUS_BOX = 0; // Текущее состояние фермы
+String STATUS_BOX = "";  // Текущее состояние фермы
 String CULTURE = "";     // Текущая культура
 uint16_t CYCLE = 0; // Адрес 0x22-0x23
 uint16_t SUNRISE = 0;    // Время восхода
 uint16_t SUNSET = 0;     // Время заката
-uint16_t GROWE_START_TIME = 0;  // Время начала цикла роста
-uint16_t GROWE_STOP_DATE = 0;  // Дата начала цикла роста
+uint16_t GROWE_MODE_TIME = 0;  // Время начала цикла роста
+uint16_t GROWE_MODE_DATE = 0;  // Дата начала цикла роста
 // Определение переменных фаз
 uint16_t PHASE1_DURATION = 0;
 uint16_t PHASE1_TEMP = 0;
@@ -248,41 +247,13 @@ void printEEPROMValues(int startAddress, int endAddress) {
 // Инициализация модуля
 void initializeSettingsModule() {
 
-    // Чтение Статуса фермы из EEPROM
-    String statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5);
-    Serial.println("Текущий статус фермы из EEPROM: ");
-    Serial.println(statusFarm);
-
     // Проверка значения
-    if (statusFarm == "Stop" || statusFarm == "End" || statusFarm == "Work" || statusFarm == "Abotr" || statusFarm == "Ready") {  // Проверка статусов
-        Serial.println("Настройки из EEPROM загружены");
-
-        // Определение статуса фермы
-        if (statusFarm == "Ready") {
-            Serial.println("Статус фермы: READY");
-        } else if (statusFarm == "Work") {
-            Serial.println("Статус фермы: WORK");
-        } else if (statusFarm == "End") {
-            Serial.println("Статус фермы: END");
-        } else if (statusFarm == "Abotr") {
-            Serial.println("Статус фермы: ABORT");
-        } else if (statusFarm == "Stop") {
-            Serial.println("Статус фермы: STOP");
-        } 
-    } else {
-        Serial.println("EEPROM не содержит корректных настроек.");
-    }
+    EEPROMRead();
+    statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5); 
+    Serial.println("Настройки из EEPROM загружены");
+    Serial.println(statusFarm);
 }
 
-// Сохраняет строку в EEPROM
-void saveStringToEEPROM(int address, const String& value) {
-    int len = value.length();
-    for (int i = 0; i < len; i++) {
-        EEPROM.write(address + i, value[i]);
-    }
-    EEPROM.write(address + len, '\0'); // Добавление терминального нуля для завершения строки   
-}
-    // Сохраняет настройки в EEPROM
 void saveSettingsToEEPROM() {
     int address = EEPROM_START_ADDRESS;
 
@@ -452,8 +423,8 @@ String readStringFromEEPROM(int address, int maxLength) {
         PHASE6_ROTATION = readUint16FromEEPROM(address); address += 2;
 
         // Назавание профиля старт стоп и статус
-        GROWE_START_TIME = readUint16FromEEPROM(EEPROM_GROWE_START_TIME_ADDRESS);
-        GROWE_STOP_DATE = readUint16FromEEPROM(EEPROM_GROWE_STOP_DATE_ADDRESS);
+        GROWE_MODE_TIME = readUint16FromEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS);
+        GROWE_MODE_DATE = readUint16FromEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS);
         STATUS_BOX = readUint16FromEEPROM(EEPROM_STATUS_BOX_ADDRESS); 
         PHASE = readUint16FromEEPROM(EEPROM_PHASE_ADDRESS);
         CULTURE = readStringFromEEPROM(EEPROM_CULTURE_ADDRESS, 20);
@@ -470,8 +441,8 @@ void serializeSettings() {
     doc["cycle"] = CYCLE;
     doc["work"] = STATUS_BOX;
     doc["groweStart"] = WiFi.localIP();   // GROWE_START;
-    doc["groweStartTime"] = GROWE_START_TIME;
-    doc["groweStoptDate"] = GROWE_STOP_DATE;
+    doc["groweStartTime"] = GROWE_MODE_TIME;
+    doc["groweStoptDate"] = GROWE_MODE_DATE;
     // Фаза 1
     doc["phase1_duration"] = PHASE1_DURATION;
     doc["phase1_temp"] = PHASE1_TEMP / 10.0;

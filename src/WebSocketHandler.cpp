@@ -7,6 +7,7 @@
 #include <SDCard.h>
 #include <queue>
 #include "TimeModule.h"
+#include <EEPROM.h>
 
 std::queue<String> ackQueue;  // Очередь для хранения ACK
 
@@ -31,6 +32,7 @@ void connectWebSocket();
 void resetWebSocketState();
 void handleWebSocketMessage(const String& message);
 void parceMessageFromServer(const String& messageFromServer);
+void saveCurrentDateToGrowe();
 
 void initializeWebSocket() {
     webSocket.onMessage([](WebsocketsMessage message) {
@@ -70,25 +72,35 @@ void parceMessageFromServer(const String& messageFromServer) {
     // Обработка сообщения КОМАНДЫ
     currentTimeInMinutes = getCurrentTimeInMinutes();
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
-        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, "Work");
+        statusFarm = "Work";
+        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
         Serial.println("Команда от сервера: START");
 
-        saveCurrentDateToGroweStopDate();
-        Serial.println("GROWE_STOP_DATE: " + String(GROWE_STOP_DATE));
-        GROWE_START_TIME = currentTimeInMinutes;
-        Serial.println("Время начала цикла роста: " + String(GROWE_START_TIME));
+        GROWE_MODE_TIME = currentTimeInMinutes;
+        Serial.println("Время начала цикла роста: " + String(GROWE_MODE_TIME));
 
-        statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5); // Обновление глобальной переменной
-        Serial.println("Прочитанное значение из EEPROM: ");
-        Serial.println(statusFarm);
+        saveCurrentDateToGrowe();
+        // Распаковываем и выводим дату в читаемом виде
+        uint8_t day = (GROWE_MODE_DATE >> 11) & 0x1F; // 5 бит для дня
+        uint8_t month = (GROWE_MODE_DATE >> 7) & 0x0F; // 4 бита для месяца
+        uint8_t year = GROWE_MODE_DATE & 0x7F; // 7 бит для года
+        Serial.printf("Date начала цикла роста: %02d:%02d:%02d\n", day, month, year);
     }
     
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
-        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, "Stop");
+        statusFarm = "Stop";
+        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);        
         Serial.println("Команда от сервера: STOP");
-        statusFarm = readStringFromEEPROM(EEPROM_STATUS_BOX_ADDRESS, 5); // Обновление глобальной переменной
-        Serial.println("Прочитанное значение из EEPROM: ");
-        Serial.println(statusFarm);
+
+        GROWE_MODE_TIME = currentTimeInMinutes;
+        Serial.println("Время завершения цикла роста: " + String(GROWE_MODE_TIME));
+        
+        saveCurrentDateToGrowe();
+        // Распаковываем и выводим дату в читаемом виде
+        uint8_t day = (GROWE_MODE_DATE >> 11) & 0x1F; // 5 бит для дня
+        uint8_t month = (GROWE_MODE_DATE >> 7) & 0x0F; // 4 бита для месяца
+        uint8_t year = GROWE_MODE_DATE & 0x7F; // 7 бит для года
+        Serial.printf("Date завершения цикла роста: %02d:%02d:%02d\n", day, month, year);
     }
 
     if (messageFromServer == SERVER_CMD_RESTART) {    // SCMR Перезагрузка фермы
@@ -291,3 +303,11 @@ void connectWebSocket() {
 
     isConnecting = false;
 } 
+void saveStringToEEPROM(int address, String& statusFarm) {
+    int len = statusFarm.length();
+    for (int i = 0; i < len; i++) {
+        EEPROM.write(address + i, statusFarm[i]);
+    }
+    EEPROM.write(address + len, '\0'); // Добавление терминального нуля для завершения строки    
+    EEPROM.commit(); // Сохранение изменений в EEPROM
+}

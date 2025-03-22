@@ -53,7 +53,7 @@ void syncTimeWithNTP(const char* ntpServer, int8_t timeZone) {
         timeInfo.tm_mday, 
         timeInfo.tm_wday, 
         timeInfo.tm_mon + 1, 
-        0, 
+        false, // Укажите значение для century
         timeInfo.tm_year % 100, 
         timeInfo.tm_hour, 
         timeInfo.tm_min, 
@@ -89,10 +89,16 @@ uint16_t getCurrentTimeInMinutes() {
     return currentTimeInMinutes;
 }
 
-// Сохранение текущей даты в GROWE_STOP_DATE 
-void saveCurrentDateToGroweStopDate() {
-    rtc.getDateTime();
-    uint16_t currentDate = (rtc.getDay() * 10000) + (rtc.getMonth() * 100) + (rtc.getYear() % 100);
-    GROWE_STOP_DATE = currentDate;
-    Serial.println("Текущая дата сохранена в GROWE_STOP_DATE: " + String(GROWE_STOP_DATE));
+// Сохранение текущей даты в GROWE_MODE_DATE 
+void saveCurrentDateToGrowe() {
+    rtc.getDateTime();  // Обновляем время перед считыванием
+    uint8_t day = rtc.getDay();
+    uint8_t month = rtc.getMonth();
+    uint8_t year = rtc.getYear() % 100;  // Оставляем только последние 2 цифры года
+            // Упаковываем дату в 16 бит
+    GROWE_MODE_DATE = 0; // Очищаем переменную
+    GROWE_MODE_DATE |= (day & 0x1F) << 11; // День в старшие 5 бит
+    GROWE_MODE_DATE |= (month & 0x0F) << 7; // Месяц в следующие 4 бита
+    GROWE_MODE_DATE |= (year & 0x7F); // Год в младшие 7 бит
 }
+
