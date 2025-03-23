@@ -3,52 +3,77 @@
 #include "status.h"
 #include "TimeModule.h"
 #include "Profile.h"
+#include <EEPROM.h>
+
+// Функция для чтения двух байт из EEPROM и объединения их в uint16_t
+uint16_t readFromEEPROM(int address) {
+    return EEPROM.read(address) | (EEPROM.read(address + 1) << 8);
+}
+void saveStringToEEPROM(int address, String& statusFarm);
 
 // Определение текущего статуса фермы
 void currentStatusFarm() {
-    uint16_t currentTimeInMinutes = getCurrentTimeInMinutes();
+    EEPROMRead();
+    printCurrentTime();
+    uint16_t longPhacse1 = PHASE1_DURATION * 60;
+    uint16_t longPhacse2 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60;
+    uint16_t longPhacse3 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60;
+    uint16_t longPhacse4 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60;
+    uint16_t longPhacse5 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60;
+    uint16_t longPhacse6 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60 + PHASE6_DURATION * 60;
+    
+    uint16_t currentTimeInMinutes = getCurrentTimeInMinutes();  // Получаем текущее время в минутах
+    uint16_t currentDate = getCurrentDate(); // Получаем текущую дату в днях с 1 января 1970
+    GROWE_MODE_DATE = readFromEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS);
+    GROWE_MODE_TIME = readFromEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS);
+    uint16_t totalMinutesElapsed;
 
-    Serial.println("Время в минутах: " + String(currentTimeInMinutes));
-    uint16_t elapsedTime = subtractTimes(currentTimeInMinutes, GROWE_MODE_TIME);
-    Serial.println("Прошло " + String(elapsedTime) + " минут с начала цикла роста");
+    uint16_t daysElapsed = currentDate - GROWE_MODE_DATE;
+    if(daysElapsed == 0 || daysElapsed == 1) {
+        totalMinutesElapsed = currentTimeInMinutes + (1440 - GROWE_MODE_TIME);
+    } else {
+        totalMinutesElapsed = ((daysElapsed -1) * 1440) + currentTimeInMinutes + (1440 - GROWE_MODE_TIME);
+    }
+    if((longPhacse6 - totalMinutesElapsed) == 0 || ((longPhacse6 - totalMinutesElapsed) + 1) == 0) {
+        statusFarm = "End";
+        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
+        EEPROM.commit();
+        Serial.println("Выращивание завершено. Статус фермы: " + statusFarm);
+    }
+
+    Serial.println("Прошло totalMinutesElapsed   " + String(totalMinutesElapsed) + " минут"); 
+    Serial.println("Полное время выращивания   " + String(longPhacse6) + " минут или " + String(longPhacse6 / 60) + " часов");
+    Serial.println("Осталось времени  " + String(longPhacse6 - totalMinutesElapsed) + " минут или " + String((longPhacse6 - totalMinutesElapsed) / 60) + " часов");
+    // Проверяем фазы роста
+    uint16_t phaseEndTimes[] = {
+        longPhacse1,
+        longPhacse2,
+        longPhacse3,
+        longPhacse4,
+        longPhacse5,
+        longPhacse6
+    };
+
+    const char* phaseMessages[] = {
+        "Текущая фаза 1 ",
+        "Текущая фаза 2 ",
+        "Текущая фаза 3 ",
+        "Текущая фаза 4 ",
+        "Текущая фаза 5 ",
+        "Текущая фаза 6 "
+    };
+
+    for (int i = 0; i < 6; i++) {
+        //Serial.println(String(phaseEndTimes[i]));
+        if (totalMinutesElapsed <= phaseEndTimes[i]) {
+            Serial.println(phaseMessages[i]);
+            break;
+        }
+    }
 }
 
-// Функция для сложения двух значений времени в формате HHMM
-uint16_t addTimes(uint16_t time1, uint16_t time2) {
-    // Разбиваем первое время на часы и минуты
-    uint8_t hours1 = time1 / 100;
-    uint8_t minutes1 = time1 % 100;
-
-    // Разбиваем второе время на часы и минуты
-    uint8_t hours2 = time2 / 100;
-    uint8_t minutes2 = time2 % 100;
-
-    // Складываем минуты и часы
-    uint8_t totalMinutes = minutes1 + minutes2;
-    uint8_t totalHours = hours1 + hours2 + totalMinutes / 60;
-
-    // Приводим значения к формату HHMM
-    totalMinutes %= 60;
-    uint16_t result = totalHours * 100 + totalMinutes;
-    return result;
-}
-
-// Функция для вычитания двух значений времени в формате HHMM
-uint16_t subtractTimes(uint16_t time1, uint16_t time2) {
-    // Разбиваем первое время на часы и минуты
-    uint8_t hours1 = time1 / 100;
-    uint8_t minutes1 = time1 % 100;
-
-    // Разбиваем второе время на часы и минуты
-    uint8_t hours2 = time2 / 100;
-    uint8_t minutes2 = time2 % 100;
-
-    // Вычитаем минуты и часы
-    int totalMinutes = (hours1 * 60 + minutes1) - (hours2 * 60 + minutes2);
-
-    // Приводим значения к формату HHMM
-    uint8_t totalHours = totalMinutes / 60;
-    totalMinutes %= 60;
-    uint16_t result = totalHours * 100 + totalMinutes;
-    return result;
+uint16_t convertTimeToMinutes(uint16_t time) {
+    uint8_t hours = time / 100;
+    uint8_t minutes = time % 100;
+    return hours * 60 + minutes;
 }

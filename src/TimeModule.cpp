@@ -13,6 +13,8 @@
 uint32_t CurrentDate = 0; // Текущая дата фермы
 uint32_t CurrentTime = 0; // Текущее время фермы
 uint16_t CurrentTimeInMinutes = 0; // Текущее время в минутах
+uint16_t CurrentDataShort = 0;  // Время начала цикла роста
+uint16_t daysEopch = 0;  // Число дней начала цикла роста от 1 января 1970
 
 // Инициализация экземпляра RTC
 Rtc_Pcf8563 rtc;
@@ -77,7 +79,7 @@ void printCurrentTime() {
 
     // Формирование даты в формате YYYYMMDD
     CurrentDate = (rtc.getYear() + 2000) * 10000 + rtc.getMonth() * 100 + rtc.getDay();
-
+    //CurrentDateShort = timeInfo.tm_mday * 10000 + (timeInfo.tm_mon + 1) * 100 + (timeInfo.tm_year % 100); // Формат DDMMYY
     // Формирование времени в формате HHMMSS
     CurrentTime = rtc.getHour() * 10000 + rtc.getMinute() * 100 + rtc.getSecond();
 }
@@ -89,16 +91,39 @@ uint16_t getCurrentTimeInMinutes() {
     return currentTimeInMinutes;
 }
 
-// Сохранение текущей даты в GROWE_MODE_DATE 
-void saveCurrentDateToGrowe() {
+// Сохранение текущей даты в GROWE_MODE_DATE как число дней с 1 января 1970
+void getCurrentDateToGrowe() {
     rtc.getDateTime();  // Обновляем время перед считыванием
     uint8_t day = rtc.getDay();
     uint8_t month = rtc.getMonth();
-    uint8_t year = rtc.getYear() % 100;  // Оставляем только последние 2 цифры года
-            // Упаковываем дату в 16 бит
-    GROWE_MODE_DATE = 0; // Очищаем переменную
-    GROWE_MODE_DATE |= (day & 0x1F) << 11; // День в старшие 5 бит
-    GROWE_MODE_DATE |= (month & 0x0F) << 7; // Месяц в следующие 4 бита
-    GROWE_MODE_DATE |= (year & 0x7F); // Год в младшие 7 бит
+    uint16_t year = rtc.getYear() + 2000;  // Полный год (например, 2025)
+    daysEopch = dateToDaysSinceEpoch(year, month, day);
+    GROWE_MODE_DATE = daysEopch;  // Сохраняем дату начала цикла роста
+}
+
+// Получение текущей даты как числа дней с 1 января 1970
+uint16_t getCurrentDate() {
+    rtc.getDateTime();  // Обновляем время перед считыванием
+    uint8_t day = rtc.getDay();
+    uint8_t month = rtc.getMonth();
+    uint16_t year = rtc.getYear() + 2000;  // Полный год (например, 2025)
+    daysEopch = dateToDaysSinceEpoch(year, month, day);    
+    return daysEopch;
+}
+
+// Функция преобразования даты в количество дней с 1 января 1970
+uint16_t dateToDaysSinceEpoch(uint16_t year, uint8_t month, uint8_t day) {
+    static const int daysBeforeMonth[] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+    if (year < 1970 || month < 1 || month > 12 || day < 1 || day > 31) {
+        Serial.println("Ошибка: некорректная дата! " + String(year) + "-" + String(month) + "-" + String(day));
+        return 0;  // Вернём 0 в случае ошибки
+    }
+    uint16_t days = (year - 1970) * 365 + (year - 1969) / 4 - (year - 1901) / 100 + (year - 1601) / 400;
+    days += daysBeforeMonth[month - 1];
+    days += day - 1;
+    if (month > 2 && ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))) {
+        days++;
+    }
+    return days;
 }
 

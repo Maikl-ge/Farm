@@ -32,7 +32,7 @@ void connectWebSocket();
 void resetWebSocketState();
 void handleWebSocketMessage(const String& message);
 void parceMessageFromServer(const String& messageFromServer);
-void saveCurrentDateToGrowe();
+void getCurrentDateToGrowe();
 
 void initializeWebSocket() {
     webSocket.onMessage([](WebsocketsMessage message) {
@@ -77,9 +77,15 @@ void parceMessageFromServer(const String& messageFromServer) {
         Serial.println("Команда от сервера: START");
 
         GROWE_MODE_TIME = currentTimeInMinutes;
+        saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);   
+        EEPROM.commit();        
         Serial.println("Время начала цикла роста: " + String(GROWE_MODE_TIME));
 
-        saveCurrentDateToGrowe();
+        getCurrentDateToGrowe();
+        saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
+        EEPROM.commit();
+        Serial.println("Дата начала цикла роста: " + String(GROWE_MODE_DATE));
+        
         // Распаковываем и выводим дату в читаемом виде
         uint8_t day = (GROWE_MODE_DATE >> 11) & 0x1F; // 5 бит для дня
         uint8_t month = (GROWE_MODE_DATE >> 7) & 0x0F; // 4 бита для месяца
@@ -92,10 +98,17 @@ void parceMessageFromServer(const String& messageFromServer) {
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);        
         Serial.println("Команда от сервера: STOP");
 
+        getCurrentDateToGrowe();
+        saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
+        EEPROM.commit();
+        Serial.println("Дата завершения цикла роста: " + String(GROWE_MODE_DATE));
+
         GROWE_MODE_TIME = currentTimeInMinutes;
+        saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);   
+        EEPROM.commit();      
         Serial.println("Время завершения цикла роста: " + String(GROWE_MODE_TIME));
-        
-        saveCurrentDateToGrowe();
+
+        getCurrentDateToGrowe();
         // Распаковываем и выводим дату в читаемом виде
         uint8_t day = (GROWE_MODE_DATE >> 11) & 0x1F; // 5 бит для дня
         uint8_t month = (GROWE_MODE_DATE >> 7) & 0x0F; // 4 бита для месяца

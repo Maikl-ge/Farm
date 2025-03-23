@@ -12,7 +12,8 @@ void fetchAndSaveSettings();
 void printEEPROMValues(int startAddress, int endAddress);
 String readStringFromEEPROM(int address, int maxLength);
 void updateCurrentTimeInMinutes();
-
+void saveUint16ToEEPROM();
+void saveUint16ToEEPROM(int address, uint16_t value);
 // Глобальные переменные профиля
 
 extern uint8_t ID_FARM;  // ID фермы
