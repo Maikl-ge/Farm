@@ -1,61 +1,107 @@
 #include <Arduino.h>
 #include <watering.h>
 #include <Profile.h>
+#include <globals.h>
 #include <pinout.h>
 #include <TimeModule.h>
+#include <status.h>
 
 // Глобальные переменные
 unsigned long lastWateringTimeSeconds = 0;  // Время последнего полива в секундах
 unsigned long pumpOnTimeSeconds = 0;        // Время включения насоса в секундах
-bool isDayTime = false;                     // День или ночь
+unsigned long drainDelayTimeSeconds = 0;    // Время задержки перед включением клапана слива
+unsigned long drainOnTimeSeconds = 0;       // Время включения клапана слива
 bool pumpIsOn = false;                      // Состояние насоса
-const unsigned long PUMP_RUN_TIME_SECONDS = 3 * 60; // Время работы насоса (секунды)
+bool drainIsOn = false;                     // Состояние клапана слива
+const unsigned long PUMP_RUN_TIME_SECONDS = 2 * 60; // Время работы насоса (2 минуты)
+const unsigned long DRAIN_OPEN_TIME = 57;   // Время работы клапана слива (57 секунд)
+const unsigned long SECONDS_IN_DAY = 86400; // Секунд в сутках
 
-// Инициализация пина для управления насосом
 void setupWatering() {
-    pinMode(PUMP_WATERING_PIN, OUTPUT);   // Пин для насоса полива
-    pinMode(WATER_OUT_PIN, OUTPUT);       // Пин для слива
-    digitalWrite(PUMP_WATERING_PIN, LOW); // Выключить насос по умолчанию
-    digitalWrite(WATER_OUT_PIN, LOW);     // Выключить слив по умолчанию
+    pinMode(PUMP_WATERING_PIN, OUTPUT);
+    pinMode(WATER_OUT_PIN, OUTPUT);
+    digitalWrite(PUMP_WATERING_PIN, LOW);
+    digitalWrite(WATER_OUT_PIN, LOW);
 }
 
-// Функция для обновления состояния полива
 void updateWatering() {
-    // Вывести текущее время (для отладки)
     printCurrentTime();
 
     // Преобразование времени в секунды с начала дня
-    unsigned long currentTimeSeconds = (CurrentTime / 10000) * 3600 +  // Часы
-                                       ((CurrentTime / 100) % 100) * 60 +  // Минуты
-                                       (CurrentTime % 100); // Секунды
+    unsigned long currentTimeSeconds = (CurrentTime / 10000) * 3600 +  
+                                       ((CurrentTime / 100) % 100) * 60 +  
+                                       (CurrentTime % 100);
 
-    // Преобразование времени восхода и заката в секунды
-    unsigned long sunriseTimeSeconds = SUNRISE * 60;
-    unsigned long sunsetTimeSeconds = SUNSET * 60;
+    // Интервал полива в секундах
+    unsigned long wateringIntervalSeconds = (wateringInterval * 60);
 
-    // Проверка, день или ночь
-    if (currentTimeSeconds >= sunriseTimeSeconds && currentTimeSeconds < sunsetTimeSeconds) {
-        isDayTime = true;
+    // Коррекция для перехода через полночь
+    unsigned long timeSinceLastWatering;
+    if (currentTimeSeconds >= lastWateringTimeSeconds) {
+        timeSinceLastWatering = currentTimeSeconds - lastWateringTimeSeconds;
     } else {
-        isDayTime = false;
+        timeSinceLastWatering = (SECONDS_IN_DAY - lastWateringTimeSeconds) + currentTimeSeconds;
     }
 
-    // Определение интервала полива (в секундах)
-    unsigned long wateringIntervalSeconds = isDayTime ;//? DAY_WATERING_INTERVAL : NIGHT_WATERING_INTERVAL;
+    // Отладочные сообщения
+    // Serial.print("Current Time (s): "); Serial.println(currentTimeSeconds);
+    // Serial.print("Last Watering (s): "); Serial.println(lastWateringTimeSeconds);
+    // Serial.print("Time Since Last (s): "); Serial.println(timeSinceLastWatering);
+    // Serial.print("Watering Interval (s): "); Serial.println(wateringIntervalSeconds);
 
-    // Проверка, прошло ли достаточно времени с последнего полива
-    if (!pumpIsOn && ((currentTimeSeconds + 86400 - lastWateringTimeSeconds) % 86400 >= wateringIntervalSeconds)) {
-        // Включение насоса
+    // Проверка на включение насоса
+    if (!pumpIsOn && timeSinceLastWatering >= wateringIntervalSeconds) {
         digitalWrite(PUMP_WATERING_PIN, HIGH);
+        Serial.println(" -------- Pump is ON");
+        PUMP_WATERING = true;
         pumpOnTimeSeconds = currentTimeSeconds;
         pumpIsOn = true;
     }
 
-    // Проверка, прошло ли время работы насоса
-    if (pumpIsOn && ((currentTimeSeconds + 86400 - pumpOnTimeSeconds) % 86400 >= PUMP_RUN_TIME_SECONDS)) {
-        // Выключение насоса
-        digitalWrite(PUMP_WATERING_PIN, LOW);
-        pumpIsOn = false;
-        lastWateringTimeSeconds = currentTimeSeconds;
+    // Проверка на выключение насоса
+    if (pumpIsOn) {
+        unsigned long pumpRunTime = (currentTimeSeconds >= pumpOnTimeSeconds) 
+            ? (currentTimeSeconds - pumpOnTimeSeconds) 
+            : (SECONDS_IN_DAY - pumpOnTimeSeconds + currentTimeSeconds);
+        
+        if (pumpRunTime >= PUMP_RUN_TIME_SECONDS) {
+            digitalWrite(PUMP_WATERING_PIN, LOW);
+            Serial.println(" -------- Pump is OFF");
+            PUMP_WATERING = false;
+            pumpIsOn = false;
+            lastWateringTimeSeconds = currentTimeSeconds;
+            drainDelayTimeSeconds = currentTimeSeconds + (wateringDraining * 60);
+            Serial.print("Drain Delay Set To (s): "); Serial.println(drainDelayTimeSeconds);
+        }
+    }
+
+    // Проверка на включение слива
+    if (!drainIsOn && drainDelayTimeSeconds > 0) {
+        unsigned long timeSincePumpOff = (currentTimeSeconds >= lastWateringTimeSeconds) 
+            ? (currentTimeSeconds - lastWateringTimeSeconds) 
+            : (SECONDS_IN_DAY - lastWateringTimeSeconds + currentTimeSeconds);
+        
+        if (timeSincePumpOff >= (wateringDraining * 60)) {
+            digitalWrite(WATER_OUT_PIN, HIGH);
+            Serial.println(" --------> Drain is ON -------");
+            WATER_OUT = true;
+            drainIsOn = true;
+            drainOnTimeSeconds = currentTimeSeconds;
+        }
+    }
+
+    // Проверка на выключение слива
+    if (drainIsOn) {
+        unsigned long drainRunTime = (currentTimeSeconds >= drainOnTimeSeconds) 
+            ? (currentTimeSeconds - drainOnTimeSeconds) 
+            : (SECONDS_IN_DAY - drainOnTimeSeconds + currentTimeSeconds);
+        
+        if (drainRunTime >= DRAIN_OPEN_TIME) {
+            digitalWrite(WATER_OUT_PIN, LOW);
+            Serial.println(" --------> Drain is OFF -------");
+            WATER_OUT = false;
+            drainIsOn = false;
+            drainDelayTimeSeconds = 0; // Сброс задержки
+        }
     }
 }

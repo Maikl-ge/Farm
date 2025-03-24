@@ -15,6 +15,7 @@
 #include <FS.h>
 #include "SDcard.h"
 #include "fanControl.h"
+#include "status.h"
 
 //#define WEBSOCKETS_MAX_DATA_SIZE 4096 // Максимальный размер данных
 
@@ -31,7 +32,7 @@ void initializePins(); // Прототип функции
 void updateLightBrightness(); // Прототип функции
 void updateWatering(); // Прототип функции
 void updateFanControl(); // Прототип функции
-void currentStatusFarm();  // Определение текущего статуса фермы
+void CurrentStatusFarm();  // Определение текущего статуса фермы
 
 // Объявление объекта класса AccessPoint
 AccessPoint accessPoint;   
@@ -72,13 +73,14 @@ void updateSensorsTask(void *parameter) {
         if (connected) {
         // Отправка ping каждые 10 секунд
         webSocket.ping();
-        }
+        } 
         vTaskDelay(10000 / portTICK_PERIOD_MS);  // Задержка 10000 мс
     }
 }
 
 void sendDataTask(void *parameter) {
     for (;;) {     
+        CurrentStatusFarm(); // Определение текущего статуса фермы  
         timeSlot = 0;
         unsigned long timeStartSlot = millis(); // Время начала передачи
             if(statusFarm == "Work") {
@@ -104,7 +106,6 @@ void sendDataTask(void *parameter) {
         //Serial.println("Время передачи: " + String(timeSlot) + " ms");  
         timeSlot = (millis() - timeStartSlot);      
         //Serial.println("Время слота: " + String(timeSlot) + " ms");   
-        currentStatusFarm(); // Определение текущего статуса фермы   
         vTaskDelay((60000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
 }
@@ -120,7 +121,6 @@ void updateMenuTask(void *parameter) {
 void updateWaterTask(void *parameter) {
     for (;;) {
         webSocket.poll(); // Обработка WebSocket событий
-        //currentStatusFarm(); // Определение текущего статуса фермы
         updateWater();
         updateWatering();
         updateLightBrightness();

@@ -5,6 +5,54 @@
 #include "Profile.h"
 #include <EEPROM.h>
 
+uint16_t totalMinutesElapsed = 0;
+uint16_t longPhacse1 = 0;
+uint16_t longPhacse2 = 0;
+uint16_t longPhacse3 = 0;
+uint16_t longPhacse4 = 0;
+uint16_t longPhacse5 = 0;
+uint16_t longPhacse6 = 0;
+uint16_t wateringInterval = 0;
+uint16_t wateringDraining = 0;
+int phaseToGrowe = -1;
+
+
+// Определение текущего статуса фермы
+void CurrentStatusFarm() {
+    EEPROMRead();  // Чтение Параметров из EEPROM
+    if(statusFarm == "Work" || statusFarm == "Stop") {
+        CheckStatusFarm();   // Проверка фазы роста
+    }
+    if(phaseToGrowe == 1) {
+        wateringInterval = PHASE1_WATERING;
+        wateringDraining = PHASE1_DRAINING;
+        Serial.println("Текущая фаза - 01");
+    } 
+    else if (phaseToGrowe == 2) { 
+        wateringInterval = PHASE2_WATERING; 
+        Serial.println("Текущая фаза - 02");
+    } 
+    else if (phaseToGrowe == 3) { 
+        wateringInterval = PHASE3_WATERING; 
+        Serial.println("Текущая фаза - 03");  
+    } 
+    else if (phaseToGrowe == 4) {
+        wateringInterval = PHASE4_WATERING;  
+        Serial.println("Текущая фаза - 04");  
+    } 
+    else if (phaseToGrowe == 5) {
+        wateringInterval = PHASE5_WATERING;  
+        Serial.println("Текущая фаза - 05");  
+    } 
+    else if (phaseToGrowe == 6) {
+        wateringInterval = PHASE6_WATERING;  
+        Serial.println("Текущая фаза - 06");  
+    } 
+    else {
+        Serial.println("Ошибка: Фаза не определена.");
+    } 
+}
+
 // Функция для чтения двух байт из EEPROM и объединения их в uint16_t
 uint16_t readFromEEPROM(int address) {
     return EEPROM.read(address) | (EEPROM.read(address + 1) << 8);
@@ -12,39 +60,46 @@ uint16_t readFromEEPROM(int address) {
 void saveStringToEEPROM(int address, String& statusFarm);
 
 // Определение текущего статуса фермы
-void currentStatusFarm() {
-    EEPROMRead();
+void CheckStatusFarm() {
     printCurrentTime();
-    uint16_t longPhacse1 = PHASE1_DURATION * 60;
-    uint16_t longPhacse2 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60;
-    uint16_t longPhacse3 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60;
-    uint16_t longPhacse4 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60;
-    uint16_t longPhacse5 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60;
-    uint16_t longPhacse6 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60 + PHASE6_DURATION * 60;
+    longPhacse1 = PHASE1_DURATION * 60;
+    longPhacse2 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60;
+    longPhacse3 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60;
+    longPhacse4 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60;
+    longPhacse5 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60;
+    longPhacse6 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60 + PHASE6_DURATION * 60;
     
-    uint16_t currentTimeInMinutes = getCurrentTimeInMinutes();  // Получаем текущее время в минутах
+    currentTimeInMinutes = getCurrentTimeInMinutes();  // Получаем текущее время в минутах
     uint16_t currentDate = getCurrentDate(); // Получаем текущую дату в днях с 1 января 1970
     GROWE_MODE_DATE = readFromEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS);
     GROWE_MODE_TIME = readFromEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS);
-    uint16_t totalMinutesElapsed;
+
 
     uint16_t daysElapsed = currentDate - GROWE_MODE_DATE;
-    if(daysElapsed == 0 || daysElapsed == 1) {
-        totalMinutesElapsed = currentTimeInMinutes + (1440 - GROWE_MODE_TIME);
-    } else {
+    if(daysElapsed == 0) {
+        totalMinutesElapsed = (currentTimeInMinutes - GROWE_MODE_TIME);
+    } 
+    else if (daysElapsed == 1) {  
+        totalMinutesElapsed = currentTimeInMinutes + (1440 - GROWE_MODE_TIME);   
+    } 
+    else {
         totalMinutesElapsed = ((daysElapsed -1) * 1440) + currentTimeInMinutes + (1440 - GROWE_MODE_TIME);
     }
-    if((longPhacse6 - totalMinutesElapsed) == 0 || ((longPhacse6 - totalMinutesElapsed) + 1) == 0) {
-        statusFarm = "End";
-        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
-        EEPROM.commit();
-        Serial.println("Выращивание завершено. Статус фермы: " + statusFarm);
-    }
 
-    Serial.println("Прошло totalMinutesElapsed   " + String(totalMinutesElapsed) + " минут"); 
-    Serial.println("Полное время выращивания   " + String(longPhacse6) + " минут или " + String(longPhacse6 / 60) + " часов");
-    Serial.println("Осталось времени  " + String(longPhacse6 - totalMinutesElapsed) + " минут или " + String((longPhacse6 - totalMinutesElapsed) / 60) + " часов");
-    // Проверяем фазы роста
+    checkPhaseToGrowe();  // Проверка фазы роста
+}
+
+uint16_t convertTimeToMinutes(uint16_t time) {
+    uint8_t hours = time / 100;
+    uint8_t minutes = time % 100;
+    return hours * 60 + minutes;
+}
+
+void checkPhaseToGrowe() {
+    Serial.println("Полное время выращивания       " + String(longPhacse6) + " минут или " + String(longPhacse6 / 60) + " часов");
+    Serial.println("Прошло время со старта         " + String(totalMinutesElapsed) + " минут"); 
+    Serial.println("Осталось времени до завершения " + String(longPhacse6 - totalMinutesElapsed) + " минут или " + String((longPhacse6 - totalMinutesElapsed) / 60) + " часов");
+
     uint16_t phaseEndTimes[] = {
         longPhacse1,
         longPhacse2,
@@ -63,17 +118,24 @@ void currentStatusFarm() {
         "Текущая фаза 6 "
     };
 
+    // Если выращивание завершилось
+    if ((longPhacse6 - totalMinutesElapsed) == 0 || ((longPhacse6 - totalMinutesElapsed) + 1) == 0) {
+        statusFarm = "End";
+        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
+        EEPROM.commit();
+        Serial.println("Выращивание завершено. Статус фермы: " + statusFarm);
+    }
+
+    // Обнуляем phaseToGrowe перед проверкой
+    phaseToGrowe = -1;
+
     for (int i = 0; i < 6; i++) {
-        //Serial.println(String(phaseEndTimes[i]));
-        if (totalMinutesElapsed <= phaseEndTimes[i]) {
-            Serial.println(phaseMessages[i]);
+        if (totalMinutesElapsed <= phaseEndTimes[i]) { 
+            phaseToGrowe = i + 1; // Начинаем фазы с 1, а не 0
             break;
         }
     }
-}
-
-uint16_t convertTimeToMinutes(uint16_t time) {
-    uint8_t hours = time / 100;
-    uint8_t minutes = time % 100;
-    return hours * 60 + minutes;
+    if (phaseToGrowe == -1) {
+        Serial.println("Ошибка: totalMinutesElapsed больше всех фаз! Фаза не определена.");
+    }
 }
