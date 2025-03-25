@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "SensorsModule.h"
-#include "Pinout.h" // Подключаем Pinout.h
+#include "pinout.h" // Подключаем Pinout.h
 #include <Wire.h> // Для работы с I2C
 #include <DallasTemperature.h> // Для работы с DS18B20
 #include <OneWire.h> // Для работы с 1-Wire

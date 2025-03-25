@@ -75,7 +75,7 @@ void serializeStatus() {
 
         doc["LIGHT"] = LIGHT;                // Свет (PWM) (GPIO02, нога 24)
         doc["FAN_RACK"] = FAN_RACK;          // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
-        doc["FAN_SHELF"] = FAN_SHELF;        // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+        doc["FAN_SHELF"] = FAN_VENT;        // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
         doc["FAN_CIRC"] = FAN_CIRC;          // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
         doc["FAN_INLET"] = FAN_INLET;        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
         doc["HITER_AIR"] = HITER_AIR;        // Обогрев камеры (PWM) (GPIO13, нога 15)
@@ -99,6 +99,5 @@ void serializeStatus() {
         Serial.print("Статус  ");
         transmitionTime = millis();  // Запоминаем время отправки
         sendWebSocketMessage(messageToSend);  // Отправка сообщения
-        
 }
 

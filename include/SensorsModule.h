@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include "Pinout.h"
+#include "pinout.h"
 
 // Объявление глобальной переменной
 extern uint8_t sensorState;

@@ -31,12 +31,12 @@
 // Пины для управления устройствами PWM
 #define LIGHT_PIN  2  // Свет (PWM) (GPIO02, нога 24)
 #define FAN_RACK_PIN 16     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
-#define FAN_SHELF_PIN 17    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+#define FAN_VENT_PIN 17    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
 #define FAN_CIRC_PIN 15     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
 #define FAN_INLET_PIN 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
 #define HITER_AIR_PIN 13    // Обогрев камеры (PWM) (GPIO13, нога 15)
 #define HITER_WATER_PIN 14  // Нагрев воды (PWM) (GPIO14, нога 12)
-#define FAN_OPTION_PIN 25   //Опциональный вентилятор (GPIO25, нога 9)
+#define FAN_OPTION_PIN    //Опциональный вентилятор (GPIO25, нога 9)
 
 // Пины для управления нагрузками ON/OFF
 #define OSMOS_ON_PIN 32 // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
@@ -48,7 +48,7 @@
 // Шаговый двигатель (Step, Dir, Enable)
 #define STEP_PIN 1   // Шаговый двигатель (GPIO1, нога 35)
 #define DIR_PIN 0   // Направление (GPIO0, нога 25)
-#define ENABLE_PIN   // Включение (GPIO0, нога )
+#define ENABLE_PIN 25 // Включение шагового двигателя (GPIO21, нога 40)  // Включение (GPIO0, нога )
 
 // Используемые для встроенной памяти
 // GPIO6-11: Рекомендуется не использовать для ввода/вывода, так как они подключены к встроенной флеш-памяти.
@@ -83,7 +83,7 @@
 // GPIO00     нога 25  <-- DIR_PIN        // Направление (DIR_PIN)
 // GPIO04     нога 26 --> ONE_WIRE_BUS    // 1-Wire для DS18B20
 // GPIO16     нога 27  <-- FAN_CIRC_PIN   // Циркуляция внутри камеры (PWM) (FAN_CIRC_PIN)
-// GPIO17     нога 28  <-- FAN_SHELF_PIN  // Циркуляция внутри 3 и 4 полки (PWM) (FAN_SHELF_PIN)
+// GPIO17     нога 28  <-- FAN_VENT_PIN  // Циркуляция внутри 3 и 4 полки (PWM) (FAN_VENT_PIN)
 // GPIO05     нога 29 --> SD_CS           // Выбор устройства (CS) для SD-карты 
 // GPIO18     нога 30 --> SD_SCK          // Шина тактирования I2C (SCL) (SD_SCK)
 // GPIO19     нога 31 --> SD_MISO         // Шина данных I2C (SDA) (SD_MISO)

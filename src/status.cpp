@@ -29,13 +29,15 @@ void CurrentStatusFarm() {
         wateringDraining = PHASE1_DRAINING;
         currentCirculation = PHASE1_CIRCULATION;
         currentVentilation = PHASE1_VENTILATION;
+        currentRotation = PHASE1_ROTATION;
         Serial.println("Текущая фаза - 01");
     } 
     else if (phaseToGrowe == 2) { 
         wateringInterval = PHASE2_WATERING; 
         wateringDraining = PHASE2_DRAINING;  
         currentCirculation = PHASE2_CIRCULATION;
-        currentVentilation = PHASE2_VENTILATION;     
+        currentVentilation = PHASE2_VENTILATION; 
+        currentRotation = PHASE2_ROTATION;    
         Serial.println("Текущая фаза - 02");
     } 
     else if (phaseToGrowe == 3) { 
@@ -43,20 +45,23 @@ void CurrentStatusFarm() {
         wateringDraining = PHASE3_DRAINING;
         currentCirculation = PHASE3_CIRCULATION;
         currentVentilation = PHASE3_VENTILATION; 
+        currentRotation = PHASE3_ROTATION;
         Serial.println("Текущая фаза - 03");  
     } 
     else if (phaseToGrowe == 4) {
         wateringInterval = PHASE4_WATERING; 
         wateringDraining = PHASE4_DRAINING;
         currentCirculation = PHASE4_CIRCULATION;
-        currentVentilation = PHASE4_VENTILATION; 
+        currentVentilation = PHASE4_VENTILATION;
+        currentRotation = PHASE4_ROTATION; 
         Serial.println("Текущая фаза - 04");  
     } 
     else if (phaseToGrowe == 5) {
         wateringInterval = PHASE5_WATERING; 
         wateringDraining = PHASE5_DRAINING;
         currentCirculation = PHASE5_CIRCULATION;
-        currentVentilation = PHASE5_VENTILATION; 
+        currentVentilation = PHASE5_VENTILATION;
+        currentRotation = PHASE5_ROTATION; 
         Serial.println("Текущая фаза - 05");  
     } 
     else if (phaseToGrowe == 6) {
@@ -64,6 +69,7 @@ void CurrentStatusFarm() {
         wateringDraining = PHASE6_DRAINING;
         currentCirculation = PHASE6_CIRCULATION;
         currentVentilation = PHASE6_VENTILATION;  
+        currentRotation = PHASE6_ROTATION;
         Serial.println("Текущая фаза - 06");  
     } 
     else {

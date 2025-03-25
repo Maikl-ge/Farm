@@ -44,7 +44,7 @@ void updateLightBrightness() {
 
     //SUNRISE = (10 * 60) +37;  // Время восхода для теста
 
-    long currentTimeSeconds = (CurrentTime / 10000) * 3600 + ((CurrentTime / 100) % 100) * 60 + (CurrentTime % 100);
+    long currentLightTimeSeconds = (CurrentTime / 10000) * 3600 + ((CurrentTime / 100) % 100) * 60 + (CurrentTime % 100);
 
     int targetBrightness = 0;
 
@@ -56,15 +56,15 @@ void updateLightBrightness() {
     long sunsetEnd = SUNSET * 60;
 
     // Рассчитать яркость в зависимости от времени
-    if (currentTimeSeconds >= sunriseStart && currentTimeSeconds <= sunriseEnd) {
+    if (currentLightTimeSeconds >= sunriseStart && currentLightTimeSeconds <= sunriseEnd) {
         // Рассвет: от MIN_BRIGHTNESS до MAX_BRIGHTNESS
-        float progress = float(currentTimeSeconds - sunriseStart) / (sunriseEnd - sunriseStart);
+        float progress = float(currentLightTimeSeconds - sunriseStart) / (sunriseEnd - sunriseStart);
         targetBrightness = MIN_BRIGHTNESS + progress * (MAX_BRIGHTNESS - MIN_BRIGHTNESS);
-    } else if (currentTimeSeconds >= sunsetStart && currentTimeSeconds <= sunsetEnd) {
+    } else if (currentLightTimeSeconds >= sunsetStart && currentLightTimeSeconds <= sunsetEnd) {
         // Закат: от MAX_BRIGHTNESS до MIN_BRIGHTNESS
-        float progress = float(currentTimeSeconds - sunsetStart) / (sunsetEnd - sunsetStart);
+        float progress = float(currentLightTimeSeconds - sunsetStart) / (sunsetEnd - sunsetStart);
         targetBrightness = MAX_BRIGHTNESS - progress * (MAX_BRIGHTNESS - MIN_BRIGHTNESS);
-    } else if (currentTimeSeconds > sunriseEnd && currentTimeSeconds < sunsetStart) {
+    } else if (currentLightTimeSeconds > sunriseEnd && currentLightTimeSeconds < sunsetStart) {
         // День
         targetBrightness = MAX_BRIGHTNESS;
     } else {

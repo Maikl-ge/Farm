@@ -4,9 +4,10 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <Wire.h>
-#include <Pinout.h>
+#include <pinout.h>
 #include <TimeLib.h>
 #include <Profile.h>
+#include <globals.h>
 
 
 //int8_t timeZone = 3; // Часовой пояс

@@ -16,6 +16,7 @@ extern long transmitionTime; // Время передачи сообщения
 extern unsigned long timeSlot; // Время Слота передачи сообщения
 extern uint16_t currentVentilation;  // Текущая вентиляция
 extern uint16_t  currentCirculation; // Текущая циркуляция
+extern uint16_t  currentRotation; // Текущая ротация
 
 // Переменные для управления устройствами On/Off
 extern bool OSMOS_ON;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
@@ -27,7 +28,7 @@ extern bool STEAM_IN;          // Парогенератор (ON/OFF) (GPIO3, н
 // Переменные для управления устройствами PWM
 extern int LIGHT;  // Свет (PWM) (GPIO02, нога 24)
 extern int FAN_RACK;     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
-extern int FAN_SHELF;    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+extern int FAN_VENT;    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
 extern int FAN_CIRC;     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
 extern int FAN_INLET;    // Подача воздуха извне (PWM) (GPIO12, нога 13)
 extern int HITER_AIR;    // Обогрев камеры (PWM) (GPIO13, нога 15)
@@ -52,6 +53,7 @@ void updateLightBrightness(); // Обновление яркости света
 void connectToWiFi(); // Подключение к WiFi
 void saveUint16ToEEPROM(int address, uint16_t value); 
 void serializeStatus(); // Сериализация и отправка Статуса фермы серверу
-void someFunction();
+void setupStepper();
+
 
 #endif // GLOBALS_H

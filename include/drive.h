@@ -3,4 +3,7 @@
 
 #include <Arduino.h>
 
+void setupStepper();
+void updateStepperControl();
+
 #endif // DRIVE_H

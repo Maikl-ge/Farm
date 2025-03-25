@@ -6,7 +6,7 @@
 #include <sdios.h>
 #include <TimeModule.h>
 #include <DataSender.h>
-#include <SDCard.h>
+#include <SDcard.h>
 
 SdFat sd;
 SdFile file;

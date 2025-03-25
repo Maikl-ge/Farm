@@ -33,6 +33,8 @@ void updateLightBrightness(); // Прототип функции
 void updateWatering(); // Прототип функции
 void updateFanControl(); // Прототип функции
 void CurrentStatusFarm();  // Определение текущего статуса фермы
+void setupStepper(); // Инициализация шагового двигателя
+void updateStepperControl(); // Обновление состояния двигателя
 
 // Объявление объекта класса AccessPoint
 AccessPoint accessPoint;   
@@ -125,6 +127,7 @@ void updateWaterTask(void *parameter) {
         updateWatering();
         updateLightBrightness();
         updateFanControl();
+        //updateStepperControl();
         vTaskDelay(100 / portTICK_PERIOD_MS);  // Задержка 100 мс
     }
 }
@@ -170,6 +173,8 @@ void setup() {
     setupWater(); // Инициализация модуля управления водой
 
     initializeSensors();  // Инициализация модуля сенсоров  
+
+    //setupStepper(); // Инициализация модуля управления шаговым двигателем
 
     setupFan(); // Инициализация модуля вентиляции  
     updateFanControl(); // Обновление вентиляции
