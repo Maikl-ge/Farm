@@ -8,6 +8,8 @@ int8_t timeZone = 4; // Часовой пояс
 bool sendMessageOK = false;  // Флаг отправки сообщения
 long transmitionTime = 0; // Время передачи сообщения
 unsigned long timeSlot = 0; // Время Слота передачи сообщения
+uint16_t currentVentilation = 0;  // Текущая вентиляция
+uint16_t currentCirculation = 0;  // Текущая циркуляция
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

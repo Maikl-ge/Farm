@@ -14,6 +14,8 @@ extern int8_t timeZone; // Часовой пояс
 extern bool sendMessageOK;  // Флаг отправки сообщения
 extern long transmitionTime; // Время передачи сообщения
 extern unsigned long timeSlot; // Время Слота передачи сообщения
+extern uint16_t currentVentilation;  // Текущая вентиляция
+extern uint16_t  currentCirculation; // Текущая циркуляция
 
 // Переменные для управления устройствами On/Off
 extern bool OSMOS_ON;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

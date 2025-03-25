@@ -4,6 +4,7 @@
 #include "TimeModule.h"
 #include "Profile.h"
 #include <EEPROM.h>
+#include <globals.h>
 
 uint16_t totalMinutesElapsed = 0;
 uint16_t longPhacse1 = 0;
@@ -26,26 +27,43 @@ void CurrentStatusFarm() {
     if(phaseToGrowe == 1) {
         wateringInterval = PHASE1_WATERING;
         wateringDraining = PHASE1_DRAINING;
+        currentCirculation = PHASE1_CIRCULATION;
+        currentVentilation = PHASE1_VENTILATION;
         Serial.println("Текущая фаза - 01");
     } 
     else if (phaseToGrowe == 2) { 
         wateringInterval = PHASE2_WATERING; 
+        wateringDraining = PHASE2_DRAINING;  
+        currentCirculation = PHASE2_CIRCULATION;
+        currentVentilation = PHASE2_VENTILATION;     
         Serial.println("Текущая фаза - 02");
     } 
     else if (phaseToGrowe == 3) { 
-        wateringInterval = PHASE3_WATERING; 
+        wateringInterval = PHASE3_WATERING;
+        wateringDraining = PHASE3_DRAINING;
+        currentCirculation = PHASE3_CIRCULATION;
+        currentVentilation = PHASE3_VENTILATION; 
         Serial.println("Текущая фаза - 03");  
     } 
     else if (phaseToGrowe == 4) {
-        wateringInterval = PHASE4_WATERING;  
+        wateringInterval = PHASE4_WATERING; 
+        wateringDraining = PHASE4_DRAINING;
+        currentCirculation = PHASE4_CIRCULATION;
+        currentVentilation = PHASE4_VENTILATION; 
         Serial.println("Текущая фаза - 04");  
     } 
     else if (phaseToGrowe == 5) {
-        wateringInterval = PHASE5_WATERING;  
+        wateringInterval = PHASE5_WATERING; 
+        wateringDraining = PHASE5_DRAINING;
+        currentCirculation = PHASE5_CIRCULATION;
+        currentVentilation = PHASE5_VENTILATION; 
         Serial.println("Текущая фаза - 05");  
     } 
     else if (phaseToGrowe == 6) {
-        wateringInterval = PHASE6_WATERING;  
+        wateringInterval = PHASE6_WATERING;
+        wateringDraining = PHASE6_DRAINING;
+        currentCirculation = PHASE6_CIRCULATION;
+        currentVentilation = PHASE6_VENTILATION;  
         Serial.println("Текущая фаза - 06");  
     } 
     else {

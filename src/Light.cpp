@@ -7,7 +7,7 @@
 
 uint16_t transitionTime = 15 * 60; // Длительность (в секундах) перехода от рассвета ко дню и от дня к закату
 uint16_t currentTimeMinutes; // Текущее время в минутах
-unsigned long lastUpdateTime = 0; // Последнее обновление яркости
+unsigned long lastUpdateLightTime = 0; // Последнее обновление яркости
 unsigned long brightnessInterval = 0; // Интервал изменения яркости в мс
 const float GAMMA = 2.2; // Коэффициент гамма-коррекции
 
@@ -17,17 +17,17 @@ int currentBrightness = 0; // Текущая яркость (0-100)
 // Константы для значений яркости
 const int MAX_BRIGHTNESS = 1023;
 const int MIN_BRIGHTNESS = 0;
-const int pwmChannel = 0;  // Канал PWM для управления светом
+const int pwmLightChannel = 0;  // Канал PWM для управления светом
 const int pwmFrequency = 5000; // Частота PWM
 const int pwmResolution = 10;  // Разрешение PWM (10 бит)
 
 
 void setupLightControl() {
     //Настройка канала PWM
-    ledcSetup(pwmChannel, pwmFrequency, pwmResolution);
+    ledcSetup(pwmLightChannel, pwmFrequency, pwmResolution);
     // Привязка канала PWM к пину
-    ledcAttachPin(LIGHT_PIN, pwmChannel);
-    ledcWrite(pwmChannel, MIN_BRIGHTNESS);
+    ledcAttachPin(LIGHT_PIN, pwmLightChannel);
+    ledcWrite(pwmLightChannel, MIN_BRIGHTNESS);
     brightnessInterval = (transitionTime * 1000) / MAX_BRIGHTNESS; // Интервал в миллисекундах
 }
 
@@ -78,8 +78,9 @@ void updateLightBrightness() {
     // Обновляем яркость только при изменении
     if (currentBrightness != correctedBrightness) {
         currentBrightness = correctedBrightness;
-        ledcWrite(pwmChannel, currentBrightness);
-        Serial.print("Яркость (с гамма-коррекцией): ");
-        Serial.println(currentBrightness);
+        ledcWrite(pwmLightChannel, currentBrightness);
+        LIGHT = currentBrightness;
+        // Serial.print("Яркость (с гамма-коррекцией): ");
+        // Serial.println(currentBrightness);
     }
 }
