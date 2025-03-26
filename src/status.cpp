@@ -30,6 +30,9 @@ void CurrentStatusFarm() {
         currentCirculation = PHASE1_CIRCULATION;
         currentVentilation = PHASE1_VENTILATION;
         currentRotation = PHASE1_ROTATION;
+        currentTemperatura = PHASE1_TEMP;
+        currentHumidity = PHASE1_HUMIDITY;
+        currentPhase = "Soak";  // Замачивание
         Serial.println("Текущая фаза - 01");
     } 
     else if (phaseToGrowe == 2) { 
@@ -37,7 +40,8 @@ void CurrentStatusFarm() {
         wateringDraining = PHASE2_DRAINING;  
         currentCirculation = PHASE2_CIRCULATION;
         currentVentilation = PHASE2_VENTILATION; 
-        currentRotation = PHASE2_ROTATION;    
+        currentRotation = PHASE2_ROTATION;   
+        currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 02");
     } 
     else if (phaseToGrowe == 3) { 
@@ -46,6 +50,7 @@ void CurrentStatusFarm() {
         currentCirculation = PHASE3_CIRCULATION;
         currentVentilation = PHASE3_VENTILATION; 
         currentRotation = PHASE3_ROTATION;
+        currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 03");  
     } 
     else if (phaseToGrowe == 4) {
@@ -54,6 +59,7 @@ void CurrentStatusFarm() {
         currentCirculation = PHASE4_CIRCULATION;
         currentVentilation = PHASE4_VENTILATION;
         currentRotation = PHASE4_ROTATION; 
+        currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 04");  
     } 
     else if (phaseToGrowe == 5) {
@@ -62,6 +68,7 @@ void CurrentStatusFarm() {
         currentCirculation = PHASE5_CIRCULATION;
         currentVentilation = PHASE5_VENTILATION;
         currentRotation = PHASE5_ROTATION; 
+        currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 05");  
     } 
     else if (phaseToGrowe == 6) {
@@ -70,6 +77,7 @@ void CurrentStatusFarm() {
         currentCirculation = PHASE6_CIRCULATION;
         currentVentilation = PHASE6_VENTILATION;  
         currentRotation = PHASE6_ROTATION;
+        currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 06");  
     } 
     else {

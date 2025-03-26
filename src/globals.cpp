@@ -11,6 +11,9 @@ unsigned long timeSlot = 0; // Время Слота передачи сообщ
 uint16_t currentVentilation = 0;  // Текущая вентиляция
 uint16_t currentCirculation = 0;  // Текущая циркуляция
 uint16_t  currentRotation; // Текущая ротация
+String currentPhase = ""; // Текущая фаза
+extern float currentTemperatura = 0; // Целевая температура (°C)
+extern float currentHumidity = 0;    // Целевая влажность (%)
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
@@ -30,7 +33,7 @@ int HITER_WATER = 0;  // Нагрев воды (PWM) (GPIO14, нога 12)
 int FAN_OPTION = 0;   // Опциональный вентилятор (GPIO25, нога 9)
 
 // Переменные для управления шаговым двигателем
-int STEP = 125;  // Шаговый двигатель (GPIO1, нога 35)
+int STEP = 0;  // Шаговый двигатель (GPIO1, нога 35)
 String DIR = "left";   // Направление (GPIO0, нога 25)
 bool ENABLE = false;   // Включение (GPIO0, нога 25)
 

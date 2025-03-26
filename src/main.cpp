@@ -127,7 +127,8 @@ void updateWaterTask(void *parameter) {
         updateWatering();
         updateLightBrightness();
         updateFanControl();
-        //updateStepperControl();
+        updateStepperControl();
+        updateClimateControl(); // Обновление климат-контроля
         vTaskDelay(100 / portTICK_PERIOD_MS);  // Задержка 100 мс
     }
 }
@@ -174,10 +175,12 @@ void setup() {
 
     initializeSensors();  // Инициализация модуля сенсоров  
 
-    //setupStepper(); // Инициализация модуля управления шаговым двигателем
+    setupStepper(); // Инициализация модуля управления шаговым двигателем
 
     setupFan(); // Инициализация модуля вентиляции  
     updateFanControl(); // Обновление вентиляции
+
+    setupClimateControl(); // Инициализация модуля климат-контроля
 
     // Подключение к WiFi
     WiFi.begin(ssid, password);

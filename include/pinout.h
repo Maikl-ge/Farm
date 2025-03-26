@@ -30,7 +30,7 @@
 // Выходы для управления фермой ----------------------------
 // Пины для управления устройствами PWM
 #define LIGHT_PIN  2  // Свет (PWM) (GPIO02, нога 24)
-#define FAN_RACK_PIN 16     // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
+#define FAN_RACK_PIN      // Циркуляция внутри 1 и 2 полки (PWM) (GPIO15, нога 23)
 #define FAN_VENT_PIN 17    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
 #define FAN_CIRC_PIN 15     // Циркуляция внутри камеры (PWM) (GPIO16, нога 27)
 #define FAN_INLET_PIN 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
@@ -46,7 +46,7 @@
 #define STEAM_IN_PIN 3   // Парогенератор (ON/OFF) (GPIO3, нога 34)
 
 // Шаговый двигатель (Step, Dir, Enable)
-#define STEP_PIN 1   // Шаговый двигатель (GPIO1, нога 35)
+#define STEP_PIN 16   // Шаговый двигатель (GPIO1, нога 35)
 #define DIR_PIN 0   // Направление (GPIO0, нога 25)
 #define ENABLE_PIN 25 // Включение шагового двигателя (GPIO21, нога 40)  // Включение (GPIO0, нога )
 

@@ -2,9 +2,7 @@
 #define SENSORS_MODULE_H
 
 #include <Arduino.h>
-#include <Wire.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+
 #include "pinout.h"
 
 // Объявление глобальной переменной
