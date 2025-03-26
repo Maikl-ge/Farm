@@ -195,5 +195,6 @@ extern uint16_t PHASE6_WATERING;
 extern uint16_t PHASE6_DRAINING;
 extern uint16_t PHASE6_ROTATION;
 
+void CurrentStatusFarm();
 
 #endif //PROFILE_H

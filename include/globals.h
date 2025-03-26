@@ -59,6 +59,7 @@ void serializeStatus(); // Сериализация и отправка Стат
 void setupStepper();
 void setupClimateControl(); // Инициализация модуля управления климатом
 void updateClimateControl(); // Обновление управления климатом
+void CheckStatusFarm(); // Проверка фазы роста
 
 
 #endif // GLOBALS_H

@@ -20,7 +20,7 @@ int phaseToGrowe = -1;
 
 // Определение текущего статуса фермы
 void CurrentStatusFarm() {
-    EEPROMRead();  // Чтение Параметров из EEPROM
+    //EEPROMRead();  // Чтение Параметров из EEPROM
     if(statusFarm == "Work" || statusFarm == "Stop") {
         CheckStatusFarm();   // Проверка фазы роста
     }
@@ -30,8 +30,8 @@ void CurrentStatusFarm() {
         currentCirculation = PHASE1_CIRCULATION;
         currentVentilation = PHASE1_VENTILATION;
         currentRotation = PHASE1_ROTATION;
-        currentTemperatura = PHASE1_TEMP;
-        currentHumidity = PHASE1_HUMIDITY;
+        currentTemperatura = PHASE1_TEMP / 10.0;
+        currentHumidity = PHASE1_HUMIDITY / 10.0;
         currentPhase = "Soak";  // Замачивание
         Serial.println("Текущая фаза - 01");
     } 
@@ -40,7 +40,9 @@ void CurrentStatusFarm() {
         wateringDraining = PHASE2_DRAINING;  
         currentCirculation = PHASE2_CIRCULATION;
         currentVentilation = PHASE2_VENTILATION; 
-        currentRotation = PHASE2_ROTATION;   
+        currentRotation = PHASE2_ROTATION; 
+        currentTemperatura = PHASE2_TEMP / 10.0;
+        currentHumidity = PHASE2_HUMIDITY / 10.0;  
         currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 02");
     } 

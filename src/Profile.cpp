@@ -229,6 +229,7 @@ void fetchAndSaveSettings() {
         Serial.println("Все настройки сохранены в глобальные переменные.");
         // Сохраняем настройки в EEPROM
         saveSettingsToEEPROM();
+        CurrentStatusFarm();
 }
 
 // Функция для чтения двух байт из EEPROM и объединения их в uint16_t

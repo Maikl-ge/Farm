@@ -16,7 +16,7 @@ extern uint16_t wateringDraining;
 
 extern int phaseToGrowe;
 
-void CheckStatusFarm();
+//void CheckStatusFarm();
 void currentStatusFarm();
 void checkPhaseToGrowe();
 void saveUint16ToEEPROM(int address, uint16_t value);

@@ -127,7 +127,7 @@ void updateWaterTask(void *parameter) {
         updateWatering();
         updateLightBrightness();
         updateFanControl();
-        updateStepperControl();
+        updateStepperControl(); // Обновление состояния двигателя
         updateClimateControl(); // Обновление климат-контроля
         vTaskDelay(100 / portTICK_PERIOD_MS);  // Задержка 100 мс
     }

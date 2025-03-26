@@ -11,7 +11,7 @@ float tempRange;
 
 // Инициализация пинов для управления водой
 void setupWater() {
-    pinMode(OSMOS_ON_PIN, OUTPUT);
+    pinMode(OSMOS_ON_PIN, OUTPUT);  // Пии клапана подачи чистой воды
     pinMode(PUMP_TRANSFER_PIN, OUTPUT);
 
     digitalWrite(OSMOS_ON_PIN, LOW);
@@ -33,9 +33,9 @@ void controlWaterLevel() {
     }
 
     if (max_water_level == 1) {
-        digitalWrite(PUMP_TRANSFER_PIN, LOW);  // Выключаем насос
+        digitalWrite(PUMP_TRANSFER_PIN, LOW);  // Выключаем насоса подачи в бок полива
     } else if (min_water_level == 0) {
-        digitalWrite(PUMP_TRANSFER_PIN, HIGH); // Включаем насос
+        digitalWrite(PUMP_TRANSFER_PIN, HIGH); // Включаем насоса подачи в бок полива
     }
 }
 
@@ -44,10 +44,10 @@ void controlWaterHeater() {
     float tempError = 0; //WATER_TEMPERATURE - water_temperature_osmo;
 
     if (tempError > hysteresis) {
-        // Температура ниже - включаем нагрев
+        // Температура ниже - включаем нагрев воды в баке полива
         ledcWrite(6, 1023);
     } else if (tempError < -hysteresis) {
-        // Температура выше - выключаем нагрев
+        // Температура выше - выключаем нагрев воды в баке полива
         ledcWrite(6, 0);
     } else {
         // Пропорциональное управление
