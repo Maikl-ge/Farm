@@ -2,7 +2,6 @@
 #include <airBox.h>
 #include <pinout.h>
 #include <globals.h>
-#include <PID_v1.h>
 #include <SensorsModule.h>
 #include <status.h>
 
@@ -11,30 +10,22 @@ void CurrentStatusFarm();
 // Константы
 const int PWM_FREQUENCY = 5000;
 const int PWM_RESOLUTION = 10;
-const int HITER_AIR_CHANNEL = 0;
+const int HITER_AIR_CHANNEL = 2;
 const int FAN_INLET_CHANNEL = 3;
 const float TEMP_TOLERANCE = 0.5;
 const float HUM_TOLERANCE = 1.0;
-const int MIN_PWM = 100;  // Обновлено: теперь вентилятор всегда стартует
+const int MIN_PWM = 0;
 const int MAX_PWM = 1023;
 
-// PID параметры (оптимизированные)
-const double KP_TEMP = 40.0, KI_TEMP = 0.5, KD_TEMP = 5.0;
-const double KP_FAN = 50.0, KI_FAN = 0.5, KD_FAN = 10.0;
+// Коэффициенты пропорционального управления
+const float K_TEMP = 100.0; // Коэффициент для нагревателя (PWM на °C ошибки)
+const float K_FAN_TEMP = 150.0; // Коэффициент для вентилятора по температуре (PWM на °C)
+const float K_FAN_HUM = 10.0;  // Коэффициент для вентилятора по влажности (PWM на %)
 
-// Переменные PID
-double tempInput = 0.0, tempOutput = 0.0, tempSetpoint = 0.0;
-double fanInput = 0.0, fanOutput = 0.0, fanSetpoint = 0.0;
-
-// PID объекты
-PID tempPID(&tempInput, &tempOutput, &tempSetpoint, KP_TEMP, KI_TEMP, KD_TEMP, DIRECT);
-PID fanPID(&fanInput, &fanOutput, &fanSetpoint, KP_FAN, KI_FAN, KD_FAN, DIRECT);
-
-unsigned long lastUpdateClimatTime = 0;
-const unsigned long UPDATE_INTERVAL = 1000;
+// Коэффициент сглаживания (0.0–1.0, чем меньше, тем плавнее)
+const float ALPHA = 0.5;
 
 void setupClimateControl() {
-    Serial.println("AIR BOX Init");
 
     ledcSetup(HITER_AIR_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
     ledcAttachPin(HITER_AIR_PIN, HITER_AIR_CHANNEL);
@@ -46,53 +37,47 @@ void setupClimateControl() {
 
     pinMode(STEAM_IN_PIN, OUTPUT);
     digitalWrite(STEAM_IN_PIN, LOW);
-
-    tempPID.SetMode(AUTOMATIC);
-    tempPID.SetOutputLimits(0, MAX_PWM);
-    fanPID.SetMode(AUTOMATIC);
-    fanPID.SetOutputLimits(MIN_PWM, MAX_PWM);
 }
 
 void updateClimateControl() {
     unsigned long currentTime = millis();
-    if (currentTime - lastUpdateClimatTime < UPDATE_INTERVAL) return;
+    static unsigned long lastUpdateClimatTime = 0;
+    if (currentTime - lastUpdateClimatTime < 1000) return; // Интервал 1 секунда
 
-    // Устанавливаем целевые значения
-    tempSetpoint = currentTemperatura;
-    fanSetpoint = currentHumidity;  // Теперь вентилятор управляется по влажности
+    // Установка текущих и целевых значений
+    float tempInput = temperature_1;
+    float tempSetpoint = currentTemperatura;
+    float humInput = humidity_1;
+    float humSetpoint = currentHumidity;
 
-    // Читаем текущие показания
-    tempInput = temperature_1;
-    fanInput = humidity_1;  // Теперь PID работает по влажности, а не температуре
-
-    // Определение состояний
+    // Проверка условий
     bool tempHigh = tempInput > tempSetpoint + TEMP_TOLERANCE;
     bool tempLow = tempInput < tempSetpoint - TEMP_TOLERANCE;
-    bool humHigh = fanInput > fanSetpoint + HUM_TOLERANCE;
-    bool humLow = fanInput < fanSetpoint - HUM_TOLERANCE;
+    bool humHigh = humInput > humSetpoint + HUM_TOLERANCE;
+    bool humLow = humInput < humSetpoint - HUM_TOLERANCE;
 
-    // Отладочная информация
-    Serial.print("tempHigh: "); Serial.print(tempHigh);
-    Serial.print(" | tempLow: "); Serial.print(tempLow);
-    Serial.print(" | humHigh: "); Serial.print(humHigh);
-    Serial.print(" | humLow: "); Serial.println(humLow);
+    // Расчёт ошибок
+    float tempError = tempSetpoint - tempInput; // Ошибка для нагревателя
+    float fanTempError = tempInput - tempSetpoint; // Ошибка температуры для вентилятора
+    float fanHumError = humInput - humSetpoint;   // Ошибка влажности для вентилятора
 
-    Serial.print("Fan Error: "); Serial.println(fanInput - fanSetpoint);
+    // Переменные для управления (рассчитанные значения)
+    float newTempOutput = 0.0; // Новое значение для нагревателя
+    float newFanOutput = MIN_PWM; // Новое значение для вентилятора
+
+    // Статические переменные для хранения предыдущих значений
+    static float smoothedTempOutput = 0.0;
+    static float smoothedFanOutput = MIN_PWM;
 
     // Логика управления
     if (tempLow || humLow) {
-        fanPID.SetMode(MANUAL);
-        fanOutput = MIN_PWM;  // Принудительный старт вентилятора
-
+        // Температура ниже заданной
         if (tempLow) {
-            tempPID.SetMode(AUTOMATIC);
-            tempPID.Compute();
-            Serial.print("Temp PID Output: "); Serial.println(tempOutput);
-        } else {
-            tempPID.SetMode(MANUAL);
-            tempOutput = 0;
+            newTempOutput = K_TEMP * tempError;
+            if (newTempOutput > MAX_PWM) newTempOutput = MAX_PWM;
+            if (newTempOutput < 0) newTempOutput = 0;
         }
-
+        // Влажность ниже заданной
         if (humLow) {
             digitalWrite(STEAM_IN_PIN, HIGH);
             STEAM_IN = HIGH;
@@ -100,46 +85,47 @@ void updateClimateControl() {
             digitalWrite(STEAM_IN_PIN, LOW);
             STEAM_IN = LOW;
         }
+        newFanOutput = MIN_PWM; // Вентилятор выключен
     } else if (tempHigh || humHigh) {
-        tempPID.SetMode(MANUAL);
-        tempOutput = 0;
-    
-        fanPID.SetMode(AUTOMATIC);
-        fanPID.SetTunings(KP_FAN, KI_FAN, KD_FAN);  // Принудительно обновляем PID
-        fanPID.Compute();
-    
-        // Минимальное значение для работы вентилятора
-        if (fanOutput < 200) fanOutput = 200;
-    
-        Serial.print("Fan PID Output: "); Serial.println(fanOutput);
-    
+        // Температура или влажность выше заданной
+        newTempOutput = 0; // Нагреватель выключен
+        // Вентилятор включается по максимальной ошибке (температура или влажность)
+        float fanTempOutput = K_FAN_TEMP * fanTempError;
+        float fanHumOutput = K_FAN_HUM * fanHumError;
+        newFanOutput = max(fanTempOutput, fanHumOutput); // Максимум из двух ошибок
+        if (newFanOutput > MAX_PWM) newFanOutput = MAX_PWM;
+        if (newFanOutput < MIN_PWM) newFanOutput = MIN_PWM;
         digitalWrite(STEAM_IN_PIN, LOW);
         STEAM_IN = LOW;
     } else {
-        tempPID.SetMode(MANUAL);
-        fanPID.SetMode(MANUAL);
-        tempOutput = 0;
-        fanOutput = MIN_PWM;
+        // Всё в пределах допуска
+        newTempOutput = 0;
+        newFanOutput = MIN_PWM;
         digitalWrite(STEAM_IN_PIN, LOW);
         STEAM_IN = LOW;
     }
 
+    // Применение сглаживания
+    smoothedTempOutput = ALPHA * newTempOutput + (1.0 - ALPHA) * smoothedTempOutput;
+    smoothedFanOutput = ALPHA * newFanOutput + (1.0 - ALPHA) * smoothedFanOutput;
+
+    // Ограничение значений после сглаживания
+    if (smoothedTempOutput > MAX_PWM) smoothedTempOutput = MAX_PWM;
+    if (smoothedTempOutput < MIN_PWM) smoothedTempOutput = MIN_PWM;
+    if (smoothedFanOutput > MAX_PWM) smoothedFanOutput = MAX_PWM;
+    if (smoothedFanOutput < MIN_PWM) smoothedFanOutput = MIN_PWM;
+
+    // Приведение к целому типу для ledcWrite
+    int tempOutput = (int)smoothedTempOutput;
+    int fanOutput = (int)smoothedFanOutput;
+
     // Применение значений к выходам
-    ledcWrite(HITER_AIR_CHANNEL, (int)tempOutput >= MIN_PWM ? (int)tempOutput : 0);
-    ledcWrite(FAN_INLET_CHANNEL, fanOutput < 100 ? 100 : fanOutput);  // Защита от нестарта
+    ledcWrite(HITER_AIR_CHANNEL, tempOutput);
+    ledcWrite(FAN_INLET_CHANNEL, fanOutput);
 
     // Обновление глобальных переменных
-    HITER_AIR = (int)tempOutput;
-    FAN_RACK = (int)fanOutput;
-
-    // Вывод в Serial Monitor
-    Serial.print("Hiter PWM: "); Serial.print((int)tempOutput);
-    Serial.print(" | Fan PWM: "); Serial.print((int)fanOutput);
-    Serial.print(" | Steam State: "); Serial.print(digitalRead(STEAM_IN_PIN) ? "ON" : "OFF");
-    Serial.print(" | temperature_1: "); Serial.print(temperature_1);
-    Serial.print(" | humidity_1: "); Serial.print(humidity_1);
-    Serial.print(" | Target Temp: "); Serial.print(currentTemperatura);
-    Serial.print(" | Target Hum: "); Serial.println(currentHumidity);
+    HITER_AIR = tempOutput;
+    FAN_INLET = fanOutput;
 
     lastUpdateClimatTime = currentTime;
 }
