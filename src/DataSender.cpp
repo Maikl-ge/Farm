@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "TimeModule.h"
 #include "SensorsModule.h"
+#include <DallasTemperature.h>
 #include "WebSocketHandler.h"
 #include "Profile.h"
 #include <ArduinoJson.h>
@@ -13,6 +14,14 @@
 void sendDataIfNeeded() {
         printCurrentTime();
         updateSensors();
+
+        ds18b20.requestTemperatures();
+        delay(400);  // Ждем завершения первого измерения
+        water_temperature_osmo = ds18b20.getTempC(sensorWaterOsmoAddress);
+        water_temperature_watering = ds18b20.getTempC(sensorWateringAddress);
+        air_temperature_outdoor = ds18b20.getTempC(sensorOutdoorAddress);
+        air_temperature_inlet = ds18b20.getTempC(sensorInletAddress);
+
         // static unsigned long lastTime = 0;
         // unsigned long currentTime = millis();
         sendMessageOK = false;
@@ -99,5 +108,6 @@ void serializeStatus() {
         Serial.print("Статус  ");
         transmitionTime = millis();  // Запоминаем время отправки
         sendWebSocketMessage(messageToSend);  // Отправка сообщения
+
 }
 

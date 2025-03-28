@@ -18,7 +18,7 @@ int currentBrightness = 0; // Текущая яркость (0-100)
 const int MAX_BRIGHTNESS = 1023;
 const int MIN_BRIGHTNESS = 0;
 const int pwmLightChannel = 0;  // Канал PWM для управления светом
-const int pwmFrequency = 5000; // Частота PWM
+const int pwmFrequency = 20000; // Частота PWM
 const int pwmResolution = 10;  // Разрешение PWM (10 бит)
 
 

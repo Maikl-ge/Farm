@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "SensorsModule.h"
 #include "pinout.h" // Подключаем Pinout.h
+#include "globals.h" // Подключаем globals.h
 #include <Wire.h> // Для работы с I2C
 #include <DallasTemperature.h> // Для работы с DS18B20
 #include <OneWire.h> // Для работы с 1-Wire
@@ -12,10 +13,6 @@
 #define TERMO_SENSOR_3_ADDRESS 0x42  // Адрес 3го датчика температуры и влажности
 #define TERMO_SENSOR_4_ADDRESS 0x43  // Адрес 4го датчика температуры и влажности
 #define TERMO_SENSOR_5_ADDRESS 0x44  // Адрес 5го датчика температуры и влажности
-
-// Настройки для DS18B20
-OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature ds18b20(&oneWire);
 
 // Адрес I2C экспандера PCF8574T
 #define PCF8574_ADDRESS 0x27  // Адрес I2C экспандера PCF8574T проверен
@@ -69,7 +66,16 @@ uint8_t sensorState = 0;
 // Инициализация всех сенсоров
 void initializeSensors() {
     Wire.begin();
+    Serial.begin(115200);
     ds18b20.begin();
+
+    // Устанавливаем разрешение для каждого датчика
+    ds18b20.setResolution(sensorWaterOsmoAddress, 10);
+    ds18b20.setResolution(sensorWateringAddress, 10);
+    ds18b20.setResolution(sensorOutdoorAddress, 10);
+    ds18b20.setResolution(sensorInletAddress, 10);
+
+    ds18b20.setWaitForConversion(false); // Устанавливаем безожидательный режим (один раз!)
 
     // Инициализация I2C экспандера
     if (pcf8574.begin()) {
@@ -113,11 +119,11 @@ void initializeSensors() {
 //    pinMode(PH_SENSOR_PIN, INPUT);
 
 // Назначение портов PCF8574 датчиков 
-    max_water_level = 0;
-    min_water_level = 0;
-    max_osmo_level = 0;
-    min_osmo_level = 0;
-    power_monitor = 0;
+    max_water_level = false;
+    min_water_level = false;
+    max_osmo_level = false;
+    min_osmo_level = false;
+    power_monitor = false;
 }
 
 // Функция чтения байта состояния с PCF8574
@@ -186,41 +192,10 @@ void readAllHTU21D() {
     humidity_5 = data.humidity;
 }
 
-// Чтение данных с четырех датчиков DS18B20
-void readAllDS18B20() {
-    ds18b20.requestTemperatures();
-
-    for (uint8_t i = 0; i < 4; i++) {
-        float temperature = ds18b20.getTempCByIndex(i);
-
-        // Присваивание считанных температур переменным
-        switch (i) {
-            case 0:
-                water_temperature_osmo = temperature;
-                break;
-            case 1:
-                water_temperature_watering = temperature;
-                break;
-            case 2:
-                air_temperature_outdoor = temperature;
-                break;
-            case 3:
-                air_temperature_inlet = temperature;
-                break;
-        }
-    }
-}
-
-// Функция обновления состояния мониторинга питающей сети
-void updatePowerMonitor() {
-    power_monitor = analogRead(POWER_MONITOR_PIN);
-    // Serial.print("Power monitor: ");
-    // Serial.println(power_monitor);
-}
 // Обновление состояния датчиков
 void updateSensors() {
     readAllHTU21D();
-    readAllDS18B20();
-    readPCF8574(); 
-    updatePowerMonitor(); // Обновление состояния мониторинга питающей сети
+    //readPCF8574(); 
+    //readAllDS18B20();    
+    power_monitor = analogRead(POWER_MONITOR_PIN); // Обновление состояния мониторинга питающей сети
 }

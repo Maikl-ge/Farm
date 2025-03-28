@@ -76,7 +76,7 @@ void updateSensorsTask(void *parameter) {
         // Отправка ping каждые 10 секунд
         webSocket.ping();
         } 
-        vTaskDelay(10000 / portTICK_PERIOD_MS);  // Задержка 10000 мс
+        vTaskDelay(9000 / portTICK_PERIOD_MS);  // Задержка 9000 мс
     }
 }
 
@@ -115,7 +115,6 @@ void sendDataTask(void *parameter) {
 void updateMenuTask(void *parameter) {
     for (;;) {
         updateButtonState();
-        //updateLightBrightness();
         vTaskDelay(70 / portTICK_PERIOD_MS);  // Задержка 70 мс
     }
 }
@@ -123,13 +122,14 @@ void updateMenuTask(void *parameter) {
 void updateWaterTask(void *parameter) {
     for (;;) {
         webSocket.poll(); // Обработка WebSocket событий
+        readPCF8574(); // Чтение состояния датчиков холла        
         updateWater();
         updateWatering();
         updateLightBrightness();
         updateFanControl();
         updateStepperControl(); // Обновление состояния двигателя
         updateClimateControl(); // Обновление климат-контроля
-        vTaskDelay(100 / portTICK_PERIOD_MS);  // Задержка 100 мс
+        vTaskDelay(1000 / portTICK_PERIOD_MS);  // Задержка 100 мс
     }
 }
 
@@ -174,6 +174,7 @@ void setup() {
     setupWater(); // Инициализация модуля управления водой
 
     initializeSensors();  // Инициализация модуля сенсоров  
+    updateSensors(); // Обновление сенсоров
 
     setupStepper(); // Инициализация модуля управления шаговым двигателем
 

@@ -8,10 +8,10 @@
 void CurrentStatusFarm();
 
 // Константы
-const int PWM_FREQUENCY = 5000;
+const int PWM_FREQUENCY = 20000;
 const int PWM_RESOLUTION = 10;
-const int HITER_AIR_CHANNEL = 2;
-const int FAN_INLET_CHANNEL = 3;
+const int HITER_AIR_CHANNEL = 3;
+const int FAN_INLET_CHANNEL = 4;
 const float TEMP_TOLERANCE = 0.5;
 const float HUM_TOLERANCE = 1.0;
 const int MIN_PWM = 0;
@@ -45,7 +45,7 @@ void updateClimateControl() {
     if (currentTime - lastUpdateClimatTime < 1000) return; // Интервал 1 секунда
 
     // Установка текущих и целевых значений
-    float tempInput = temperature_1;
+    float tempInput = water_temperature_osmo; //temperature_1;
     float tempSetpoint = currentTemperatura;
     float humInput = humidity_1;
     float humSetpoint = currentHumidity;

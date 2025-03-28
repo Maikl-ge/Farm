@@ -6,7 +6,7 @@
 // Константы и настройки
 const int pwmCirculationChannel = 1;  // Канал PWM для вентилятора циркуляции (FAN_CIRC_PIN)
 const int pwmVentilationChannel = 2;  // Канал PWM для приточного вентилятора (FAN_INLET_PIN)
-const int pwmFrequency = 5000;        // Частота PWM
+const int pwmFrequency = 30000;        // Частота PWM
 const int pwmResolution = 10;         // Разрешение PWM (макс. 1023)
 
 const uint16_t MAX_PWM = 1023;        // Максимальное значение PWM (аппаратный предел)

@@ -2,6 +2,8 @@
 #define GLOBALS_H
 
 #include <Arduino.h>
+#include <DallasTemperature.h>
+
 // Глобальные переменные
 extern String id_farm_ACK;
 extern String type_msg_ACK;
@@ -61,5 +63,12 @@ void setupClimateControl(); // Инициализация модуля упра�
 void updateClimateControl(); // Обновление управления климатом
 void CheckStatusFarm(); // Проверка фазы роста
 
+// Объявление объекта ds18b20
+extern DallasTemperature ds18b20;
+// Объявление адресов датчиков DS18B20
+extern DeviceAddress sensorWaterOsmoAddress;
+extern DeviceAddress sensorWateringAddress;
+extern DeviceAddress sensorOutdoorAddress;
+extern DeviceAddress sensorInletAddress;
 
 #endif // GLOBALS_H

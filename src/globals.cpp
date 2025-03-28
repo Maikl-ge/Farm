@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include "globals.h"
+#include <OneWire.h>
+#include <pinout.h>
+#include <DallasTemperature.h>
 
 // Глобальные переменные
 String messageToSend = "";
@@ -12,8 +15,8 @@ uint16_t currentVentilation = 0;  // Текущая вентиляция
 uint16_t currentCirculation = 0;  // Текущая циркуляция
 uint16_t  currentRotation; // Текущая ротация
 String currentPhase = ""; // Текущая фаза
-extern float currentTemperatura = 0; // Целевая температура (°C)
-extern float currentHumidity = 0;    // Целевая влажность (%)
+float currentTemperatura = 0; // Целевая температура (°C)
+float currentHumidity = 0;    // Целевая влажность (%)
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
@@ -46,4 +49,17 @@ int missedPongs = 0;
 const char* ssid = "78A2D8"; // "TORNIKE";       // Название WiFi-сети  "iPhone (M)";  //
 const char* password = "mu9fvavddu";  // "20000718";  // Пароль  "dlt654321";   //
 const char* ws_server = "ws://207.244.250.144:5001"; // WebSocket сервер
+
+// Создаём объект OneWire
+OneWire oneWire(ONE_WIRE_BUS);
+
+// Создаём объект DallasTemperature
+DallasTemperature ds18b20(&oneWire);
+
+// Определение адресов датчиков DS18B20
+DeviceAddress sensorWaterOsmoAddress = {0x28, 0x8B, 0x63, 0x58, 0x00, 0x00, 0x00, 0x97};
+DeviceAddress sensorWateringAddress = {0x28, 0x8B, 0x63, 0x58, 0x00, 0x00, 0x00, 0x97};
+DeviceAddress sensorOutdoorAddress = {0x28, 0x8B, 0x63, 0x58, 0x00, 0x00, 0x00, 0x97};
+DeviceAddress sensorInletAddress = {0x28, 0x8B, 0x63, 0x58, 0x00, 0x00, 0x00, 0x97};
+
 
