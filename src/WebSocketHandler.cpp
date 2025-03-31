@@ -130,18 +130,15 @@ void parceMessageFromServer(const String& messageFromServer) {
     
     // Обработка сообщения ЗАПРОСЫ
     if (messageFromServer == SERVER_REQ_STATUS) {     // SRST Запрос статуса фермы
-        serializeStatus();
+        serializeStatus();       // Отправка статуса
         Serial.println("Запрос от сервера: STATUS");
     }
     if (messageFromServer == SERVER_REQ_DATA) {
-        // Отправка данных
-        sendDataIfNeeded();
-        // Отправка статуса
-        serializeStatus();
+        sendDataIfNeeded();    // Отправка данных
         Serial.println("Запрос от сервера: DATA");
     }
     if (messageFromServer == SERVER_REQ_SETTINGS) {  // SRSE Запрос на отправку Настройки фермы
-        serializeSettings();
+        serializeSettings();  // Отправка настроек на ферму
         Serial.println("Настройки из EEPROM");
     }
     if (messageFromServer == SERVER_REQ_PARAMETERS) {

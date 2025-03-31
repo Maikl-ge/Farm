@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
+    <title>Farm Command Control</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            margin: 20px;
+            background: #1e1e1e;
+        }
+        h1 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            color: #aaa;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .container {
+            max-width: 620px;
+            margin: 0 auto;
+        }
+        form {
+            background: #2e2e2e;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e74c3c; /* Красный по умолчанию */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+        form.connected {
+            border-color: #2ecc71; /* Зелёный при подключении */
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .form-column {
+            width: 48%;
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .input-container label {
+            width: 55%;
+            text-align: left;
+            color: #aaa;
+            font-weight: 300;
+        }
+        .input-container input {
+            width: 30%;
+            padding: 5px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            color: #aaa;
+            background-color: transparent;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .input-container input[readonly] {
+            background-color: #3e3e3e;
+            border: 1px solid #555;
+            color: #ccc;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+            background: #3e3e3e;
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 2px;
+            font-weight: 400;
+        }
+        .tab.active {
+            background: #aaa;
+            color: #1e1e1e;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .refresh-btn {
+            width: 200px;
+            background-color: #00ff99;
+            color: #aaa;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .refresh-btn:hover {
+            background-color: #00ff99;
+        }
+        .button-disconnected {
+            background-color: #e74c3c !important;
+        }
+        @media (max-width: 600px) {
+            .form-row { flex-direction: column; }
+            .form-column { width: 100%; }
+            .input-container label { width: 50%; }
+            .input-container input { width: 45%; }
+            .tabs { font-size: 12px; }
+            .tab { padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Farm STATUS</h1>
+        <form id="profileForm">
+            <h1 id="showProfileTitle">Show Profile</h1>
+            <br />
+            <!-- Общие параметры -->
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="nameProfile">Name Profile:</label>
+                        <input type="text" id="nameProfile" name="nameProfile" readonly>
+                    </div>
+                    <div class="input-container">
+                        <label for="cycle">Cycle (days):</label>
+                        <input type="number" id="cycle" name="cycle" readonly>
+                    </div>
+                </div>
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="sunrise">Sunrise:</label>
+                        <input type="time" id="sunrise" name="sunrise" readonly>
+                    </div>
+                    <div class="input-container">
+                        <label for="sunset">Sunset:</label>
+                        <input type="time" id="sunset" name="sunset" readonly>
+                    </div>
+                </div>
+            </div>
+            <!-- Вкладки -->
+            <div class="tabs">
+                <div class="tab active" onclick="showTab(1)">1 Soak</div>
+                <div class="tab" onclick="showTab(2)">2 Germ</div>
+                <div class="tab" onclick="showTab(3)">3 Act</div>
+                <div class="tab" onclick="showTab(4)">4 Early</div>
+                <div class="tab" onclick="showTab(5)">5 Grow</div>
+                <div class="tab" onclick="showTab(6)">6 Finish</div>
+            </div>
+
+            <!-- Вкладка 1 -->
+			<div id="tab1" class="tab-content active">
+                <div class="form-row">
+                    <div class="form-column">
+                        <div class="input-container">
+                            <label for="phase1_duration">Duration (h):</label>
+                            <input type="number" id="phase1_duration" name="phase1_duration" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_temp">Temperature (°C):</label>
+                            <input type="number" id="phase1_temp" name="phase1_temp" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_hum">Humidity (%):</label>
+                            <input type="number" id="phase1_hum" name="phase1_hum" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_water_temp">Water Temp (°C):</label>
+                            <input type="number" id="phase1_water_temp" name="phase1_water_temp" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_light">Light (µmol/m²/s):</label>
+                            <input type="number" id="phase1_light" name="phase1_light" readonly>
+                        </div>
+                    </div>
+                    <div class="form-column">
+                        <div class="input-container">
+                            <label for="phase1_circ">Circulation (mm):</label>
+                            <input type="number" id="phase1_circ" name="phase1_circ" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_vent">Ventilation (mm):</label>
+                            <input type="number" id="phase1_vent" name="phase1_vent" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_watering">Watering (mm):</label>
+                            <input type="number" id="phase1_watering" name="phase1_watering" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_draining">Draining (mm):</label>
+                            <input type="number" id="phase1_draining" name="phase1_draining" readonly>
+                        </div>
+                        <div class="input-container">
+                            <label for="phase1_rot">Rotation (prm):</label>
+                            <input type="number" id="phase1_rot" name="phase1_rot" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- Вкладка 2 -->
+                <div id="tab2" class="tab-content">
+                    <div class="form-row">
+                        <div class="form-column">
+                            <div class="input-container">
+                                <label for="phase2_duration">Duration (h):</label>
+                                <input type="number" id="phase2_duration" name="phase2_duration" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_temp">Temperature (°C):</label>
+                                <input type="number"   id="phase2_temp" name="phase2_temp" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_hum">Humidity (%):</label>
+                                <input type="number"   id="phase2_hum" name="phase2_hum" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_water_temp">Water Temp (°C):</label>
+                                <input type="number"   id="phase2_water_temp" name="phase2_water_temp" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_light">Light (µmol/m²/s):</label>
+                                <input type="number" id="phase2_light" name="phase2_light" readonly>
+                            </div>
+                        </div>
+                        <div class="form-column">
+                            <div class="input-container">
+                                <label for="phase2_circ">Circulation (mm):</label>
+                                <input type="number" id="phase2_circ" name="phase2_circ" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_vent">Ventilation (mm):</label>
+                                <input type="number" id="phase2_vent" name="phase2_vent" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_watering">Watering (mm):</label>
+                                <input type="number"   id="phase2_watering" name="phase2_watering" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_draining">Draining (mm):</label>
+                                <input type="number"   id="phase2_draining" name="phase2_draining" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase2_rot">Rotation (prm):</label>
+                                <input type="number" id="phase2_rot" name="phase2_rot" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка 3 -->
+                <div id="tab3" class="tab-content">
+                    <div class="form-row">
+                        <div class="form-column">
+                            <div class="input-container">
+                                <label for="phase3_duration">Duration (h):</label>
+                                <input type="number" id="phase3_duration" name="phase3_duration" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_temp">Temperature (°C):</label>
+                                <input type="number"   id="phase3_temp" name="phase3_temp" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_hum">Humidity (%):</label>
+                                <input type="number"   id="phase3_hum" name="phase3_hum" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_water_temp">Water Temp (°C):</label>
+                                <input type="number"   id="phase3_water_temp" name="phase3_water_temp" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_light">Light (µmol/m²/s):</label>
+                                <input type="number" id="phase3_light" name="phase3_light" readonly>
+                            </div>
+                        </div>
+                        <div class="form-column">
+                            <div class="input-container">
+                                <label for="phase3_circ">Circulation (mm):</label>
+                                <input type="number" id="phase3_circ" name="phase3_circ" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_vent">Ventilation (mm):</label>
+                                <input type="number" id="phase3_vent" name="phase3_vent" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_watering">Watering (mm):</label>
+                                <input type="number"   id="phase3_watering" name="phase3_watering" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_draining">Draining (mm):</label>
+                                <input type="number"   id="phase3_draining" name="phase3_draining" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase3_rot">Rotation (prm):</label>
+                                <input type="number" id="phase3_rot" name="phase3_rot" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Вкладка 4 -->
+                <div id="tab4" class="tab-content">
+                    <div class="form-row">
+                        <div class="form-column">
+                            <div class="input-container">
+                                <label for="phase4_duration">Duration (h):</label>
+                                <input type="number" id="phase4_duration" name="phase4_duration" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_temp">Temperature (°C):</label>
+                                <input type="number" id="phase4_temp" name="phase4_temp" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_hum">Humidity (%):</label>
+                                <input type="number" id="phase4_hum" name="phase4_hum" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_water_temp">Water Temp (°C):</label>
+                                <input type="number" id="phase4_water_temp" name="phase4_water_temp" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_light">Light (µmol/m²/s):</label>
+                                <input type="number" id="phase4_light" name="phase4_light" readonly>
+                            </div>
+                        </div>
+                        <div class="form-column">
+                            <div class="input-container">
+                                <label for="phase4_circ">Circulation (mm):</label>
+                                <input type="number" id="phase4_circ" name="phase4_circ" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_vent">Ventilation (mm):</label>
+                                <input type="number" id="phase4_vent" name="phase4_vent" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_watering">Watering (mm):</label>
+                                <input type="number" id="phase4_watering" name="phase4_watering" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_draining">Draining (mm):</label>
+                                <input type="number" id="phase4_draining" name="phase4_draining" readonly>
+                            </div>
+                            <div class="input-container">
+                                <label for="phase4_rot">Rotation (prm):</label>
+                                <input type="number" id="phase4_rot" name="phase4_rot" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+				<!-- Вкладка 5 -->
+				<div id="tab5" class="tab-content">
+					<div class="form-row">
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase5_duration">Duration (h):</label>
+								<input type="number" id="phase5_duration" name="phase5_duration" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_temp">Temperature (°C):</label>
+								<input type="number" id="phase5_temp" name="phase5_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_hum">Humidity (%):</label>
+								<input type="number" id="phase5_hum" name="phase5_hum" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_water_temp">Water Temp (°C):</label>
+								<input type="number" id="phase5_water_temp" name="phase5_water_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_light">Light (µmol/m²/s):</label>
+								<input type="number" id="phase5_light" name="phase5_light" readonly>
+							</div>
+						</div>
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase5_circ">Circulation (mm):</label>
+								<input type="number" id="phase5_circ" name="phase5_circ" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_vent">Ventilation (mm):</label>
+								<input type="number" id="phase5_vent" name="phase5_vent" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_watering">Watering (mm):</label>
+								<input type="number" id="phase5_watering" name="phase5_watering" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_draining">Draining (mm):</label>
+								<input type="number" id="phase5_draining" name="phase5_draining" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_rot">Rotation (prm):</label>
+								<input type="number" id="phase5_rot" name="phase5_rot" readonly>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Вкладка 6 -->
+				<div id="tab6" class="tab-content">
+					<div class="form-row">
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase6_duration">Duration (h):</label>
+								<input type="number" id="phase6_duration" name="phase6_duration" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_temp">Temperature (°C):</label>
+								<input type="number" id="phase6_temp" name="phase6_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_hum">Humidity (%):</label>
+								<input type="number" id="phase6_hum" name="phase6_hum" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_water_temp">Water Temp (°C):</label>
+								<input type="number" id="phase6_water_temp" name="phase6_water_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_light">Light (µmol/m²/s):</label>
+								<input type="number" id="phase6_light" name="phase6_light" readonly>
+							</div>
+						</div>
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase6_circ">Circulation (mm):</label>
+								<input type="number" id="phase6_circ" name="phase6_circ" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_vent">Ventilation (mm):</label>
+								<input type="number" id="phase6_vent" name="phase6_vent" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_watering">Watering (mm):</label>
+								<input type="number" id="phase6_watering" name="phase6_watering" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_draining">Draining (mm):</label>
+								<input type="number" id="phase6_draining" name="phase6_draining" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_rot">Rotation (prm):</label>
+								<input type="number" id="phase6_rot" name="phase6_rot" readonly>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				</form>
+			<br>
+			<div>
+				<button class="refresh-btn" onclick="loadFrqsData()">Refresh Parameters</button>
+				<button class="refresh-btn" onclick="SendCMD()">Parameters</button>
+				<button class="refresh-btn" onclick="RebootCMD()">Farm reboot</button>
+			</div>
+			<div>
+				<button class="refresh-btn" onclick="StartCMD()">Start GROWING</button>
+				<button class="refresh-btn" onclick="StopCMD()">Stop GROWING</button>
+				<button class="refresh-btn" onclick="UpdataCMD()">Update App</button>
+			</div>
+			<div>
+				<button class="refresh-btn" onclick="SendDATA()">Send DATA</button>
+				<button class="refresh-btn" onclick="StatusCMD()">Send STATUS</button>
+			</div>
+		</div>
+
+		<script>
+				let websocketCheckInterval;
+		
+				window.onload = function() {
+					console.log('Скрипт загружен');
+					document.querySelectorAll('.tab').forEach((tab, index) => {
+						tab.addEventListener('click', () => showTab(index + 1));
+					});
+					showTab(1);
+					loadFrqsData();
+					checkWebsocketState();
+					websocketCheckInterval = setInterval(checkWebsocketState, 5000);
+				};
+		
+				window.onbeforeunload = function() {
+					if (websocketCheckInterval) clearInterval(websocketCheckInterval);
+				};
+		
+				function showTab(tabNumber) {
+					console.log(`Переключение на вкладку ${tabNumber}`);
+					document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+					document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+					document.querySelector(`.tab:nth-child(${tabNumber})`).classList.add('active');
+					document.getElementById(`tab${tabNumber}`).classList.add('active');
+				}
+		
+				function populateForm(data) {
+					console.log('Заполнение формы данными:', data);
+					document.getElementById('nameProfile').value = data.nameprofile || '';
+					document.getElementById('cycle').value = data.cycle || '';
+					document.getElementById('sunrise').value = formatMinutesToTime(data.sunrise) || '';
+					document.getElementById('sunset').value = formatMinutesToTime(data.sunset) || '';
+		
+					for (let i = 1; i <= 6; i++) {
+						document.getElementById(`phase${i}_duration`).value = data[`phase${i}_duration`] || '';
+						document.getElementById(`phase${i}_temp`).value = data[`phase${i}_temp`] || '';
+						document.getElementById(`phase${i}_hum`).value = data[`phase${i}_hum`] || '';
+						document.getElementById(`phase${i}_water_temp`).value = data[`phase${i}_water_temp`] || '';
+						document.getElementById(`phase${i}_light`).value = data[`phase${i}_light`] || '';
+						document.getElementById(`phase${i}_circ`).value = data[`phase${i}_circ`] || '';
+						document.getElementById(`phase${i}_vent`).value = data[`phase${i}_vent`] || '';
+						document.getElementById(`phase${i}_watering`).value = data[`phase${i}_watering`] || '';
+						document.getElementById(`phase${i}_draining`).value = data[`phase${i}_draining`] || '';
+						document.getElementById(`phase${i}_rot`).value = data[`phase${i}_rot`] || '';
+					}
+				}
+		
+				async function checkWebsocketState() {
+					try {
+						const response = await fetch('/api/websocket-state');
+						if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+						const data = await response.json();
+						console.log('Состояние WebSocket:', data);
+						updateConnectionStatus(data.state);
+					} catch (error) {
+						console.error('Ошибка проверки WebSocket:', error);
+						updateConnectionStatus('disconnected');
+					}
+				}
+		
+				function updateConnectionStatus(state) {
+					const form = document.getElementById('profileForm');
+					console.log('Обновление статуса подключения:', state);
+					if (state === 'connected') {
+						form.classList.add('connected');
+					} else {
+						form.classList.remove('connected');
+					}
+				}
+		
+				function formatMinutesToTime(minutes) {
+					if (!minutes) return '';
+					const hours = Math.floor(minutes / 60);
+					const mins = minutes % 60;
+					return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+				}
+		
+				async function loadFrqsData() {
+					try {
+						const response = await fetch('/api/frqs');
+						if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+						const data = await response.json();
+						populateForm(data);
+					} catch (error) {
+						console.error('Ошибка загрузки данных FRQS:', error);
+					}
+				}
+		
+				function sendCommand(command, ask_comm) {
+					fetch('/command/send_cmd', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ command, ask_comm })
+					})
+					.then(response => response.json())
+					.then(data => console.log('Ответ:', data))
+					.catch(error => console.error('Ошибка:', error));
+				}
+		
+				function SendCMD() { sendCommand('SRSE', '12'); }
+				function RebootCMD() { sendCommand('SCMR', '12'); }
+				function StartCMD() { sendCommand('SCMD', '12'); }
+				function StopCMD() { sendCommand('SCMS', '12'); }
+				function UpdataCMD() { sendCommand('SCMU', '12'); }
+				function SendDATA() { sendCommand('SRDT', '12'); }
+				function StatusCMD() { sendCommand('SRST', '13'); }
+			</script>
+		</body>
+		</html>

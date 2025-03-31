@@ -31,6 +31,16 @@ void checkRtcPresence() {
     }
 }
 
+int8_t getTimeZoneOffset(int year, int month, int day) {
+    if ((month > 3 && month < 10) || 
+        (month == 3 && day >= 31 - ((5 * year / 4 + 4) % 7)) || 
+        (month == 10 && day < 31 - ((5 * year / 4 + 1) % 7))) {
+        return timeZone +1; // Летнее время (UTC+3)
+    } else {
+        return timeZone; // Зимнее время (UTC+2)
+    }
+}
+
 void initTimeModule() {
     Wire.begin(SDA_PIN, SCL_PIN); // Инициализация I2C
     //checkRtcPresence(); // Проверка наличия RTC на шине I2C
@@ -46,11 +56,12 @@ void syncTimeWithNTP(const char* ntpServer, int8_t timeZone) {
     }
 
     unsigned long epochTime = timeClient.getEpochTime();
-    // Учёт часового пояса
-    epochTime += timeZone * 3600; // Сдвиг времени на основе часового пояса
-    // Преобразуем время в структуру tm
     struct tm timeInfo;
-    gmtime_r((time_t*)&epochTime, &timeInfo); // Используем gmtime_r для потокобезопасности
+    gmtime_r((time_t*)&epochTime, &timeInfo);
+
+    timeZone = getTimeZoneOffset(timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday);
+    epochTime += timeZone * 3600;
+    gmtime_r((time_t*)&epochTime, &timeInfo);
 
     rtc.setDateTime(
         timeInfo.tm_mday, 

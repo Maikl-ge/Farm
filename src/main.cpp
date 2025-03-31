@@ -122,10 +122,14 @@ void updateMenuTask(void *parameter) {
 void updateWaterTask(void *parameter) {
     for (;;) {
         webSocket.poll(); // Обработка WebSocket событий
-        readPCF8574(); // Чтение состояния датчиков холла        
-        updateWater();
+        readPCF8574(); // Чтение состояния датчиков холла  
+
+        if(statusFarm == "Work" || statusFarm == "Pause") {      
         updateWatering();
-        updateLightBrightness();
+        updateLightBrightness();        
+        }
+        
+        updateWater();        
         updateFanControl();
         updateStepperControl(); // Обновление состояния двигателя
         updateClimateControl(); // Обновление климат-контроля
@@ -136,6 +140,7 @@ void updateWaterTask(void *parameter) {
 void setup() {
     Serial.begin(115200);
     Serial.setDebugOutput(false); // Отключение вывода отладочных сообщений
+    //ArduinoOTA.begin();
 
     EEPROM.begin(2048); // Инициализация EEPROM с размером 512 байт
 
@@ -193,8 +198,6 @@ void setup() {
     initTimeModule();    // Инициализируем модуль времени
 
     syncTimeWithNTP("pool.ntp.org", timeZone); // Синхронизируем время с NTP
-    
-    setupOTA();  // Настройка OTA через модуль
 
     setupCDcard(); // Инициализация SD карты
     
@@ -257,7 +260,7 @@ void setup() {
 }
 
 void loop() {
-    ArduinoOTA.handle(); // Обработка OTA обновлений
+    // ArduinoOTA.handle(); // Обработка OTA обновлений
     // Другие задачи, если есть
 }
 

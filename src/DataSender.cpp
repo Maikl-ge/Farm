@@ -7,8 +7,6 @@
 #include "Profile.h"
 #include <ArduinoJson.h>
 #include <pinout.h>
-#include <SDCard.h>
-
 
 // Отправка данных
 void sendDataIfNeeded() {

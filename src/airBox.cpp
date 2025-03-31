@@ -8,11 +8,11 @@
 void CurrentStatusFarm();
 
 // Константы
-const int PWM_FREQUENCY = 20000;
+const int PWM_FREQUENCY = 5000;
 const int PWM_RESOLUTION = 10;
 const int HITER_AIR_CHANNEL = 3;
 const int FAN_INLET_CHANNEL = 4;
-const float TEMP_TOLERANCE = 0.5;
+const float TEMP_TOLERANCE = 0.25;
 const float HUM_TOLERANCE = 1.0;
 const int MIN_PWM = 0;
 const int MAX_PWM = 1023;

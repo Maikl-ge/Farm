@@ -74,7 +74,7 @@
             margin-bottom: 20px;
         }
         .refresh-btn {
-	        width: 190px;
+	        width: 200px;
             background-color: #2ecc71;
             color: white;
             border: none;
@@ -465,297 +465,391 @@
                     </div>
                 </div>
 
-<!-- Вкладка 5 -->
-<div id="tab5" class="tab-content">
-    <div class="form-row">
-        <div class="form-column">
-            <div class="input-container">
-                <label for="phase5_duration">Duration (h):</label>
-                <input type="number" id="phase5_duration" name="phase5_duration" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_temp">Temperature (°C):</label>
-                <input type="number" id="phase5_temp" name="phase5_temp" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_hum">Humidity (%):</label>
-                <input type="number" id="phase5_hum" name="phase5_hum" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_water_temp">Water Temp (°C):</label>
-                <input type="number" id="phase5_water_temp" name="phase5_water_temp" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_light">Light (µmol/m²/s):</label>
-                <input type="number" id="phase5_light" name="phase5_light" readonly>
-            </div>
-        </div>
-        <div class="form-column">
-            <div class="input-container">
-                <label for="phase5_circ">Circulation (mm):</label>
-                <input type="number" id="phase5_circ" name="phase5_circ" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_vent">Ventilation (mm):</label>
-                <input type="number" id="phase5_vent" name="phase5_vent" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_watering">Watering (mm):</label>
-                <input type="number" id="phase5_watering" name="phase5_watering" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_draining">Draining (mm):</label>
-                <input type="number" id="phase5_draining" name="phase5_draining" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase5_rot">Rotation (prm):</label>
-                <input type="number" id="phase5_rot" name="phase5_rot" readonly>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Вкладка 6 -->
-<div id="tab6" class="tab-content">
-    <div class="form-row">
-        <div class="form-column">
-            <div class="input-container">
-                <label for="phase6_duration">Duration (h):</label>
-                <input type="number" id="phase6_duration" name="phase6_duration" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_temp">Temperature (°C):</label>
-                <input type="number" id="phase6_temp" name="phase6_temp" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_hum">Humidity (%):</label>
-                <input type="number" id="phase6_hum" name="phase6_hum" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_water_temp">Water Temp (°C):</label>
-                <input type="number" id="phase6_water_temp" name="phase6_water_temp" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_light">Light (µmol/m²/s):</label>
-                <input type="number" id="phase6_light" name="phase6_light" readonly>
-            </div>
-        </div>
-        <div class="form-column">
-            <div class="input-container">
-                <label for="phase6_circ">Circulation (mm):</label>
-                <input type="number" id="phase6_circ" name="phase6_circ" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_vent">Ventilation (mm):</label>
-                <input type="number" id="phase6_vent" name="phase6_vent" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_watering">Watering (mm):</label>
-                <input type="number" id="phase6_watering" name="phase6_watering" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_draining">Draining (mm):</label>
-                <input type="number" id="phase6_draining" name="phase6_draining" readonly>
-            </div>
-            <div class="input-container">
-                <label for="phase6_rot">Rotation (prm):</label>
-                <input type="number" id="phase6_rot" name="phase6_rot" readonly>
-            </div>
-        </div>
-    </div>
-</div>
-
-</form>
-<div class="frqs-section">
-    <button class="refresh-btn" onclick="loadFrqsData()">Refresh Parameters</button>
-    <button class="refresh-btn" onclick="SendCMD()">Parameters</button>
-    <button class="refresh-btn" onclick="RebootCMD()">Farm reboot</button>
-    <h1>Command</h1>
-    <div class="command-section">
-        <div class="form-group">
-            <label for="command">Current Command:</label>
-            <input type="text" id="command" placeholder="Enter command">
-        </div>
-        <button id="updateCommandBtn" onclick="updateCommand()">Update Command</button>
-        <div id="connectionStatus" class="connection-status">Checking connection...</div>
-    </div>
-    <div id="status"></div>
-    <div class="last-update" id="lastUpdate"></div>
-</div>
-</div>
+				<!-- Вкладка 5 -->
+				<div id="tab5" class="tab-content">
+					<div class="form-row">
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase5_duration">Duration (h):</label>
+								<input type="number" id="phase5_duration" name="phase5_duration" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_temp">Temperature (°C):</label>
+								<input type="number" id="phase5_temp" name="phase5_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_hum">Humidity (%):</label>
+								<input type="number" id="phase5_hum" name="phase5_hum" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_water_temp">Water Temp (°C):</label>
+								<input type="number" id="phase5_water_temp" name="phase5_water_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_light">Light (µmol/m²/s):</label>
+								<input type="number" id="phase5_light" name="phase5_light" readonly>
+							</div>
+						</div>
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase5_circ">Circulation (mm):</label>
+								<input type="number" id="phase5_circ" name="phase5_circ" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_vent">Ventilation (mm):</label>
+								<input type="number" id="phase5_vent" name="phase5_vent" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_watering">Watering (mm):</label>
+								<input type="number" id="phase5_watering" name="phase5_watering" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_draining">Draining (mm):</label>
+								<input type="number" id="phase5_draining" name="phase5_draining" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase5_rot">Rotation (prm):</label>
+								<input type="number" id="phase5_rot" name="phase5_rot" readonly>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Вкладка 6 -->
+				<div id="tab6" class="tab-content">
+					<div class="form-row">
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase6_duration">Duration (h):</label>
+								<input type="number" id="phase6_duration" name="phase6_duration" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_temp">Temperature (°C):</label>
+								<input type="number" id="phase6_temp" name="phase6_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_hum">Humidity (%):</label>
+								<input type="number" id="phase6_hum" name="phase6_hum" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_water_temp">Water Temp (°C):</label>
+								<input type="number" id="phase6_water_temp" name="phase6_water_temp" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_light">Light (µmol/m²/s):</label>
+								<input type="number" id="phase6_light" name="phase6_light" readonly>
+							</div>
+						</div>
+						<div class="form-column">
+							<div class="input-container">
+								<label for="phase6_circ">Circulation (mm):</label>
+								<input type="number" id="phase6_circ" name="phase6_circ" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_vent">Ventilation (mm):</label>
+								<input type="number" id="phase6_vent" name="phase6_vent" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_watering">Watering (mm):</label>
+								<input type="number" id="phase6_watering" name="phase6_watering" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_draining">Draining (mm):</label>
+								<input type="number" id="phase6_draining" name="phase6_draining" readonly>
+							</div>
+							<div class="input-container">
+								<label for="phase6_rot">Rotation (prm):</label>
+								<input type="number" id="phase6_rot" name="phase6_rot" readonly>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				</form>
+				<div class="frqs-section">
+					<div>
+						<button class="refresh-btn" onclick="loadFrqsData()">Refresh Parameters</button>
+						<button class="refresh-btn" onclick="SendCMD()">Parameters</button>
+						<button class="refresh-btn" onclick="RebootCMD()">Farm reboot</button>
+					</div>
+					<div>
+						<button class="refresh-btn" onclick="StartCMD()">Start GROWIG</button>
+						<button class="refresh-btn" onclick="StopCMD()">Stop GROWIG</button>
+						<button class="refresh-btn" onclick="UpdataCMD()">Update App</button>
+					</div>
+					<div>
+						<button class="refresh-btn" onclick="StartCMD()">Send DATA</button>
+						<button class="refresh-btn" onclick="StatusCMD()">Send STATUS</button>
+						<button class="refresh-btn" onclick="UpdataCMD()">Update App</button>
+					</div>						
+					<h1>Command</h1>
+					<div class="command-section">
+						<div class="form-group">
+							<label for="command">Current Command:</label>
+							<input type="text" id="command" placeholder="Enter command">
+						</div>
+					<button id="updateCommandBtn" onclick="updateCommand()">Update Command</button>
+					<div id="connectionStatus" class="connection-status">Checking connection...</div>
+				</div>
+			<div id="status"></div>
+			<div class="last-update" id="lastUpdate"></div>
+		</div>
+	</div>
 
 <script>
-    let websocketCheckInterval;
-
-    window.onload = function() {
-        console.log('Скрипт успешно загружен');
-        document.querySelectorAll('.tab').forEach((tab, index) => {
-            tab.addEventListener('click', () => showTab(index + 1));
-        });
-        showTab(1); // Устанавливаем первую вкладку активной по умолчанию
-        loadFrqsData(); // Загружаем FRQS данные
-        checkWebsocketState(); // Проверяем состояние WebSocket
-        websocketCheckInterval = setInterval(checkWebsocketState, 5000); // Интервал проверки состояния
-    };
-
-    window.onbeforeunload = function() {
-        if (websocketCheckInterval) {
-            clearInterval(websocketCheckInterval);
-        }
-    };
-
-    function showTab(tabNumber) {
-        console.log(`Переключение на вкладку ${tabNumber}`);
-        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.querySelector(`.tab:nth-child(${tabNumber})`).classList.add('active');
-        document.getElementById(`tab${tabNumber}`).classList.add('active');
-    }
-
-    function populateForm(data) {
-        document.getElementById('nameProfile').value = data.nameprofile || '';
-        document.getElementById('cycle').value = data.cycle || '';
-        document.getElementById('sunrise').value = formatMinutesToTime(data.sunrise) || '';
-        document.getElementById('sunset').value = formatMinutesToTime(data.sunset) || '';
-
-        // Заполняем данные для каждой фазы напрямую из плоской структуры JSON
-        for (let i = 1; i <= 6; i++) {
-            document.getElementById(`phase${i}_duration`).value = data[`phase${i}_duration`] || '';
-            document.getElementById(`phase${i}_temp`).value = data[`phase${i}_temp`] || ''; // Температура в сотых долях
-            document.getElementById(`phase${i}_hum`).value = data[`phase${i}_hum`] || '';   // Влажность в десятых долях
-            document.getElementById(`phase${i}_water_temp`).value = data[`phase${i}_water_temp`] || ''; // Температура воды в сотых долях
-            document.getElementById(`phase${i}_light`).value = data[`phase${i}_light`] || '';
-            document.getElementById(`phase${i}_circ`).value = data[`phase${i}_circ`] || '';
-            document.getElementById(`phase${i}_vent`).value = data[`phase${i}_vent`] || '';
-            document.getElementById(`phase${i}_watering`).value = data[`phase${i}_watering`] || ''; // Полив в сотых долях
-            document.getElementById(`phase${i}_draining`).value = data[`phase${i}_draining`] || ''; // Слив в сотых долях
-            document.getElementById(`phase${i}_rot`).value = data[`phase${i}_rot`] || '';
-        }
-    }
-
-    async function checkWebsocketState() {
-        try {
-            const response = await fetch('/api/websocket-state');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            updateConnectionStatus(data.state);
-        } catch (error) {
-            console.error('Error checking websocket state:', error);
-            updateConnectionStatus('disconnected');
-        }
-    }
-
-    function updateConnectionStatus(state) {
-        const button = document.getElementById('updateCommandBtn');
-        const statusDiv = document.getElementById('connectionStatus');
-        const form = document.getElementById('profileForm');
-        if (state === 'connected') {
-            button.classList.remove('button-disconnected');
-            button.classList.add('button-connected');
-            statusDiv.textContent = 'Connected';
-            statusDiv.classList.remove('status-disconnected');
-            statusDiv.classList.add('status-connected');
-            form.classList.add('connected'); // Добавляем класс при подключении
-        } else {
-            button.classList.remove('button-connected');
-            button.classList.add('button-disconnected');
-            statusDiv.textContent = 'Disconnected';
-            statusDiv.classList.remove('status-connected');
-            statusDiv.classList.add('status-disconnected');
-            form.classList.remove('connected'); // Убираем класс при отключении
-        }
-    }
-
-    async function updateCommand() {
-        const command = document.getElementById('command').value;
-        try {
-            const response = await fetch('/api/command', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ command: command }),
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.status === 'success') {
-                showStatus('Command updated successfully!', true);
-            } else {
-                showStatus('Error: ' + (data.error || 'Unknown error'), false);
-            }
-        } catch (error) {
-            showStatus('Error updating command: ' + error.message, false);
-        }
-    }
-
-    function showStatus(message, isSuccess) {
-        const statusDiv = document.getElementById('status');
-        statusDiv.textContent = message;
-        statusDiv.className = isSuccess ? 'success' : 'error';
-    }
-    function formatMinutesToTime(minutes) {
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-    }
-
-    function updateLastUpdate() {
-        const now = new Date();
-        document.getElementById('lastUpdate').textContent = 
-            `Last updated: ${now.toLocaleString()}`;
-    }
-
-    async function loadFrqsData() {
-        try {
-            const response = await fetch('/api/frqs');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log('Полученные данные:', data); // Для отладки
-            populateForm(data); // Заполняем форму данными из /api/frqs
-            updateLastUpdate();
-        } catch (error) {
-            showStatus('Error loading FRQS data: ' + error.message, false);
-        }
-    }
-    function SendCMD() {
-        fetch('/command/send_cmd', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ command: "SRSE", ask_comm: "12" })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Response:', data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-
-    function RebootCMD() {
-        fetch('/command/send_cmd', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ command: "SCMR", ask_comm: "12" })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Response:', data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
+			let websocketCheckInterval;
+		
+			window.onload = function() {
+				console.log('Скрипт успешно загружен');
+				document.querySelectorAll('.tab').forEach((tab, index) => {
+					tab.addEventListener('click', () => showTab(index + 1));
+				});
+				showTab(1); // Устанавливаем первую вкладку активной по умолчанию
+				loadFrqsData(); // Загружаем FRQS данные
+				checkWebsocketState(); // Проверяем состояние WebSocket
+				websocketCheckInterval = setInterval(checkWebsocketState, 5000); // Интервал проверки состояния
+			};
+		
+			window.onbeforeunload = function() {
+				if (websocketCheckInterval) {
+					clearInterval(websocketCheckInterval);
+				}
+			};
+		
+			function showTab(tabNumber) {
+				console.log(`Переключение на вкладку ${tabNumber}`);
+				document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+				document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+				document.querySelector(`.tab:nth-child(${tabNumber})`).classList.add('active');
+				document.getElementById(`tab${tabNumber}`).classList.add('active');
+			}
+		
+			function populateForm(data) {
+				document.getElementById('nameProfile').value = data.nameprofile || '';
+				document.getElementById('cycle').value = data.cycle || '';
+				document.getElementById('sunrise').value = formatMinutesToTime(data.sunrise) || '';
+				document.getElementById('sunset').value = formatMinutesToTime(data.sunset) || '';
+		
+				// Заполняем данные для каждой фазы напрямую из плоской структуры JSON
+				for (let i = 1; i <= 6; i++) {
+					document.getElementById(`phase${i}_duration`).value = data[`phase${i}_duration`] || '';
+					document.getElementById(`phase${i}_temp`).value = data[`phase${i}_temp`] || ''; // Температура в сотых долях
+					document.getElementById(`phase${i}_hum`).value = data[`phase${i}_hum`] || '';   // Влажность в десятых долях
+					document.getElementById(`phase${i}_water_temp`).value = data[`phase${i}_water_temp`] || ''; // Температура воды в сотых долях
+					document.getElementById(`phase${i}_light`).value = data[`phase${i}_light`] || '';
+					document.getElementById(`phase${i}_circ`).value = data[`phase${i}_circ`] || '';
+					document.getElementById(`phase${i}_vent`).value = data[`phase${i}_vent`] || '';
+					document.getElementById(`phase${i}_watering`).value = data[`phase${i}_watering`] || ''; // Полив в сотых долях
+					document.getElementById(`phase${i}_draining`).value = data[`phase${i}_draining`] || ''; // Слив в сотых долях
+					document.getElementById(`phase${i}_rot`).value = data[`phase${i}_rot`] || '';
+				}
+			}
+		
+			async function checkWebsocketState() {
+				try {
+					const response = await fetch('/api/websocket-state');
+					if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`);
+					}
+					const data = await response.json();
+					updateConnectionStatus(data.state);
+				} catch (error) {
+					console.error('Error checking websocket state:', error);
+					updateConnectionStatus('disconnected');
+				}
+			}
+		
+			function updateConnectionStatus(state) {
+				const button = document.getElementById('updateCommandBtn');
+				const statusDiv = document.getElementById('connectionStatus');
+				const form = document.getElementById('profileForm');
+				if (state === 'connected') {
+					button.classList.remove('button-disconnected');
+					button.classList.add('button-connected');
+					statusDiv.textContent = 'Connected';
+					statusDiv.classList.remove('status-disconnected');
+					statusDiv.classList.add('status-connected');
+					form.classList.add('connected'); // Добавляем класс при подключении
+				} else {
+					button.classList.remove('button-connected');
+					button.classList.add('button-disconnected');
+					statusDiv.textContent = 'Disconnected';
+					statusDiv.classList.remove('status-connected');
+					statusDiv.classList.add('status-disconnected');
+					form.classList.remove('connected'); // Убираем класс при отключении
+				}
+			}
+		
+			async function updateCommand() {
+				const command = document.getElementById('command').value;
+				try {
+					const response = await fetch('/api/command', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ command: command }),
+					});
+					if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`);
+					}
+					const data = await response.json();
+					if (data.status === 'success') {
+						showStatus('Command updated successfully!', true);
+					} else {
+						showStatus('Error: ' + (data.error || 'Unknown error'), false);
+					}
+				} catch (error) {
+					showStatus('Error updating command: ' + error.message, false);
+				}
+			}
+		
+			function showStatus(message, isSuccess) {
+				const statusDiv = document.getElementById('status');
+				statusDiv.textContent = message;
+				statusDiv.className = isSuccess ? 'success' : 'error';
+			}
+			function formatMinutesToTime(minutes) {
+				const hours = Math.floor(minutes / 60);
+				const mins = minutes % 60;
+				return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+			}
+		
+			function updateLastUpdate() {
+				const now = new Date();
+				document.getElementById('lastUpdate').textContent = 
+					`Last updated: ${now.toLocaleString()}`;
+			}
+		
+			async function loadFrqsData() {
+				try {
+					const response = await fetch('/api/frqs');
+					if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`);
+					}
+					const data = await response.json();
+					console.log('Полученные данные:', data); // Для отладки
+					populateForm(data); // Заполняем форму данными из /api/frqs
+					updateLastUpdate();
+				} catch (error) {
+					showStatus('Error loading FRQS data: ' + error.message, false);
+				}
+			}
+			function SendCMD() {
+				fetch('/command/send_cmd', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ command: "SRSE", ask_comm: "12" })
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Response:', data);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+			}
+		
+			function RebootCMD() {
+				fetch('/command/send_cmd', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ command: "SCMR", ask_comm: "12" })
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Response:', data);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+			}
+			
+			function StartCMD() {
+				fetch('/command/send_cmd', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ command: "SCMD", ask_comm: "12" })
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Response:', data);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+			}
+			
+			function StopCMD() {
+				fetch('/command/send_cmd', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ command: "SCMS", ask_comm: "12" })
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Response:', data);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+			}
+			function StopCMD() {
+				fetch('/command/send_cmd', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ command: "SCMS", ask_comm: "12" })
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Response:', data);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+			}
+			function UpdataCMD() {
+				fetch('/command/send_cmd', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ command: "SCMU", ask_comm: "12" })
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Response:', data);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+			}
+			function StatusCMD() {
+				fetch('/command/send_cmd', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ command: "SRST", ask_comm: "13" })
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Response:', data);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+			}
 </script>
 </body>
 </html>
