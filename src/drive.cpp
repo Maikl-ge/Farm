@@ -5,15 +5,21 @@
 #include <Profile.h>
 
 // Константы и настройки
-const int STEPS_PER_REVOLUTION = 200;  // Количество шагов на один полный оборот (для полного шага)
-const int MIN_RPM = 1;                 // Минимальная скорость вращения (RPM)
-const int MAX_RPM = 60;               // Максимальная скорость вращения (RPM), зависит от драйвера и двигателя
+const int STEPS_PER_REVOLUTION = 200 * 16;  // Количество шагов на один полный оборот (для полного шага)
+// микрошаг 1/16
+const int MIN_RPM = 0.1;                 // Минимальная скорость вращения (RPM)
+const int MAX_RPM = 5;                // Уменьшаем максимальную скорость для большей плавности
+const int ACCELERATION_STEPS = 2000;   // Увеличиваем количество шагов для более плавного разгона/торможения
+const float ACCELERATION_RATE = (MAX_RPM - MIN_RPM) / ACCELERATION_STEPS; // Скорость изменения RPM
 
 // Глобальные переменные для управления шаговым двигателем
 unsigned long lastStepTime = 0;        // Время последнего шага (в микросекундах)
 unsigned long stepInterval = 0;        // Интервал между шагами (в микросекундах)
 bool motorEnabled = false;             // Состояние двигателя (включён/выключен)
 bool motorDirection = HIGH;            // Направление вращения (HIGH - по часовой, LOW - против)
+float currentRPM = currentRotation; //MIN_RPM;            // Текущая скорость в RPM
+float targetRPM = MIN_RPM;             // Целевая скорость в RPM
+int accelerationStep = 0;              // Счётчик шагов для разгона/торможения
 
 // Переменные для soakRotation
 int soakStepCount = 0;                 // Счётчик шагов в текущей фазе
@@ -34,13 +40,42 @@ void setupStepper() {
     digitalWrite(ENABLE_PIN, HIGH); // Выключен по умолчанию (HIGH - выкл для большинства драйверов)
 }
 
+// Функция для плавного изменения скорости
+float accelerate(float target) {
+    if (abs(currentRPM - target) < 0.01) { // Более точная проверка достижения целевой скорости
+        currentRPM = target;
+        accelerationStep = 0;
+        return currentRPM;
+    }
+
+    if (accelerationStep < ACCELERATION_STEPS) {
+        if (currentRPM < target) {
+            currentRPM += ACCELERATION_RATE; // Разгон
+        } else {
+            currentRPM -= ACCELERATION_RATE; // Торможение
+        }
+        accelerationStep++;
+    } else {
+        currentRPM = target; // Убеждаемся, что достигли целевой скорости
+    }
+
+    currentRPM = constrain(currentRPM, MIN_RPM, MAX_RPM);
+    return currentRPM;
+}
+
 // Функция для режима "Soak" - цикл шагов
 void soakRotation() {
     unsigned long currentTime = micros();
 
-    // Проверка и установка скорости вращения
-    float rpm = constrain(abs(currentRotation), MIN_RPM, MAX_RPM); // Ограничиваем RPM
-    stepInterval = (unsigned long)(1000000.0 / ((rpm * STEPS_PER_REVOLUTION) / 60.0));
+    // Устанавливаем целевую скорость в зависимости от состояния (более низкие и плавные скорости)
+    float targetSpeed = (soakState == INIT_LEFT_25 || soakState == LEFT_50) ? 10.0 : 20.0; // Уменьшаем скорости
+    targetRPM = constrain(targetSpeed, MIN_RPM, MAX_RPM);
+
+    // Плавное изменение скорости
+    currentRPM = accelerate(targetRPM);
+
+    // Расчёт интервала между шагами на основе текущей скорости (исправляем на 1000000.0)
+    stepInterval = (unsigned long)(1000000.0 / ((currentRPM * STEPS_PER_REVOLUTION) / 60.0));
     STEP = stepInterval; // Установка интервала шагов
 
     // Включение двигателя, если он выключен
@@ -53,14 +88,13 @@ void soakRotation() {
         case INIT_LEFT_25: // 25 шагов влево (только один раз при входе)
             if (!soakInitialized) {
                 digitalWrite(DIR_PIN, LOW); // Влево
-                //Serial.println("INIT_LEFT_25");
                 if (currentTime - lastStepTime >= stepInterval) {
                     digitalWrite(STEP_PIN, HIGH);
-                    delayMicroseconds(2);
+                    delayMicroseconds(15); // Увеличиваем длительность импульса для стабильности
                     digitalWrite(STEP_PIN, LOW);
                     lastStepTime = currentTime;
                     soakStepCount++;
-                    if (soakStepCount >= 25) {
+                    if (soakStepCount >= STEPS_PER_REVOLUTION / 8) { // 25 шагов (1/8 оборота)
                         soakStepCount = 0;
                         soakPauseStart = millis();
                         soakState = PAUSE_1;
@@ -73,7 +107,6 @@ void soakRotation() {
             break;
 
         case PAUSE_1: // Пауза 5 секунд
-            //Serial.println("PAUSE_1");
             if (millis() - soakPauseStart >= 5000) {
                 soakState = RIGHT_50;
             }
@@ -81,14 +114,13 @@ void soakRotation() {
 
         case RIGHT_50: // 50 шагов вправо
             digitalWrite(DIR_PIN, HIGH); // Вправо
-            //Serial.println("RIGHT_50");
             if (currentTime - lastStepTime >= stepInterval) {
                 digitalWrite(STEP_PIN, HIGH);
-                delayMicroseconds(2);
+                delayMicroseconds(15);
                 digitalWrite(STEP_PIN, LOW);
                 lastStepTime = currentTime;
                 soakStepCount++;
-                if (soakStepCount >= 50) {
+                if (soakStepCount >= STEPS_PER_REVOLUTION / 4) { // 50 шагов (1/4 оборота)
                     soakStepCount = 0;
                     soakPauseStart = millis();
                     soakState = PAUSE_2;
@@ -97,7 +129,6 @@ void soakRotation() {
             break;
 
         case PAUSE_2: // Пауза 5 секунд
-            //Serial.println("PAUSE_2");
             if (millis() - soakPauseStart >= 5000) {
                 soakState = LEFT_50;
             }
@@ -105,14 +136,13 @@ void soakRotation() {
 
         case LEFT_50: // 50 шагов влево
             digitalWrite(DIR_PIN, LOW); // Влево
-            //Serial.println("LEFT_50");
             if (currentTime - lastStepTime >= stepInterval) {
                 digitalWrite(STEP_PIN, HIGH);
-                delayMicroseconds(2);
+                delayMicroseconds(15);
                 digitalWrite(STEP_PIN, LOW);
                 lastStepTime = currentTime;
                 soakStepCount++;
-                if (soakStepCount >= 50) {
+                if (soakStepCount >= STEPS_PER_REVOLUTION / 4) { // 50 шагов
                     soakStepCount = 0;
                     soakPauseStart = millis();
                     soakState = PAUSE_3;
@@ -120,8 +150,7 @@ void soakRotation() {
             }
             break;
 
-        case PAUSE_3: // Пауза 5 секунд
-            //Serial.println("PAUSE_3");
+        case PAUSE_3: // Пауza 5 секунд
             if (millis() - soakPauseStart >= 5000) {
                 soakState = RIGHT_50; // Возврат к RIGHT_50, минуя INIT_LEFT_25
             }
@@ -144,9 +173,13 @@ void updateStepperControl() {
 
     unsigned long currentStepTime = micros();
 
-    // Проверка и установка скорости вращения
-    float rpm = constrain(abs(currentRotation), MIN_RPM, MAX_RPM); // Ограничиваем RPM
-    if (currentRotation == 0) {
+    // Устанавливаем целевую скорость на основе currentRotation
+    targetRPM = constrain(abs(currentRotation), MIN_RPM, MAX_RPM);
+
+    // Плавное изменение скорости
+    currentRPM = accelerate(targetRPM);
+
+    if (currentRPM == 0) {
         // Если скорость 0, выключаем двигатель
         if (motorEnabled) {
             digitalWrite(ENABLE_PIN, HIGH); // Выключаем двигатель
@@ -156,7 +189,7 @@ void updateStepperControl() {
     }
 
     // Установка направления
-    bool newDirection = (currentRotation > 0) ? HIGH : LOW;
+    bool newDirection = ((currentRotation) > 0) ? HIGH : LOW;
     if (newDirection != motorDirection) {
         motorDirection = newDirection;
         digitalWrite(DIR_PIN, motorDirection);
@@ -168,14 +201,14 @@ void updateStepperControl() {
         motorEnabled = true;
     }
 
-    // Расчёт интервала между шагами (в микросекундах)
-    stepInterval = (unsigned long)(1000000.0 / ((rpm * STEPS_PER_REVOLUTION) / 60.0));
+    // Расчёт интервала между шагами (в микросекундах) - исправлено на 1000000.0
+    stepInterval = (unsigned long)(1000000.0 / ((currentRPM * STEPS_PER_REVOLUTION) / 60.0));
     STEP = stepInterval; // Установка интервала шагов
 
-    // Генерация импульсов для шага
+    // Генерация импульсов для шага с небольшой задержкой для стабильности
     if (currentStepTime - lastStepTime >= stepInterval) {
         digitalWrite(STEP_PIN, HIGH);
-        delayMicroseconds(2); // Минимальная длительность импульса (зависит от драйвера)
+        delayMicroseconds(15); // Увеличиваем длительность импульса
         digitalWrite(STEP_PIN, LOW);
         lastStepTime = currentStepTime;
     }

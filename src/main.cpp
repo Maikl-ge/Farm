@@ -128,12 +128,12 @@ void updateWaterTask(void *parameter) {
         updateWatering();
         updateLightBrightness();        
         }
-        
+
         updateWater();        
         updateFanControl();
         updateStepperControl(); // Обновление состояния двигателя
         updateClimateControl(); // Обновление климат-контроля
-        vTaskDelay(1000 / portTICK_PERIOD_MS);  // Задержка 100 мс
+        vTaskDelay(100 / portTICK_PERIOD_MS);  // Задержка 100 мс
     }
 }
 
@@ -262,6 +262,7 @@ void setup() {
 void loop() {
     // ArduinoOTA.handle(); // Обработка OTA обновлений
     // Другие задачи, если есть
+    updateStepperControl();
 }
 
 // Функция для отправки запроса "Settings" и получения ответа
