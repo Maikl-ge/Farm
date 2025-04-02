@@ -123,15 +123,13 @@ void CheckStatusFarm() {
     checkPhaseToGrowe();  // Проверка фазы роста
 }
 
-uint16_t convertTimeToMinutes(uint16_t time) {
-    uint8_t hours = time / 100;
-    uint8_t minutes = time % 100;
-    return hours * 60 + minutes;
-}
 
 void checkPhaseToGrowe() {
-    Serial.println("Полное время выращивания       " + String(longPhacse6) + " минут или " + String(longPhacse6 / 60) + " часов");
-    Serial.println("Прошло время со старта         " + String(totalMinutesElapsed) + " минут"); 
+    uint8_t hours = totalMinutesElapsed / 60;
+    uint8_t minutes = totalMinutesElapsed % 60;
+
+    Serial.println("Полное время выращивания       " + String(longPhacse6) + " минут или " + String(longPhacse6 / 60) + ":" + String(totalMinutesElapsed % 60 ));
+    Serial.println("Прошло время со старта         " + String(totalMinutesElapsed) + " минут или " + String(hours) + ":" + String(minutes));
     Serial.println("Осталось времени до завершения " + String(longPhacse6 - totalMinutesElapsed) + " минут или " + String((longPhacse6 - totalMinutesElapsed) / 60) + " часов");
 
     uint16_t phaseEndTimes[] = {
