@@ -13,7 +13,8 @@ long transmitionTime = 0; // Время передачи сообщения
 unsigned long timeSlot = 0; // Время Слота передачи сообщения
 uint16_t currentVentilation = 0;  // Текущая вентиляция
 uint16_t currentCirculation = 0;  // Текущая циркуляция
-uint16_t  currentRotation; // Текущая ротация
+uint16_t  currentRotation = 0; // Текущая ротация
+uint16_t currentLight = 0;
 float currentWaterTemperatura = 0;
 String currentPhase = ""; // Текущая фаза
 float currentTemperatura = 0; // Целевая температура (°C)

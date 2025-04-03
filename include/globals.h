@@ -20,6 +20,7 @@ extern uint16_t currentVentilation;  // Текущая вентиляция
 extern uint16_t  currentCirculation; // Текущая циркуляция
 extern uint16_t  currentRotation; // Текущая ротация
 extern float currentWaterTemperatura;  // 
+extern uint16_t currentLight;
 extern unsigned long currentStepTime;  // 
 extern String currentPhase; // Текущая фаза
 extern float currentTemperatura; // Целевая температура (°C)

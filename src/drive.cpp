@@ -167,12 +167,17 @@ void leftStep() {
 }
 
 void updateStepperControl() {
-    if (currentPhase == "Soak") {
-        soakRotation();
-        return;
-    } else if (currentPhase == "Germ" || currentPhase == "Act" || currentPhase == "Early" || 
-               currentPhase == "Grow" || currentPhase == "Finish") {
-        germRotation();
+    if(statusFarm == "Work" || statusFarm == "Pause") {
+        digitalWrite(ENABLE_PIN, HIGH);    
+        if (currentPhase == "Soak") {
+            soakRotation();
+            return;
+        } else if (currentPhase == "Germ" || currentPhase == "Act" || currentPhase == "Early" || 
+                currentPhase == "Grow" || currentPhase == "Finish") {
+            germRotation();
+            return;
+        }
+        digitalWrite(ENABLE_PIN, LOW);
         return;
     }
 }
