@@ -35,6 +35,7 @@ void updateFanControl(); // Прототип функции
 void CurrentStatusFarm();  // Определение текущего статуса фермы
 void setupStepper(); // Инициализация шагового двигателя
 void updateStepperControl(); // Обновление состояния двигателя
+void updateSoakState();
 
 // Объявление объекта класса AccessPoint
 AccessPoint accessPoint;   
@@ -131,7 +132,7 @@ void updateWaterTask(void *parameter) {
 
         updateWater();        
         updateFanControl();
-        updateStepperControl(); // Обновление состояния двигателя
+        //updateStepperControl(); // Обновление состояния двигателя
         updateClimateControl(); // Обновление климат-контроля
         vTaskDelay(100 / portTICK_PERIOD_MS);  // Задержка 100 мс
     }
@@ -153,6 +154,7 @@ void setup() {
     initializePins(); // Инициализация пинов
 
     initializeMenu(); // Инициализация модуля меню   
+    CurrentStatusFarm(); //
 
     // Переход в режим Точки доступа, если кнопка MODE нажата в момент включения
     bool executeOnce = true;
@@ -262,6 +264,8 @@ void setup() {
 void loop() {
     // ArduinoOTA.handle(); // Обработка OTA обновлений
     // Другие задачи, если есть
+    //currentStepTime = millis();
+    // updateSoakState();
     updateStepperControl();
 }
 

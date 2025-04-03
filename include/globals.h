@@ -19,6 +19,8 @@ extern unsigned long timeSlot; // Время Слота передачи соо�
 extern uint16_t currentVentilation;  // Текущая вентиляция
 extern uint16_t  currentCirculation; // Текущая циркуляция
 extern uint16_t  currentRotation; // Текущая ротация
+extern float currentWaterTemperatura;  // 
+extern unsigned long currentStepTime;  // 
 extern String currentPhase; // Текущая фаза
 extern float currentTemperatura; // Целевая температура (°C)
 extern float currentHumidity;    // Целевая влажность (%)
@@ -62,6 +64,7 @@ void setupStepper();
 void setupClimateControl(); // Инициализация модуля управления климатом
 void updateClimateControl(); // Обновление управления климатом
 void CheckStatusFarm(); // Проверка фазы роста
+void updateSoakState();  //
 
 // Объявление объекта ds18b20
 extern DallasTemperature ds18b20;

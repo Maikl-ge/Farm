@@ -14,9 +14,11 @@ unsigned long timeSlot = 0; // Время Слота передачи сообщ
 uint16_t currentVentilation = 0;  // Текущая вентиляция
 uint16_t currentCirculation = 0;  // Текущая циркуляция
 uint16_t  currentRotation; // Текущая ротация
+float currentWaterTemperatura = 0;
 String currentPhase = ""; // Текущая фаза
 float currentTemperatura = 0; // Целевая температура (°C)
 float currentHumidity = 0;    // Целевая влажность (%)
+unsigned long currentStepTime = micros();
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

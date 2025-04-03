@@ -17,31 +17,31 @@ void setupWater() {
     digitalWrite(OSMOS_ON_PIN, LOW);
     digitalWrite(PUMP_TRANSFER_PIN, LOW);  
 
-    ledcSetup(6, 5000, 10); // Настройка канала PWM для нагрева воды
-    ledcAttachPin(HITER_WATER_PIN, 6); // Привязка канала PWM к пину нагрева воды
+    ledcSetup(5, 5000, 10); // Настройка канала PWM для нагрева воды
+    ledcAttachPin(HITER_WATER_PIN, 5); // Привязка канала PWM к пину нагрева воды
 
-    hysteresis = 0.5; // Гистерезис ±0.5°C для стабильности
-    tempRange = 10;  // Диапазон пропорционального регулирования (в °C)
+    hysteresis = 0.2; // Гистерезис ±0.5°C для стабильности
+    tempRange = 15;  // Диапазон пропорционального регулирования (в °C)
 }
 
 // Обработка состояния датчиков уровня воды
 void controlWaterLevel() {
     if (max_osmo_level == 1) {
-        digitalWrite(OSMOS_ON_PIN, LOW);  // Выключаем осмос
-    } else if (min_osmo_level == 0) {
-        digitalWrite(OSMOS_ON_PIN, HIGH); // Включаем осмос
+        digitalWrite(OSMOS_ON_PIN, LOW);  // Выключаем осмос, если бак полный
+    } else if (min_osmo_level == 0 && max_osmo_level == 0) {
+        digitalWrite(OSMOS_ON_PIN, HIGH); // Включаем осмос, если бак пуст
     }
 
     if (max_water_level == 1) {
-        digitalWrite(PUMP_TRANSFER_PIN, LOW);  // Выключаем насоса подачи в бок полива
-    } else if (min_water_level == 0) {
-        digitalWrite(PUMP_TRANSFER_PIN, HIGH); // Включаем насоса подачи в бок полива
+        digitalWrite(PUMP_TRANSFER_PIN, LOW);  // Выключаем насос, если бак полива полный
+    } else if (min_water_level == 0 && max_water_level == 0) {
+        digitalWrite(PUMP_TRANSFER_PIN, HIGH); // Включаем насос, если бак полива пуст
     }
 }
 
 // Управление нагревателем воды
 void controlWaterHeater() {
-    float tempError = 0; //WATER_TEMPERATURE - water_temperature_osmo;
+    float tempError = currentWaterTemperatura - water_temperature_osmo;
 
     if (tempError > hysteresis) {
         // Температура ниже - включаем нагрев воды в баке полива
