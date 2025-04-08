@@ -45,16 +45,19 @@ void controlWaterHeater() {
 
     if (tempError > hysteresis) {
         // Температура ниже - включаем нагрев воды в баке полива
-        ledcWrite(6, 1023);
+        ledcWrite(5, 1023);
+        HITER_WATER = 1023;
     } else if (tempError < -hysteresis) {
         // Температура выше - выключаем нагрев воды в баке полива
-        ledcWrite(6, 0);
+        ledcWrite(5, 0);
+        HITER_WATER = 0;
     } else {
         // Пропорциональное управление
         float scaledError = tempError / tempRange; // Масштабируем ошибку
         int pwmValue = map(scaledError * 1023, -1023, 1023, 0, 1023);
         pwmValue = constrain(pwmValue, 0, 1023);
         ledcWrite(6, pwmValue);
+        HITER_WATER = pwmValue;
     }
 }
 

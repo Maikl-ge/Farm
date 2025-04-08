@@ -161,8 +161,8 @@ SensorData readHTU21D(Adafruit_HTU21DF &htu) {
     float hum = htu.readHumidity();
 
     // Проверяем данные на NaN
-    data.temperature = isnan(temp) ? 25 : temp;
-    data.humidity = isnan(hum) ? 85 : hum;
+    data.temperature = isnan(temp) ? 2.0 : roundf(temp * 100) / 100.0;
+    data.humidity = isnan(hum) ? 5.0 : roundf(hum * 10) / 10.0; 
 
     return data;
 }

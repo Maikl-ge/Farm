@@ -13,6 +13,9 @@ uint16_t getCurrentDate(); // Tекущее время
 uint16_t readFromEEPROM(int address);
 extern uint16_t wateringInterval;
 extern uint16_t wateringDraining;
+extern uint16_t totalMinutesElapsed;
+extern uint16_t longPhacse6;
+extern bool pintStatusFarm;
 
 extern int phaseToGrowe;
 

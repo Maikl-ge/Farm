@@ -27,10 +27,7 @@ const unsigned long BUTTON_READ_INTERVAL = 500;
 Button buttons[] = {
     {START_BUTTON_PIN, false, 0, false},
     {STOP_BUTTON_PIN, false, 0, false},
-    {MODE_BUTTON_PIN, false, 0, false}
 };
-
-
 
 const uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 
@@ -45,6 +42,15 @@ void initializeMenu() {
         pinMode(buttons[i].pin, INPUT);
     }
     pinMode(POWER_MONITOR_PIN, INPUT); // Установка пина мониторинга питающей сети в режим входа
+
+    pinMode(FAN_INLET_PIN, OUTPUT);
+    digitalWrite(FAN_INLET_PIN, LOW);
+    pinMode(HITER_WATER_PIN, OUTPUT);
+    digitalWrite(HITER_WATER_PIN, LOW);
+    pinMode(STEAM_IN_PIN, OUTPUT);
+    digitalWrite(STEAM_IN_PIN, LOW);
+    pinMode(PUMP_TRANSFER_PIN, OUTPUT);
+    digitalWrite(PUMP_TRANSFER_PIN, LOW);
 }
 
 // Функция обработки состояния кнопки
@@ -84,50 +90,28 @@ void updateButtonState() {
 
     // Обрвботка коротких нажатий
     if (buttonState == 0b00001001) {  // Короткое нажатие START 
-        analogWrite(LIGHT_PIN, 255);
+        digitalWrite(FAN_INLET_PIN, HIGH);
         Serial.println("Клавиатура: короткий START");
     }
     if (buttonState == 0b00001010) {  // Короткое нажатие STOP
-        analogWrite(LIGHT_PIN, 0);
+        digitalWrite(HITER_WATER_PIN, HIGH);
         Serial.println("Клавиатура: короткий STOP");
-    }
-    if (buttonState == 0b00001100) {  // Короткое нажатие MODE
-        Serial.println("Клавиатура: короткий MODE");
     }
     if (buttonState == 0b00001011) {  // Короткое нажатие START + STOP
         Serial.println("Клавиатура: короткий START + STOP");
     }
-    if (buttonState == 0b00001101) {  // Короткое нажатие START + MODE
-        Serial.println("Клавиатура: короткий START + MODE");
-    }
-    if (buttonState == 0b00001110) {  // Короткое нажатие STOP + MODE
-        Serial.println("Клавиатура: короткий STOP + MODE");
-    }
-    if (buttonState == 0b00001111) {  // Короткое нажатие всех кнопок
-        Serial.println("Клавиатура: короткий Все кнопки");
-    }
 
     // Обработка средних нажатий
     if (buttonState == 0b00010001) {  // Среднее нажатие START
+        digitalWrite(STEAM_IN_PIN, HIGH);
         Serial.println("Клавиатура: средний START");
     }
     if (buttonState == 0b00010010) {  // Среднее нажатие STOP
+        digitalWrite(PUMP_TRANSFER_PIN, HIGH);
         Serial.println("Клавиатура: средний STOP");
-    }
-    if (buttonState == 0b00010100) {  // Среднее нажатие MODE
-        Serial.println("Клавиатура: средний MODE");
     }
     if (buttonState == 0b00010011) {  // Среднее нажатие START + STOP
         Serial.println("Клавиатура: средний START + STOP");
-    }
-    if (buttonState == 0b00010101) {  // Среднее нажатие START + MODE
-        Serial.println("Клавиатура: средний START + MODE");
-    }
-    if (buttonState == 0b00010110) {  // Среднее нажатие STOP + MODE
-        Serial.println("Клавиатура: средний STOP + MODE");
-    }
-    if (buttonState == 0b00010111) {  // Среднее нажатие всех кнопок
-        Serial.println("Клавиатура: средний Все кнопки");
     }
 
     // Обработка длинных нажатий
@@ -137,21 +121,9 @@ void updateButtonState() {
     if (buttonState == 0b00100010) {  // Длинное нажатие STOP
         Serial.println("Клавиатура: длинный STOP");
     }
-    if (buttonState == 0b00100100) {  // Длинное нажатие MODE
-        Serial.println("Клавиатура: длинный MODE");
-    }
     if (buttonState == 0b00100011) {  // Длинное нажатие START + STOP
         Serial.println("Клавиатура: длинный START + STOP");
         //accessPoint.start();
-    }
-    if (buttonState == 0b00100101) {  // Длинное нажатие START + MODE
-        Serial.println("Клавиатура: длинный START + MODE");
-    }
-    if (buttonState == 0b00100110) {  // Длинное нажатие STOP + MODE
-        Serial.println("Клавиатура: длинный STOP + MODE");
-    }
-    if (buttonState == 0b00100111) {  // Длинное нажатие всех кнопок
-        Serial.println("Клавиатура: длинный Все кнопки");
     }
 }
 
@@ -159,28 +131,17 @@ void updateButtonState() {
 // 00001000	Короткое нажатие одной или комбинации кнопок
 // 00001001	Короткое нажатие START
 // 00001010	Короткое нажатие STOP
-// 00001100	Короткое нажатие MODE
 // 00001011	Короткое нажатие START + STOP
-// 00001101	Короткое нажатие START + MODE
-// 00001110	Короткое нажатие STOP + MODE
-// 00001111	Короткое нажатие всех кнопок
+
 
 // Состояние байта buttonState при среднем нажатии
 // 00010000	Среднее нажатие одной или комбинации кнопок
 // 00010001	Среднее нажатие START
 // 00010010	Среднее нажатие STOP
-// 00010100	Среднее нажатие MODE
 // 00010011	Среднее нажатие START + STOP
-// 00010101	Среднее нажатие START + MODE
-// 00010110	Среднее нажатие STOP + MODE
-// 00010111	Среднее нажатие всех кнопок
 
 // Состояние байта buttonState при длинном нажатии
 // 00100000	Длинное нажатие одной или комбинации кнопок
 // 00100001	Длинное нажатие START
 // 00100010	Длинное нажатие STOP
-// 00100100	Длинное нажатие MODE
 // 00100011	Длинное нажатие START + STOP
-// 00100101	Длинное нажатие START + MODE
-// 00100110	Длинное нажатие STOP + MODE
-// 00100111	Длинное нажатие всех кнопок

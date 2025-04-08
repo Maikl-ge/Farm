@@ -76,20 +76,18 @@ void soakRotation() {
     currentRPM = accelerate(targetRPM);
     stepInterval = (unsigned long)(1000000.0 / ((currentRPM * STEPS_PER_REVOLUTION) / 60.0));
 
-    if (!motorEnabled) {
-        digitalWrite(ENABLE_PIN, LOW);
-        motorEnabled = true;
-    }
-
     switch (statusStep) {
         case 0: pauseLeft(); break;
         case 1: stepsToTarget = STEPS_PER_REVOLUTION / 4; currentDir = false; rightStep(); break;
         case 2: pauseRight(); break;
-        case 3: stepsToTarget = STEPS_PER_REVOLUTION / 4; currentDir = true; leftStep(); break;
+        case 3: stepsToTarget = (STEPS_PER_REVOLUTION / 4) + 2; currentDir = true; leftStep(); break;
     }
 }
 
 void germRotation() {
+    if(currentRotation == 0) {
+        return;
+    }    
     currentStepTime = micros();
     targetRPM = constrain(currentRotation, MIN_RPM, MAX_RPM);
     currentRPM = accelerate(targetRPM);
@@ -98,13 +96,12 @@ void germRotation() {
 
     STEP = stepInterval;
 
+    digitalWrite(ENABLE_PIN, LOW);
+    ENABLE = LOW;     
+
     currentDir = false; // Вправо
     digitalWrite(DIR_PIN, currentDir);
-
-    if (!motorEnabled) {
-        digitalWrite(ENABLE_PIN, LOW);
-        motorEnabled = true;
-    }
+    DIR = currentDir;
 
     if (currentStepTime - lastStepTime >= stepInterval) {
         digitalWrite(STEP_PIN, HIGH);
@@ -114,7 +111,9 @@ void germRotation() {
     }
 }
 
-void pauseLeft() {
+void pauseLeft() { 
+    digitalWrite(ENABLE_PIN, HIGH);
+    ENABLE = HIGH;   
     if (statusStep == 0) {
         if (millis() - soakPauseStart >= 5000) {
             statusStep = 1;
@@ -123,6 +122,8 @@ void pauseLeft() {
 }
 
 void rightStep() {
+    digitalWrite(ENABLE_PIN, LOW);
+    ENABLE = LOW;   
     if (statusStep == 1) {
         digitalWrite(DIR_PIN, currentDir);
         if (currentStepTime - lastStepTime >= stepInterval) {
@@ -140,7 +141,9 @@ void rightStep() {
     }
 }
 
-void pauseRight() {
+void pauseRight() {  
+    digitalWrite(ENABLE_PIN, HIGH);
+    ENABLE = HIGH;  
     if (statusStep == 2) {
         if (millis() - soakPauseStart >= 5000) {
             statusStep = 3;
@@ -149,6 +152,8 @@ void pauseRight() {
 }
 
 void leftStep() {
+    digitalWrite(ENABLE_PIN, LOW);
+    ENABLE = LOW; 
     if (statusStep == 3) {
         digitalWrite(DIR_PIN, currentDir);
         if (currentStepTime - lastStepTime >= stepInterval) {
@@ -168,7 +173,6 @@ void leftStep() {
 
 void updateStepperControl() {
     if(statusFarm == "Work" || statusFarm == "Pause") {
-        digitalWrite(ENABLE_PIN, HIGH);    
         if (currentPhase == "Soak") {
             soakRotation();
             return;
@@ -177,7 +181,10 @@ void updateStepperControl() {
             germRotation();
             return;
         }
-        digitalWrite(ENABLE_PIN, LOW);
+        digitalWrite(ENABLE_PIN, HIGH);
+        ENABLE = HIGH;
         return;
     }
+    digitalWrite(ENABLE_PIN, HIGH);
+    ENABLE = HIGH;    
 }

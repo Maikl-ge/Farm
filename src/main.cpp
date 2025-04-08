@@ -36,6 +36,7 @@ void CurrentStatusFarm();  // Определение текущего стату
 void setupStepper(); // Инициализация шагового двигателя
 void updateStepperControl(); // Обновление состояния двигателя
 void updateSoakState();
+void readAllHTU21D();
 
 // Объявление объекта класса AccessPoint
 AccessPoint accessPoint;   
@@ -82,7 +83,9 @@ void updateSensorsTask(void *parameter) {
 }
 
 void sendDataTask(void *parameter) {
-    for (;;) {     
+    for (;;) {  
+        pintStatusFarm = true;  
+        Serial.print("< --- > Тик передачи данных  ");  Serial.println(CurrentTime); 
         CurrentStatusFarm(); // Определение текущего статуса фермы  
         timeSlot = 0;
         unsigned long timeStartSlot = millis(); // Время начала передачи
@@ -125,11 +128,8 @@ void updateWaterTask(void *parameter) {
         webSocket.poll(); // Обработка WebSocket событий
         readPCF8574(); // Чтение состояния датчиков холла  
 
-        if(statusFarm == "Work" || statusFarm == "Pause") {      
-        updateWatering();
-        updateLightBrightness();        
-        }
-
+        updateWatering();       
+        updateLightBrightness();  
         updateWater();        
         updateFanControl();
         //updateStepperControl(); // Обновление состояния двигателя
@@ -149,17 +149,12 @@ void setup() {
     if (!EEPROM.begin(EEPROM_SIZE)) {
         Serial.println("Failed to initialize EEPROM");
         return;
-    }
-
-    initializePins(); // Инициализация пинов
-
-    initializeMenu(); // Инициализация модуля меню   
-    CurrentStatusFarm(); //
+    } 
 
     // Переход в режим Точки доступа, если кнопка MODE нажата в момент включения
     bool executeOnce = true;
     if (executeOnce) {
-        if(!analogRead(MODE_BUTTON_PIN)) {
+        if(!analogRead(START_BUTTON_PIN)) {
         Serial.println("Access Point Started");
         accessPoint.start();
         while (executeOnce == true) {
@@ -171,38 +166,47 @@ void setup() {
     }
     executeOnce = false;
 
-    initializeSettingsModule(); // Инициализация модуля настроек
- 
-    setupWatering(); // Инициализация модуля полива
-
-    setupLightControl(); // Инициализация модуля управления светом
-    updateLightBrightness(); // Обновление яркости света
-
-    setupWater(); // Инициализация модуля управления водой
-
-    initializeSensors();  // Инициализация модуля сенсоров  
-    updateSensors(); // Обновление сенсоров
-
-    setupStepper(); // Инициализация модуля управления шаговым двигателем
-
-    setupFan(); // Инициализация модуля вентиляции  
-    updateFanControl(); // Обновление вентиляции
-
-    setupClimateControl(); // Инициализация модуля климат-контроля
 
     // Подключение к WiFi
     WiFi.begin(ssid, password);
     
     connectToWiFi();
 
-    initializeWebSocket();  // Инициализация WebSocket
-
     initTimeModule();    // Инициализируем модуль времени
 
     syncTimeWithNTP("pool.ntp.org", timeZone); // Синхронизируем время с NTP
 
+    initializeSettingsModule(); // Инициализация модуля настроек
+ 
+    setupWatering(); // Инициализация модуля полива
+
+    setupLightControl(); // Инициализация модуля управления светом
+
+    setupWater(); // Инициализация модуля управления водой
+
+    initializeSensors();  // Инициализация модуля сенсоров  
+
+    setupStepper(); // Инициализация модуля управления шаговым двигателем
+
+    setupFan(); // Инициализация модуля вентиляции  
+
+    setupClimateControl(); // Инициализация модуля климат-контроля
+
+    initializeWebSocket();  // Инициализация WebSocket
+
     setupCDcard(); // Инициализация SD карты
-    
+
+    initializeMenu(); // Инициализация модуля меню  
+
+    pintStatusFarm = true;   
+    CurrentStatusFarm(); // Определение текущего статуса фермы  
+
+    readAllHTU21D();
+
+    //updateSensors(); // Обновление сенсоров
+    //updateFanControl(); // Обновление вентиляции
+    //updateLightBrightness(); // Обновление яркости света
+
     if (connected) {
         Serial.println("WebSocket connected started");    
     } else {
@@ -264,8 +268,6 @@ void setup() {
 void loop() {
     // ArduinoOTA.handle(); // Обработка OTA обновлений
     // Другие задачи, если есть
-    //currentStepTime = millis();
-    // updateSoakState();
     updateStepperControl();
 }
 
@@ -303,29 +305,3 @@ void connectToWiFi() {
     // Здесь можно добавить дополнительные действия, например, включение режима AP
 }
 
-void initializePins() { // Инициализация пинов
-
-// Пины для управления нагрузками ON/OFF
-pinMode(OSMOS_ON_PIN, OUTPUT); // Подача очищенной воды (ON/OFF)
-pinMode(PUMP_WATERING_PIN, OUTPUT); // Полив (ON/OFF)
-pinMode(PUMP_TRANSFER_PIN, OUTPUT); // Подача в бак полива osmo воды (ON/OFF)
-pinMode(WATER_OUT_PIN, OUTPUT); // Слив (ON/OFF)
-pinMode(STEAM_IN_PIN, OUTPUT); // Парогенератор (ON/OFF)
-// Состояние пинов по умолчанию для управления нагрузками ON/OFF
-digitalWrite(OSMOS_ON_PIN, LOW); // Выключить подачу очищенной воды
-digitalWrite(PUMP_WATERING_PIN, LOW); // Выключить полив
-digitalWrite(PUMP_TRANSFER_PIN, LOW); // Выключить подачу в бак полива osmo воды
-digitalWrite(WATER_OUT_PIN, LOW); // Выключить слив
-digitalWrite(STEAM_IN_PIN, LOW); // Выключить парогенератор
-
-// // Состояние пинов по умолчанию для управления шаговым двигателем
-// ledcSetup(8, 5000, 10); // Настройка канала PWM для шагового двигателя (Step)
-// ledcAttachPin(STEP_PIN, 8); // Привязка канала PWM к пину шагового двигателя (Step)
-ledcSetup(9, 5000, 10); // Настройка канала PWM для шагового двигателя (Dir)
-ledcAttachPin(DIR_PIN, 9); // Привязка канала PWM к пину шагового двигателя (Dir)
-//digitalWrite(ENABLE_PIN, LOW); // Включить шаговый двигатель
-// // Шаговый двигатель (Step, Dir, Enable)
-// ledcWrite(8, 0); // Шаговый двигатель (Step)
-ledcWrite(9, 0); // Направление (Dir)
-//pinMode(ENABLE_PIN, OUTPUT); // Включение (Enable)
-}

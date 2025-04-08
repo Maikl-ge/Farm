@@ -38,85 +38,90 @@ void setupFan() {
 }
 
 void updateFanControl() {
-    unsigned long currentFanTime = millis();
-
-    // Обновление вентиляторов с задержкой
-    if (currentFanTime - lastWateringUpdateTime >= WIND_CHANGE_DELAY) {
-        // Управление вентилятором циркуляции (FAN_CIRC_PIN) - имитация ветра
-        int circMax = min(currentCirculation, MAX_PWM); // Ограничение максимума currentCirculation
-        if (currentCirculation < MIN_CIRCULATION_PWM) {
-            // Если currentCirculation < MIN_CIRCULATION_PWM, выключаем вентилятор
-            circulationCurrentPwm = 0;
-            circulationTargetPwm = 0;
-            ledcWrite(pwmCirculationChannel, 0);
-            FAN_CIRC = 0;
-        } else {
-            // Нормальная работа - имитация ветра
-            if (circulationCurrentPwm < MIN_CIRCULATION_PWM) {
-                circulationCurrentPwm = MIN_CIRCULATION_PWM; // Принудительно устанавливаем минимум
-            }
-            // Если цель некорректна (меньше или равна минимуму), устанавливаем новую
-            if (circulationTargetPwm <= MIN_CIRCULATION_PWM) {
-                circulationTargetPwm = random(MIN_CIRCULATION_PWM, circMax + 1);
-            }
-            if (circulationCurrentPwm < circulationTargetPwm) {
-                circulationCurrentPwm += random(1, WIND_CHANGE_STEP + 1); // Увеличиваем PWM случайным шагом
-                if (circulationCurrentPwm > circulationTargetPwm) {
-                    circulationCurrentPwm = circulationTargetPwm;
+    if(statusFarm == "Work" || statusFarm == "Pause") {
+        unsigned long currentFanTime = millis();        
+        // Обновление вентиляторов с задержкой
+        if (currentFanTime - lastWateringUpdateTime >= WIND_CHANGE_DELAY) {
+            // Управление вентилятором циркуляции (FAN_CIRC_PIN) - имитация ветра
+            int circMax = min(currentCirculation, MAX_PWM); // Ограничение максимума currentCirculation
+            if (currentCirculation < MIN_CIRCULATION_PWM) {
+                // Если currentCirculation < MIN_CIRCULATION_PWM, выключаем вентилятор
+                circulationCurrentPwm = 0;
+                circulationTargetPwm = 0;
+                ledcWrite(pwmCirculationChannel, 0);
+                FAN_CIRC = 0;
+            } else {
+                // Нормальная работа - имитация ветра
+                if (circulationCurrentPwm < MIN_CIRCULATION_PWM) {
+                    circulationCurrentPwm = MIN_CIRCULATION_PWM; // Принудительно устанавливаем минимум
                 }
-            } else if (circulationCurrentPwm > circulationTargetPwm) {
-                circulationCurrentPwm -= random(1, WIND_CHANGE_STEP + 1); // Уменьшаем PWM случайным шагом
+                // Если цель некорректна (меньше или равна минимуму), устанавливаем новую
+                if (circulationTargetPwm <= MIN_CIRCULATION_PWM) {
+                    circulationTargetPwm = random(MIN_CIRCULATION_PWM, circMax + 1);
+                }
                 if (circulationCurrentPwm < circulationTargetPwm) {
-                    circulationCurrentPwm = circulationTargetPwm;
+                    circulationCurrentPwm += random(1, WIND_CHANGE_STEP + 1); // Увеличиваем PWM случайным шагом
+                    if (circulationCurrentPwm > circulationTargetPwm) {
+                        circulationCurrentPwm = circulationTargetPwm;
+                    }
+                } else if (circulationCurrentPwm > circulationTargetPwm) {
+                    circulationCurrentPwm -= random(1, WIND_CHANGE_STEP + 1); // Уменьшаем PWM случайным шагом
+                    if (circulationCurrentPwm < circulationTargetPwm) {
+                        circulationCurrentPwm = circulationTargetPwm;
+                    }
+                }
+                circulationCurrentPwm = constrain(circulationCurrentPwm, MIN_CIRCULATION_PWM, circMax);
+                ledcWrite(pwmCirculationChannel, circulationCurrentPwm);
+                FAN_CIRC = circulationCurrentPwm;
+
+                // Если достигли цели, устанавливаем новую случайную цель для циркуляции
+                if (circulationCurrentPwm == circulationTargetPwm) {
+                    circulationTargetPwm = random(MIN_CIRCULATION_PWM, circMax + 1); // Новое случайное значение
                 }
             }
-            circulationCurrentPwm = constrain(circulationCurrentPwm, MIN_CIRCULATION_PWM, circMax);
-            ledcWrite(pwmCirculationChannel, circulationCurrentPwm);
-            FAN_CIRC = circulationCurrentPwm;
 
-            // Если достигли цели, устанавливаем новую случайную цель для циркуляции
-            if (circulationCurrentPwm == circulationTargetPwm) {
-                circulationTargetPwm = random(MIN_CIRCULATION_PWM, circMax + 1); // Новое случайное значение
-            }
-        }
-
-        // Управление приточным вентилятором (FAN_VENT_PIN) - имитация бриза
-        int ventMax = min(currentVentilation, MAX_PWM); // Ограничение максимума currentVentilation
-        if (currentVentilation < MIN_VENTILATION_PWM) {
-            // Если currentVentilation < MIN_VENTILATION_PWM, выключаем вентилятор
-            ventilationCurrentPwm = 0;
-            ventilationTargetPwm = 0;
-            ledcWrite(pwmVentilationChannel, 0);
-            FAN_VENT = 0;
-        } else {
-            // Нормальная работа - имитация бриза
-            if (ventilationCurrentPwm < MIN_VENTILATION_PWM) {
-                ventilationCurrentPwm = MIN_VENTILATION_PWM; // Принудительно устанавливаем минимум
-            }
-            // Если цель некорректна (меньше или равна минимуму), устанавливаем новую
-            if (ventilationTargetPwm <= MIN_VENTILATION_PWM) {
-                ventilationTargetPwm = random(MIN_VENTILATION_PWM, ventMax + 1);
-            }
-            if (ventilationCurrentPwm < ventilationTargetPwm) {
-                ventilationCurrentPwm += random(1, WIND_CHANGE_STEP + 1); // Увеличиваем PWM случайным шагом
-                if (ventilationCurrentPwm > ventilationTargetPwm) {
-                    ventilationCurrentPwm = ventilationTargetPwm;
+            // Управление приточным вентилятором (FAN_VENT_PIN) - имитация бриза
+            int ventMax = min(currentVentilation, MAX_PWM); // Ограничение максимума currentVentilation
+            if (currentVentilation < MIN_VENTILATION_PWM) {
+                // Если currentVentilation < MIN_VENTILATION_PWM, выключаем вентилятор
+                ventilationCurrentPwm = 0;
+                ventilationTargetPwm = 0;
+                ledcWrite(pwmVentilationChannel, 0);
+                FAN_VENT = 0;
+            } else {
+                // Нормальная работа - имитация бриза
+                if (ventilationCurrentPwm < MIN_VENTILATION_PWM) {
+                    ventilationCurrentPwm = MIN_VENTILATION_PWM; // Принудительно устанавливаем минимум
                 }
-            } else if (ventilationCurrentPwm > ventilationTargetPwm) {
-                ventilationCurrentPwm -= random(1, WIND_CHANGE_STEP + 1); // Уменьшаем PWM случайным шагом
+                // Если цель некорректна (меньше или равна минимуму), устанавливаем новую
+                if (ventilationTargetPwm <= MIN_VENTILATION_PWM) {
+                    ventilationTargetPwm = random(MIN_VENTILATION_PWM, ventMax + 1);
+                }
                 if (ventilationCurrentPwm < ventilationTargetPwm) {
-                    ventilationCurrentPwm = ventilationTargetPwm;
+                    ventilationCurrentPwm += random(1, WIND_CHANGE_STEP + 1); // Увеличиваем PWM случайным шагом
+                    if (ventilationCurrentPwm > ventilationTargetPwm) {
+                        ventilationCurrentPwm = ventilationTargetPwm;
+                    }
+                } else if (ventilationCurrentPwm > ventilationTargetPwm) {
+                    ventilationCurrentPwm -= random(1, WIND_CHANGE_STEP + 1); // Уменьшаем PWM случайным шагом
+                    if (ventilationCurrentPwm < ventilationTargetPwm) {
+                        ventilationCurrentPwm = ventilationTargetPwm;
+                    }
+                }
+                ventilationCurrentPwm = constrain(ventilationCurrentPwm, MIN_VENTILATION_PWM, ventMax);
+                ledcWrite(pwmVentilationChannel, ventilationCurrentPwm);
+                FAN_VENT = ventilationCurrentPwm;
+
+                // Если достигли цели, устанавливаем новую случайную цель для притока
+                if (ventilationCurrentPwm == ventilationTargetPwm) {
+                    ventilationTargetPwm = random(MIN_VENTILATION_PWM, ventMax + 1); // Новое случайное значение
                 }
             }
-            ventilationCurrentPwm = constrain(ventilationCurrentPwm, MIN_VENTILATION_PWM, ventMax);
-            ledcWrite(pwmVentilationChannel, ventilationCurrentPwm);
-            FAN_VENT = ventilationCurrentPwm;
-
-            // Если достигли цели, устанавливаем новую случайную цель для притока
-            if (ventilationCurrentPwm == ventilationTargetPwm) {
-                ventilationTargetPwm = random(MIN_VENTILATION_PWM, ventMax + 1); // Новое случайное значение
-            }
+            lastWateringUpdateTime = currentFanTime;
         }
-        lastWateringUpdateTime = currentFanTime;
-    }
+    } else {
+        digitalWrite(STEAM_IN_PIN, LOW);
+        ledcWrite(pwmCirculationChannel, 0);
+        ledcWrite(pwmVentilationChannel, 0);            
+    }   
 }

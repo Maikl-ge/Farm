@@ -5,7 +5,9 @@
 #include <DataSender.h>
 #include "Profile.h"
 #include <SDCard.h>
+#include <TimeLib.h>
 #include <queue>
+#include <status.h>
 #include "TimeModule.h"
 #include <EEPROM.h>
 
@@ -73,6 +75,7 @@ void parceMessageFromServer(const String& messageFromServer) {
     currentTimeInMinutes = getCurrentTimeInMinutes();
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
         statusFarm = "Work";
+        CurrentStatusFarm();
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
         Serial.println("Команда от сервера: START");
 
@@ -84,24 +87,24 @@ void parceMessageFromServer(const String& messageFromServer) {
         getCurrentDateToGrowe();
         saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
         EEPROM.commit();
-        Serial.println("Дата начала цикла роста: " + String(GROWE_MODE_DATE));
         
         // Распаковываем и выводим дату в читаемом виде
-        uint8_t day = (GROWE_MODE_DATE >> 11) & 0x1F; // 5 бит для дня
-        uint8_t month = (GROWE_MODE_DATE >> 7) & 0x0F; // 4 бита для месяца
-        uint8_t year = GROWE_MODE_DATE & 0x7F; // 7 бит для года
-        Serial.printf("Date начала цикла роста: %02d:%02d:%02d\n", day, month, year);
+        time_t rawTime = (GROWE_MODE_DATE * 86400); // Перевод дней в секунды
+        tmElements_t t;
+        breakTime(rawTime, t); // Разбираем в структуру времени
+        
+        Serial.printf("Dата начала цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
     }
     
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
         statusFarm = "Stop";
+        CurrentStatusFarm();
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);        
         Serial.println("Команда от сервера: STOP");
 
         getCurrentDateToGrowe();
         saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
         EEPROM.commit();
-        Serial.println("Дата завершения цикла роста: " + String(GROWE_MODE_DATE));
 
         GROWE_MODE_TIME = currentTimeInMinutes;
         saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);   
@@ -109,11 +112,13 @@ void parceMessageFromServer(const String& messageFromServer) {
         Serial.println("Время завершения цикла роста: " + String(GROWE_MODE_TIME));
 
         getCurrentDateToGrowe();
-        // Распаковываем и выводим дату в читаемом виде
-        uint8_t day = (GROWE_MODE_DATE >> 11) & 0x1F; // 5 бит для дня
-        uint8_t month = (GROWE_MODE_DATE >> 7) & 0x0F; // 4 бита для месяца
-        uint8_t year = GROWE_MODE_DATE & 0x7F; // 7 бит для года
-        Serial.printf("Date завершения цикла роста: %02d:%02d:%02d\n", day, month, year);
+        time_t rawTime = (GROWE_MODE_DATE * 86400); // Перевод дней в секунды
+        tmElements_t t;
+        breakTime(rawTime, t); // Разбираем в структуру времени
+        
+        Serial.printf("Dата завершения цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
+        totalMinutesElapsed = 0;
+        longPhacse6 = 0;
     }
 
     if (messageFromServer == SERVER_CMD_RESTART) {    // SCMR Перезагрузка фермы
