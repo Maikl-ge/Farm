@@ -42,15 +42,6 @@ void initializeMenu() {
         pinMode(buttons[i].pin, INPUT);
     }
     pinMode(POWER_MONITOR_PIN, INPUT); // Установка пина мониторинга питающей сети в режим входа
-
-    pinMode(FAN_INLET_PIN, OUTPUT);
-    digitalWrite(FAN_INLET_PIN, LOW);
-    pinMode(HITER_WATER_PIN, OUTPUT);
-    digitalWrite(HITER_WATER_PIN, LOW);
-    pinMode(STEAM_IN_PIN, OUTPUT);
-    digitalWrite(STEAM_IN_PIN, LOW);
-    pinMode(PUMP_TRANSFER_PIN, OUTPUT);
-    digitalWrite(PUMP_TRANSFER_PIN, LOW);
 }
 
 // Функция обработки состояния кнопки
@@ -90,11 +81,9 @@ void updateButtonState() {
 
     // Обрвботка коротких нажатий
     if (buttonState == 0b00001001) {  // Короткое нажатие START 
-        digitalWrite(FAN_INLET_PIN, HIGH);
         Serial.println("Клавиатура: короткий START");
     }
     if (buttonState == 0b00001010) {  // Короткое нажатие STOP
-        digitalWrite(HITER_WATER_PIN, HIGH);
         Serial.println("Клавиатура: короткий STOP");
     }
     if (buttonState == 0b00001011) {  // Короткое нажатие START + STOP
@@ -103,11 +92,9 @@ void updateButtonState() {
 
     // Обработка средних нажатий
     if (buttonState == 0b00010001) {  // Среднее нажатие START
-        digitalWrite(STEAM_IN_PIN, HIGH);
         Serial.println("Клавиатура: средний START");
     }
     if (buttonState == 0b00010010) {  // Среднее нажатие STOP
-        digitalWrite(PUMP_TRANSFER_PIN, HIGH);
         Serial.println("Клавиатура: средний STOP");
     }
     if (buttonState == 0b00010011) {  // Среднее нажатие START + STOP

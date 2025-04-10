@@ -191,7 +191,14 @@ void readAllHTU21D() {
     temperature_5 = data.temperature;
     humidity_5 = data.humidity;
 }
-
+void readAllDS18B20() {
+    ds18b20.requestTemperatures();
+    delay(400);  // Ждем завершения первого измерения
+    water_temperature_osmo = constrain(ds18b20.getTempC(sensorWaterOsmoAddress), 1.0, 90.0);
+    water_temperature_watering = constrain(ds18b20.getTempC(sensorWateringAddress), 1.0, 90.0);
+    air_temperature_outdoor = constrain(ds18b20.getTempC(sensorOutdoorAddress), 1.0, 90.0);
+    air_temperature_inlet = constrain(ds18b20.getTempC(sensorInletAddress), 1.0, 90.0);
+}
 // Обновление состояния датчиков
 void updateSensors() {
     readAllHTU21D();

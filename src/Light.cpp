@@ -33,7 +33,7 @@ int applyGammaCorrection(int rawValue, int maxValue) {
 }
 
 void updateLightBrightness() {
-    if(statusFarm == "Stop" || statusFarm == "End") {
+    if(statusFarm == "Stop" || statusFarm == "End" || statusFarm == "Abort") {
         ledcWrite(pwmLightChannel, MIN_BRIGHTNESS);
         LIGHT = MIN_BRIGHTNESS;  
         return;  

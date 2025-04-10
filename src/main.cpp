@@ -182,8 +182,6 @@ void setup() {
 
     setupLightControl(); // Инициализация модуля управления светом
 
-    setupWater(); // Инициализация модуля управления водой
-
     initializeSensors();  // Инициализация модуля сенсоров  
 
     setupStepper(); // Инициализация модуля управления шаговым двигателем
@@ -198,12 +196,17 @@ void setup() {
 
     initializeMenu(); // Инициализация модуля меню  
 
+    readAllHTU21D();
+
+    updateSensors(); // Обновление сенсоров
+
+    setupWater(); // Инициализация модуля управления водой
+
+    readAllDS18B20();
+
     pintStatusFarm = true;   
     CurrentStatusFarm(); // Определение текущего статуса фермы  
 
-    readAllHTU21D();
-
-    //updateSensors(); // Обновление сенсоров
     //updateFanControl(); // Обновление вентиляции
     //updateLightBrightness(); // Обновление яркости света
 

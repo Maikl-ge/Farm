@@ -44,7 +44,7 @@ void updateClimateControl() {
         if (currentTime - lastUpdateClimatTime < 1000) return; // Интервал 1 секунда
 
         // Установка текущих и целевых значений
-        float tempInput = water_temperature_osmo; //temperature_1;
+        float tempInput = temperature_1;
         float tempSetpoint = currentTemperatura;
         float humInput = humidity_1;
         float humSetpoint = currentHumidity;

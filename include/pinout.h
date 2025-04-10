@@ -17,7 +17,7 @@
 #define SD_CS_PIN 5     // Выбор устройства (CS) для SD-карты (GPIO5, нога 29)
 
 // Пин датчика холла наполнения лотка
-#define WATERING_BOX_PIN 35  // Датчик наполнения лотка полива в боксе (GPIO35, нога 6)
+#define WATERING_LEVEL_BOX_PIN 35  // Датчик наполнения лотка полива в боксе (GPIO35, нога 6)
 
 // Power Monitor Контроль питающей сети
 #define POWER_MONITOR_PIN 39  // Пин для мониторинга питающей сети (GPI39, нога 4)
@@ -29,19 +29,19 @@
 // Выходы для управления фермой ----------------------------
 // Пины для управления устройствами PWM
 #define LIGHT_PIN  2  // Свет (PWM) (GPIO02, нога 24)
-#define FAN_VENT_PIN 17    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO17, нога 28)
+#define FAN_VENT_PIN 26    // Циркуляция внутри 3 и 4 полки (PWM) (GPIO26, нога 10)
 #define FAN_CIRC_PIN 15     // Циркуляция внутри камеры (PWM) (GPIO15, нога 23)
 #define FAN_INLET_PIN 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
 #define HITER_AIR_PIN 13    // Обогрев камеры (PWM) (GPIO13, нога 15)
+
 #define HITER_WATER_PIN 14  // Нагрев воды (PWM) (GPIO14, нога 12)
 
-
 // Пины для управления нагрузками ON/OFF
-#define PUMP_WATERING_PIN 26    // Полив (ON/OFF) (GPIO26, нога 10)
+#define PUMP_WATERING_PIN 33    // Полив (ON/OFF) (GPIO32, нога 8)
 #define WATER_OUT_PIN 27 // Слив (ON/OFF) (GPIO27, нога 11)
+#define STEAM_IN_PIN 32  // Парогенератор (ON/OFF) (GPI033, нога 7)
 
-#define STEAM_IN_PIN 32   // Парогенератор (ON/OFF) (GPI032, нога 7)
-#define PUMP_TRANSFER_PIN 33   // Подача в бак полива osmo воды (ON/OFF) (GPIO33, нога 8)
+#define PUMP_TRANSFER_PIN 17   // Подача в бак полива osmo воды (ON/OFF) (GPIO17, нога )
 #define OSMOS_ON_PIN 3 // Подача очищенной воды (ON/OFF) (GPIO03, нога 34)
 
 // Шаговый двигатель (Step, Dir, Enable)
@@ -51,7 +51,6 @@
 
 // Шаговый двигатель 
 #define OPTIONAL_1_PIN 1   // пин для расширения (GPIO01, нога 35) 
-#define OPTIONAL_2_PIN    // пин для расширения
 
 // Используемые для встроенной памяти
 // GPIO6-11: Рекомендуется не использовать для ввода/вывода, так как они подключены к встроенной флеш-памяти.
@@ -80,7 +79,7 @@
 // GPIO36     нога 3 --> START_BUTTON_PIN 
 // GPIO39     нога 4 --> POWER_MONITOR_PIN // Пин для мониторинга питающей сети (GPIO34, нога 5)
 // GPIO34     нога 5 --> STOP_BUTTON_PIN 
-// GPIO35     нога 6 --> WATERING_BOX_PIN // Датчик наполнения лотка полива в боксе
+// GPIO35     нога 6 --> WATERING_LEVEL_BOX_PIN // Датчик наполнения лотка полива в боксе
 // GPIO32     нога 7  <-- OSMOS_ON_PIN
 // GPIO33     нога 8  <-- PUMP_WATERING_PIN
 // GPIO25     нога 9  <-- ENABLE_PIN // Включение шагового двигателя 

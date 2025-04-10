@@ -34,7 +34,7 @@ void CurrentStatusFarm() {
         currentRotation = PHASE1_ROTATION;
         currentTemperatura = PHASE1_TEMP / 10.0;
         currentHumidity = PHASE1_HUMIDITY / 10.0;
-        currentWaterTemperatura = PHASE1_WATER_TEMP;
+        currentWaterTemperatura = PHASE1_WATER_TEMP / 10;
         currentLight = PHASE1_LIGHT;
         currentPhase = "Soak";  // Замачивание
         Serial.println("Текущая фаза - 01  " + String(currentPhase) + "  " + String(statusFarm));
@@ -48,7 +48,7 @@ void CurrentStatusFarm() {
         currentRotation = PHASE2_ROTATION; 
         currentTemperatura = PHASE2_TEMP / 10.0;
         currentHumidity = PHASE2_HUMIDITY / 10.0;  
-        currentWaterTemperatura = PHASE2_WATER_TEMP;
+        currentWaterTemperatura = PHASE2_WATER_TEMP /10;
         currentLight = PHASE2_LIGHT;
         currentPhase = "Germ";  // Рост
         Serial.println("Текущая фаза - 02  " + String(currentPhase) + "  " + String(statusFarm));  
@@ -63,7 +63,7 @@ void CurrentStatusFarm() {
         currentRotation = PHASE3_ROTATION;
         currentTemperatura = PHASE3_TEMP / 10.0;
         currentHumidity = PHASE3_HUMIDITY / 10.0;  
-        currentWaterTemperatura = PHASE3_WATER_TEMP;
+        currentWaterTemperatura = PHASE3_WATER_TEMP / 10;
         currentLight = PHASE3_LIGHT;
         currentPhase = "Act";  // Рост
         Serial.println("Текущая фаза - 03  " + String(currentPhase) + "  " + String(statusFarm)); 
@@ -78,7 +78,7 @@ void CurrentStatusFarm() {
         currentRotation = PHASE4_ROTATION; 
         currentTemperatura = PHASE4_TEMP / 10.0;
         currentHumidity = PHASE4_HUMIDITY / 10.0;  
-        currentWaterTemperatura = PHASE4_WATER_TEMP;
+        currentWaterTemperatura = PHASE4_WATER_TEMP / 10;
         currentLight = PHASE4_LIGHT;
         currentPhase = "Early";  // Рост
         Serial.println("Текущая фаза - 04  " + String(currentPhase) + "  " + String(statusFarm));  
@@ -93,7 +93,7 @@ void CurrentStatusFarm() {
         currentRotation = PHASE5_ROTATION; 
         currentTemperatura = PHASE5_TEMP / 10.0;
         currentHumidity = PHASE5_HUMIDITY / 10.0;  
-        currentWaterTemperatura = PHASE5_WATER_TEMP;
+        currentWaterTemperatura = PHASE5_WATER_TEMP / 10;
         currentLight = PHASE5_LIGHT;
         currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 05  " + String(currentPhase) + "  " + String(statusFarm));  
@@ -108,7 +108,7 @@ void CurrentStatusFarm() {
         currentRotation = PHASE6_ROTATION;
         currentTemperatura = PHASE6_TEMP / 10.0;
         currentHumidity = PHASE6_HUMIDITY / 10.0;  
-        currentWaterTemperatura = PHASE6_WATER_TEMP;
+        currentWaterTemperatura = PHASE6_WATER_TEMP / 10;
         currentLight = PHASE6_LIGHT;
         currentPhase = "Finish";  // Рост
         Serial.println("Текущая фаза - 06  " + String(currentPhase) + "  " + String(statusFarm));  
@@ -203,6 +203,9 @@ void checkPhaseToGrowe() {
         }
     }
     if (phaseToGrowe == -1) {
-        Serial.println("Ошибка: totalMinutesElapsed больше всех фаз! Фаза не определена.");
+        statusFarm = "Abort";
+        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
+        EEPROM.commit();
+        Serial.println("Выращивание завершено. Статус фермы: " + statusFarm);    
     }
 }

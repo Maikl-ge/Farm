@@ -17,7 +17,7 @@ bool drainIsOn = false;                     // Состояние клапана
 bool pumpIsOffLevel = false;
 
 const unsigned long PUMP_RUN_TIME_SECONDS = 3 * 60; // Время работы насоса (3 минуты)
-const unsigned long DRAIN_OPEN_TIME = 2 * 60;   // Время работы клапана слива (120 секунд)
+const unsigned long DRAIN_OPEN_TIME = 4 * 60;   // Время работы клапана слива (120 секунд)
 const unsigned long SECONDS_IN_DAY = 86400; // Секунд в сутках
 bool max_watering_level = 1;   // Датчик уровня полива воды в боксе
 unsigned long currentTimeSeconds;
@@ -30,12 +30,14 @@ void setupWatering() {
     digitalWrite(PUMP_WATERING_PIN, LOW);
     digitalWrite(WATER_OUT_PIN, LOW);
 
-    pinMode(WATERING_BOX_PIN, INPUT);
-    max_watering_level = digitalRead(WATERING_BOX_PIN);
+    pinMode(WATERING_LEVEL_BOX_PIN, INPUT);
+    max_watering_level = digitalRead(WATERING_LEVEL_BOX_PIN);
 }
 
 void updateWatering() {
-    if(statusFarm == "Stop" || statusFarm == "End") {
+    if(statusFarm == "Stop" || statusFarm == "End" || statusFarm == "Abort" ) {
+        digitalWrite(PUMP_WATERING_PIN, LOW);
+        digitalWrite(WATER_OUT_PIN, LOW);
         return;
     }
 
@@ -52,7 +54,7 @@ void updateWatering() {
         : SECONDS_IN_DAY - lastWateringStartTimeSeconds + currentTimeSeconds;
 
     // Чтение датчика уровня
-    max_watering_level = digitalRead(WATERING_BOX_PIN);
+    max_watering_level = digitalRead(WATERING_LEVEL_BOX_PIN);
 
     // === ВКЛЮЧЕНИЕ НАСОСА ===
     bool wateringReady = !pumpIsOn && timeSinceLastStart >= (wateringInterval * 60) && pumpIsOffLevel == 0;
