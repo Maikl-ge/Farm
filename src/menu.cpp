@@ -3,6 +3,7 @@
 #include <pinout.h>
 #include "menu.h"
 #include "AccessPoint.h"
+#include <WebSocketHandler.h>
 
 // Константы времени нажатий (в циклах опроса)
 const uint8_t SHORT_PRESS_THRESHOLD = 3; // Порог короткого нажатия
@@ -35,6 +36,7 @@ const uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 uint8_t buttonState = 0; // Байт состояния кнопок
 // Определение переменных для мониторинга питающей сети
 float power_monitor = 0;
+
 
 // Установка пинов в режим входа
 void initializeMenu() {

@@ -21,6 +21,10 @@ uint16_t daysEopch = 0;  // Число дней начала цикла рост
 Rtc_Pcf8563 rtc;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", -10800, 60000);
+bool syncTimeWithNTP(const char* ntpServer, int8_t timeZone);
+// Список альтернативных NTP-серверов
+const char* ntpServers[] = {"pool.ntp.org", "time.google.com", "time.windows.com"};
+const int numNtpServers = sizeof(ntpServers) / sizeof(ntpServers[0]);
 
 void checkRtcPresence() {
     Wire.beginTransmission(0x51); // Адрес RTC PCF8563
@@ -41,18 +45,61 @@ int8_t getTimeZoneOffset(int year, int month, int day) {
     }
 }
 
-void initTimeModule() {
-    Wire.begin(SDA_PIN, SCL_PIN); // Инициализация I2C
-    //checkRtcPresence(); // Проверка наличия RTC на шине I2C
-    rtc.initClock(); // Инициализация RTC
-    timeClient.begin(); // Запуск NTP клиента
+bool isRtcValid() {
+    rtc.getDateTime();
+    int year = rtc.getYear() + 2000;
+    int month = rtc.getMonth();
+    int day = rtc.getDay();
+    int hour = rtc.getHour();
+    int minute = rtc.getMinute();
+    int second = rtc.getSecond();
+
+    // Проверяем, что значения находятся в разумных пределах
+    if (year >= 2020 && year <= 2100 && // Ожидаемый диапазон годов
+        month >= 1 && month <= 12 &&    // Месяцы
+        day >= 1 && day <= 31 &&        // Дни
+        hour >= 0 && hour <= 23 &&      // Часы
+        minute >= 0 && minute <= 59 &&  // Минуты
+        second >= 0 && second <= 59) {  // Секунды
+        return true;
+    }
+    return false;
 }
 
-void syncTimeWithNTP(const char* ntpServer, int8_t timeZone) {
-    timeClient.setPoolServerName(ntpServer); // Установка адреса NTP сервера
-    Serial.println("Synchronizing time with NTP server...");
-    while (!timeClient.update()) {
+void initTimeModule() {
+    Wire.begin(SDA_PIN, SCL_PIN); // Инициализация I2C
+    checkRtcPresence(); // Проверка наличия RTC на шине I2C
+    
+    // Инициализируем RTC только если она не содержит валидных данных
+    if (!isRtcValid()) {
+        Serial.println("RTC data invalid or not set, initializing to default.");
+        rtc.initClock(); // Устанавливаем начальное значение только если RTC пустая
+    } else {
+        Serial.println("RTC data valid, skipping initialization.");
+    }
+    
+    timeClient.begin(); // Запуск NTP клиента
+    printCurrentTime(); // Обновляем глобальные переменные из RTC при старте
+}
+
+bool syncTimeWithNTP(const char* ntpServer, int8_t timeZone) {
+    timeClient.setPoolServerName(ntpServer);
+    Serial.print("Synchronizing time with NTP server: ");
+    Serial.println(ntpServer);
+
+    const int maxAttempts = 10; // Максимум попыток
+    int attempts = 0;
+
+    while (attempts < maxAttempts && !timeClient.update()) {
         delay(500);
+        attempts++;
+        Serial.print(".");
+    }
+    Serial.println();
+
+    if (attempts >= maxAttempts) {
+        Serial.println("Failed to sync with NTP server.");
+        return false;
     }
 
     unsigned long epochTime = timeClient.getEpochTime();
@@ -63,6 +110,7 @@ void syncTimeWithNTP(const char* ntpServer, int8_t timeZone) {
     epochTime += timeZone * 3600;
     gmtime_r((time_t*)&epochTime, &timeInfo);
 
+    // Записываем в RTC только при успешной синхронизации
     rtc.setDateTime(
         timeInfo.tm_mday, 
         timeInfo.tm_wday, 
@@ -73,15 +121,35 @@ void syncTimeWithNTP(const char* ntpServer, int8_t timeZone) {
         timeInfo.tm_min, 
         timeInfo.tm_sec
     );
-    if(timeInfo.tm_hour == 00) {
+    if (timeInfo.tm_hour == 0) {
         timeInfo.tm_hour = 24;
     }
+
     Serial.println("Time synchronized successfully.");
     CurrentDate = (timeInfo.tm_year + 1900) * 10000 + (timeInfo.tm_mon + 1) * 100 + timeInfo.tm_mday;
     CurrentTime = timeInfo.tm_hour * 10000 + timeInfo.tm_min * 100 + timeInfo.tm_sec;
-    // Вывод даты и времени для проверки
+
     Serial.printf("Current Date (YYYYMMDD): %lu\n", CurrentDate);
-    Serial.printf("Current Time (HHMMSS): %06lu\n", CurrentTime); // Форматирование с ведущими нулями
+    Serial.printf("Current Time (HHMMSS): %06lu\n", CurrentTime);
+    return true;
+}
+
+bool syncTimeWithNTPServers(int8_t timeZone) {
+    bool syncSuccess = false;
+    for (int i = 0; i < numNtpServers && !syncSuccess; i++) {
+        syncSuccess = syncTimeWithNTP(ntpServers[i], timeZone);
+        if (!syncSuccess) {
+            Serial.println("Trying next NTP server...");
+        }
+    }
+    if (!syncSuccess) {
+        Serial.println("All NTP sync attempts failed. Using RTC as fallback.");
+        printCurrentTime(); // Обновляем глобальные переменные из RTC
+        if (CurrentDate == 0 || CurrentTime == 0) {
+            Serial.println("RTC not initialized previously, time may be incorrect.");
+        }
+    }
+    return syncSuccess;
 }
 
 // Вывод текущего времени

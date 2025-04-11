@@ -15,7 +15,7 @@ extern uint16_t daysEopch;
 
 // Функции для работы с модулем времени
 void initTimeModule();
-void syncTimeWithNTP(const char* ntpServer, int8_t timeZone);
+bool syncTimeWithNTP(const char* ntpServer, int8_t timeZone);
 void printCurrentTime();
 uint16_t getCurrentTimeInMinutes();
 String getReadableDate(uint16_t date);

@@ -3,10 +3,11 @@
 #include "pinout.h" // Подключаем Pinout.h
 #include "globals.h" // Подключаем globals.h
 #include <Wire.h> // Для работы с I2C
-#include <DallasTemperature.h> // Для работы с DS18B20
+//#include <DallasTemperature.h> // Для работы с DS18B20
 #include <OneWire.h> // Для работы с 1-Wire
 #include <Adafruit_HTU21DF.h>
 #include <PCF8574.h> // Для работы с I2C экспандером PCF8574T
+#include <TimeModule.h>
 
 #define TERMO_SENSOR_1_ADDRESS 0x40  // Адрес 1го датчика температуры и влажности
 #define TERMO_SENSOR_2_ADDRESS 0x41  // Адрес 2го датчика температуры и влажности
@@ -62,20 +63,42 @@ float tds_osmo = 0.0;
 
 // Глобальная переменная для хранения состояния PCF8574
 uint8_t sensorState = 0;
+OneWire ds(ONE_WIRE_BUS); // Создаем объект OneWire
+float readDS18B20Temperature();
 
 // Инициализация всех сенсоров
 void initializeSensors() {
-    Wire.begin();
-    Serial.begin(115200);
-    ds18b20.begin();
+// Проверяем наличие датчика
+    ds.reset();
+    ds.select(sensorWaterOsmoAddress);
+    ds.write(0x4E); // Команда Write Scratchpad
+    ds.write(0x00); // Th (не используется)
+    ds.write(0x00); // Tl (не используется)
+    ds.write(0x1F); // Configuration: 10 бит
+    ds.reset(); // Завершаем операцию
+    byte addr[8];
+    if (!ds.search(addr)) {
+        Serial.println("No devices found on OneWire bus");
+        return;
+    }
 
-    // Устанавливаем разрешение для каждого датчика
-    ds18b20.setResolution(sensorWaterOsmoAddress, 10);
-    ds18b20.setResolution(sensorWateringAddress, 10);
-    ds18b20.setResolution(sensorOutdoorAddress, 10);
-    ds18b20.setResolution(sensorInletAddress, 10);
+    if (OneWire::crc8(addr, 7) != addr[7]) {
+        Serial.println("CRC is not valid!");
+        return;
+    }
 
-    ds18b20.setWaitForConversion(false); // Устанавливаем безожидательный режим (один раз!)
+    if (memcmp(addr, sensorWaterOsmoAddress, 8) != 0) {
+        Serial.println("Found device, but address does not match expected");
+        Serial.print("Found address: ");
+        for (int i = 0; i < 8; i++) {
+            Serial.print(addr[i], HEX);
+            Serial.print(" ");
+        }
+        Serial.println();
+        return;
+    }
+
+    Serial.println("DS18B20 sensor initialized with hardcoded address");
 
     // Инициализация I2C экспандера
     if (pcf8574.begin()) {
@@ -191,18 +214,79 @@ void readAllHTU21D() {
     temperature_5 = data.temperature;
     humidity_5 = data.humidity;
 }
+
 void readAllDS18B20() {
-    ds18b20.requestTemperatures();
-    delay(400);  // Ждем завершения первого измерения
-    water_temperature_osmo = constrain(ds18b20.getTempC(sensorWaterOsmoAddress), 1.0, 90.0);
-    water_temperature_watering = constrain(ds18b20.getTempC(sensorWateringAddress), 1.0, 90.0);
-    air_temperature_outdoor = constrain(ds18b20.getTempC(sensorOutdoorAddress), 1.0, 90.0);
-    air_temperature_inlet = constrain(ds18b20.getTempC(sensorInletAddress), 1.0, 90.0);
+    float rawTemperature = readDS18B20Temperature();
+
+    // Обработка шума и ошибок
+    if (rawTemperature == -127.0 || rawTemperature == 85.0 || rawTemperature < -127.0 || rawTemperature > 99.0) {
+        Serial.print("Noise or error detected: ");
+        Serial.print(rawTemperature);
+        Serial.println("°C, using fallback");
+        water_temperature_watering = rawTemperature; // Сохраняем сырое значение для отладки
+        rawTemperature = currentWaterTemperatura + 0.111; // Фallback значение
+    }
+
+    // Обновляем все температуры
+    water_temperature_osmo = rawTemperature;
+    water_temperature_watering = rawTemperature;
+    air_temperature_outdoor = rawTemperature;
+    air_temperature_inlet = rawTemperature;
+
+    Serial.print("Temperature: ");
+    Serial.print(rawTemperature);
+    Serial.println("°C");
+    
+    printCurrentTime(); 
+    Serial.printf("Current Date (YYYYMMDD): %lu\n", CurrentDate);
+    Serial.printf("Current Time (HHMMSS): %06lu\n", CurrentTime);
 }
+
 // Обновление состояния датчиков
 void updateSensors() {
     readAllHTU21D();
-    //readPCF8574(); 
-    //readAllDS18B20();    
+    readPCF8574(); 
+    readAllDS18B20();    
     power_monitor = analogRead(POWER_MONITOR_PIN); // Обновление состояния мониторинга питающей сети
+}
+
+float readDS18B20Temperature() {
+    byte data[9];
+    
+    // Сбрасываем шину и выбираем устройство по адресу
+    ds.reset();
+    ds.select(sensorWaterOsmoAddress);
+
+    // Запрашиваем конверсию температуры (команда 0x44)
+    ds.write(0x44, 1); // 1 - паразитное питание включено (если требуется)
+
+    // Ждем завершения конверсии (200 мс для 10 бит)
+    delay(200);
+
+    // Сбрасываем шину и выбираем устройство снова для чтения
+    ds.reset();
+    ds.select(sensorWaterOsmoAddress);
+
+    // Читаем Scratchpad (команда 0xBE)
+    ds.write(0xBE);
+
+    // Читаем 9 байт данных
+    for (int i = 0; i < 9; i++) {
+        data[i] = ds.read();
+    }
+
+    // Проверяем CRC
+    if (OneWire::crc8(data, 8) != data[8]) {
+        Serial.println("CRC check failed");
+        return currentWaterTemperatura; // Возвращаем последнее значение при ошибке
+    }
+
+    // Преобразуем данные в температуру
+    int16_t raw = (data[1] << 8) | data[0];
+    float temperature = (float)raw / 16.0; // Для 12 бит делим на 16, для 10 бит результат уже скорректирован
+
+    // Корректировка для 10-битного разрешения (если нужно)
+    // DS18B20 на 10 битах возвращает данные с шагом 0.25°C, но обычно библиотека это учитывает
+
+    return temperature;
 }

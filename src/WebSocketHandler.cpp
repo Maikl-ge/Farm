@@ -37,6 +37,7 @@ void parceMessageFromServer(const String& messageFromServer);
 void getCurrentDateToGrowe();
 
 void initializeWebSocket() {
+    WiFi.setSleep(false);
     webSocket.onMessage([](WebsocketsMessage message) {
         handleWebSocketMessage(message.data());
     });

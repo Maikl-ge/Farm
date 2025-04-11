@@ -5,16 +5,16 @@
 #include <SensorsModule.h>
 
 // Константы
-const float WATER_HYSTERESIS = 1.0;       // Гистерезис температуры воды (±0.5°C)
-const float WATER_TEMP_RANGE = 10.0;       // Диапазон пропорционального управления (±5°C)
+const float WATER_HYSTERESIS = 0.25;       // Гистерезис температуры воды (±0.5°C)
+const float WATER_TEMP_RANGE = 2.0;       // Диапазон пропорционального управления (±2°C)
 const int PWM_CHANNEL = 5;                // Канал PWM для нагревателя
-const int PWM_FREQ = 5000;                // Частота PWM (5 кГц)
+const int PWM_FREQ = 21000;                // Частота PWM (21 кГц)
 const int PWM_RESOLUTION = 10;            // Разрешение PWM (10 бит, 0-1023)
 const int PWM_MIN = 0;                    // Минимальное значение PWM
 const int PWM_MAX = 1023;                 // Максимальное значение PWM
 const unsigned long HEATER_ON_DELAY = 5000;  // Задержка перед включением нагревателя (мс)
-const unsigned long HEATER_OFF_DELAY = 5000; // Задержка перед выключением нагревателя (мс)
-const int MIN_EFFECTIVE_PWM = 200;          // Минимальное эффективное значение PWM для нагрева
+const unsigned long HEATER_OFF_DELAY = 5; // Задержка перед выключением нагревателя (мс)
+const int MIN_EFFECTIVE_PWM = 20;          // Минимальное эффективное значение PWM для нагрева
 
 // Глобальные переменные таймеров
 unsigned long heaterSafeTimerStart = 0;   // Время начала безопасного состояния (мс)
@@ -22,7 +22,6 @@ unsigned long heaterUnsafeTimerStart = 0; // Время начала небез�
 bool heaterReadyToTurnOn = false;         // Флаг готовности нагревателя к включению
 
 void setupWater() {
-    Serial.begin(115200);
 
     // Инициализация пина нагревателя
     pinMode(HITER_WATER_PIN, OUTPUT);
@@ -56,7 +55,7 @@ min_osmo_level = 1;  // установил в 1 для теста
 void controlWaterHeater() {
     // Проверка условий безопасности
     bool safeWaterLevel = (min_osmo_level == 1) && (max_osmo_level == 1 || max_osmo_level == 0);
-    bool safeTempSensor = (currentWaterTemperatura > 0) && (currentWaterTemperatura < 30);
+    bool safeTempSensor = ((currentWaterTemperatura) > 0) && ((currentWaterTemperatura) < 50);
 
     // Управление таймерами безопасности
     if (safeWaterLevel && safeTempSensor) {
@@ -98,7 +97,7 @@ void controlWaterHeater() {
     }
 
     // Управление нагревом
-    float tempError = currentWaterTemperatura - water_temperature_osmo;
+    float tempError = (currentWaterTemperatura) - water_temperature_osmo;
     int pwmValue;
 
     if (tempError > WATER_HYSTERESIS) {
@@ -120,10 +119,16 @@ void controlWaterHeater() {
     HITER_WATER = pwmValue;
     // Serial.print("Heater PWM: ");
     // Serial.println(pwmValue);
+    digitalWrite(PUMP_TRANSFER_PIN, HIGH);   
+    PUMP_TRANSFER = 1;    
+    if(pwmValue == 0) {
+        digitalWrite(PUMP_TRANSFER_PIN, LOW);
+        PUMP_TRANSFER = 0;
+    }
 }
 
 void updateWater() {
-    // readPCF8574(); // Раскомментировать для обновления данных с датчиков
+    readPCF8574(); // Раскомментировать для обновления данных с датчиков
     controlWaterLevel();
     controlWaterHeater();
 }
