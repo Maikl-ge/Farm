@@ -68,37 +68,24 @@ float readDS18B20Temperature();
 
 // Инициализация всех сенсоров
 void initializeSensors() {
-// Проверяем наличие датчика
-    ds.reset();
-    ds.select(sensorWaterOsmoAddress);
-    ds.write(0x4E); // Команда Write Scratchpad
-    ds.write(0x00); // Th (не используется)
-    ds.write(0x00); // Tl (не используется)
-    ds.write(0x1F); // Configuration: 10 бит
-    ds.reset(); // Завершаем операцию
-    byte addr[8];
-    if (!ds.search(addr)) {
-        Serial.println("No devices found on OneWire bus");
-        return;
-    }
-
-    if (OneWire::crc8(addr, 7) != addr[7]) {
-        Serial.println("CRC is not valid!");
-        return;
-    }
-
-    if (memcmp(addr, sensorWaterOsmoAddress, 8) != 0) {
-        Serial.println("Found device, but address does not match expected");
-        Serial.print("Found address: ");
-        for (int i = 0; i < 8; i++) {
-            Serial.print(addr[i], HEX);
-            Serial.print(" ");
-        }
-        Serial.println();
-        return;
-    }
-
-    Serial.println("DS18B20 sensor initialized with hardcoded address");
+        // Установка разрешения 12 бит (0x7F)
+        ds.reset();
+        ds.select(sensorWaterOsmoAddress);
+        ds.write(0x4E);        // Команда Write Scratchpad
+        ds.write(0x00);        // Th (не используется)
+        ds.write(0x00);        // Tl (не используется)
+        ds.write(0x3F);        // Конфигурация: 12 бит (0x7F)
+                                //9 бит (0.5°C) - 0x1F
+                                // 10 бит (0.25°C) - 0x3F
+                                // 11 бит (0.125°C) - 0x5F
+                                // 12 бит (0.0625°C) - 0x7F
+        
+        // Сохраняем в EEPROM (иначе сбросится после питания)
+        ds.reset();
+        ds.select(sensorWaterOsmoAddress);
+        ds.write(0x48);        // Команда Copy Scratchpad (запись в EEPROM)
+        delay(20);             // Требуется пауза для завершения записи    
+        Serial.println("DS18B20 sensor initialized with 12-bit resolution");
 
     // Инициализация I2C экспандера
     if (pcf8574.begin()) {
@@ -236,10 +223,7 @@ void readAllDS18B20() {
     Serial.print("Temperature: ");
     Serial.print(rawTemperature);
     Serial.println("°C");
-    
-    printCurrentTime(); 
-    Serial.printf("Current Date (YYYYMMDD): %lu\n", CurrentDate);
-    Serial.printf("Current Time (HHMMSS): %06lu\n", CurrentTime);
+
 }
 
 // Обновление состояния датчиков
@@ -253,22 +237,13 @@ void updateSensors() {
 float readDS18B20Temperature() {
     byte data[9];
     
-    // Сбрасываем шину и выбираем устройство по адресу
-    ds.reset();
+    ds.reset(); // Сбрасываем шину и выбираем устройство по адресу
     ds.select(sensorWaterOsmoAddress);
-
-    // Запрашиваем конверсию температуры (команда 0x44)
-    ds.write(0x44, 1); // 1 - паразитное питание включено (если требуется)
-
-    // Ждем завершения конверсии (200 мс для 10 бит)
-    delay(200);
-
-    // Сбрасываем шину и выбираем устройство снова для чтения
-    ds.reset();
+    ds.write(0x44, 0);  // Запрашиваем конверсию температуры (команда 0x44) 1 - паразитное питание включено (если требуется)
+    delay(500);  // Ждем завершения конверсии (200 мс для 10 бит)
+    ds.reset();  // Сбрасываем шину и выбираем устройство снова для чтения
     ds.select(sensorWaterOsmoAddress);
-
-    // Читаем Scratchpad (команда 0xBE)
-    ds.write(0xBE);
+    ds.write(0xBE); // Читаем Scratchpad (команда 0xBE)
 
     // Читаем 9 байт данных
     for (int i = 0; i < 9; i++) {
@@ -284,9 +259,6 @@ float readDS18B20Temperature() {
     // Преобразуем данные в температуру
     int16_t raw = (data[1] << 8) | data[0];
     float temperature = (float)raw / 16.0; // Для 12 бит делим на 16, для 10 бит результат уже скорректирован
-
-    // Корректировка для 10-битного разрешения (если нужно)
-    // DS18B20 на 10 битах возвращает данные с шагом 0.25°C, но обычно библиотека это учитывает
 
     return temperature;
 }

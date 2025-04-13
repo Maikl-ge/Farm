@@ -3,39 +3,52 @@
 #include <status.h>
 #include <globals.h>
 #include <SensorsModule.h>
-
+#include <math.h>
 // Константы
 const float WATER_HYSTERESIS = 0.25;       // Гистерезис температуры воды (±0.5°C)
-const float WATER_TEMP_RANGE = 2.0;       // Диапазон пропорционального управления (±2°C)
+const float WATER_TEMP_RANGE = 1.0;       // Диапазон пропорционального управления (±2°C)
 const int PWM_CHANNEL = 5;                // Канал PWM для нагревателя
 const int PWM_FREQ = 21000;                // Частота PWM (21 кГц)
 const int PWM_RESOLUTION = 10;            // Разрешение PWM (10 бит, 0-1023)
 const int PWM_MIN = 0;                    // Минимальное значение PWM
 const int PWM_MAX = 1023;                 // Максимальное значение PWM
-const unsigned long HEATER_ON_DELAY = 5000;  // Задержка перед включением нагревателя (мс)
+const int MIN_EFFECTIVE_PWM = 0;          // Минимальное эффективное значение PWM для нагрева
+// Задержки нагревателя
+const unsigned long HEATER_ON_DELAY = 500;  // Задержка перед включением нагревателя (мс)
 const unsigned long HEATER_OFF_DELAY = 5; // Задержка перед выключением нагревателя (мс)
-const int MIN_EFFECTIVE_PWM = 20;          // Минимальное эффективное значение PWM для нагрева
 
-// Глобальные переменные таймеров
+// Глобальные переменные таймеров нагревателя
 unsigned long heaterSafeTimerStart = 0;   // Время начала безопасного состояния (мс)
 unsigned long heaterUnsafeTimerStart = 0; // Время начала небезопасного состояния (мс)
 bool heaterReadyToTurnOn = false;         // Флаг готовности нагревателя к включению
 
-void setupWater() {
+// Тайминги насоса перемешивания
+unsigned long intervalPump = 30 * 1000;  // каждые 25 секунд
+unsigned long durationPump = 10 * 1000;  // насос включен на 25 секунд
+bool isPumpOn = false;               // Состояние включения насоса
+unsigned long lastToggleTime = 0;    // Время последнего переключения
 
+void setupWater() {
     // Инициализация пина нагревателя
     pinMode(HITER_WATER_PIN, OUTPUT);
     digitalWrite(HITER_WATER_PIN, LOW);
+
+    pinMode(PUMP_TRANSFER_PIN, OUTPUT);
+    digitalWrite(PUMP_TRANSFER_PIN, LOW);
+    PUMP_TRANSFER = 0;
 
     // Настройка PWM для нагревателя
     ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(HITER_WATER_PIN, PWM_CHANNEL);
     ledcWrite(PWM_CHANNEL, PWM_MIN);
+    HITER_WATER = PWM_MIN;
 }
 
 void controlWaterLevel() {
+
     // Управление осмосом
 min_osmo_level = 1;  // установил в 1 для теста
+
     if (max_osmo_level == 1) {
         digitalWrite(OSMOS_ON_PIN, LOW);  // Выключаем осмос, если бак полный
     }
@@ -43,13 +56,16 @@ min_osmo_level = 1;  // установил в 1 для теста
         digitalWrite(OSMOS_ON_PIN, HIGH); // Включаем осмос, если бак пуст
     }
 
-    // Управление насосом подачи
-    if (max_water_level == 1) {
-        digitalWrite(PUMP_TRANSFER_PIN, LOW);  // Выключаем насос, если бак полива полный
+    if(max_osmo_level == 1 && min_osmo_level == 0) {
+        Serial.println("Alert sensors OSMS water");
     }
-    else if (min_water_level == 0 && max_water_level == 0) {
-        digitalWrite(PUMP_TRANSFER_PIN, HIGH); // Включаем насос, если бак полива пуст
-    }
+    // // Управление насосом подачи
+    // if (max_water_level == 1) {
+    //     digitalWrite(PUMP_TRANSFER_PIN, LOW);  // Выключаем насос, если бак полива полный
+    // }
+    // else if (min_water_level == 0 && max_water_level == 0) {
+    //     digitalWrite(PUMP_TRANSFER_PIN, HIGH); // Включаем насос, если бак полива пуст
+    // }
 }
 
 void controlWaterHeater() {
@@ -95,35 +111,40 @@ void controlWaterHeater() {
         HITER_WATER = PWM_MIN;
         return;
     }
-
-    // Управление нагревом
-    float tempError = (currentWaterTemperatura) - water_temperature_osmo;
+    // Управление нагревом с корректировкой
+    float tempError = water_temperature_osmo - currentWaterTemperatura; // Инвертируем для корректного расчёта
     int pwmValue;
 
-    if (tempError > WATER_HYSTERESIS) {
-        pwmValue = PWM_MAX;
-    }
-    else if (tempError < -WATER_HYSTERESIS) {
-        pwmValue = PWM_MIN;
-    }
-    else {
-        float scaledError = tempError / WATER_TEMP_RANGE;
-        pwmValue = map(scaledError * PWM_MAX, -PWM_MAX, PWM_MAX, PWM_MIN, PWM_MAX);
-        pwmValue = constrain(pwmValue, PWM_MIN, PWM_MAX);
-        if (pwmValue > PWM_MIN && pwmValue < MIN_EFFECTIVE_PWM) {
-            pwmValue = MIN_EFFECTIVE_PWM;
+    //if (tempError > WATER_HYSTERESIS) {
+        if (water_temperature_osmo >= currentWaterTemperatura + WATER_HYSTERESIS) {    
+            pwmValue = PWM_MIN; // Выключаем нагреватель, если измеренная температура выше верхней границы
+        } else if (water_temperature_osmo <= currentWaterTemperatura - WATER_HYSTERESIS) {
+            pwmValue = PWM_MAX; // Включаем нагреватель на максимум, если измеренная температура ниже нижней границы
+        } else {
+            // В зоне гистерезиса сохраняем текущее состояние
+            pwmValue = HITER_WATER; // Держим предыдущее значение PWM
         }
-    }
-
+    // Устанавливаем состояние на основе PWM
     ledcWrite(PWM_CHANNEL, pwmValue);
     HITER_WATER = pwmValue;
-    // Serial.print("Heater PWM: ");
-    // Serial.println(pwmValue);
-    digitalWrite(PUMP_TRANSFER_PIN, HIGH);   
-    PUMP_TRANSFER = 1;    
-    if(pwmValue == 0) {
-        digitalWrite(PUMP_TRANSFER_PIN, LOW);
-        PUMP_TRANSFER = 0;
+
+    if (HITER_WATER > 2) { 
+        // Нагреватель включён — насос постоянно включён
+        digitalWrite(PUMP_TRANSFER_PIN, HIGH);   
+        PUMP_TRANSFER = HIGH;    
+        isPumpOn = true;
+    } else {
+        unsigned long currentTime = millis();  // Текущее время
+        // Интервалы включения: intervalPump мс (выключен), durationPump мс (включён)
+        unsigned long toggleInterval = isPumpOn ? intervalPump : durationPump;
+
+        // Проверяем, нужно ли переключить состояние
+        if (currentTime - lastToggleTime >= toggleInterval) {
+            lastToggleTime = currentTime; // Обновляем время
+            isPumpOn = !isPumpOn; // Инвертируем состояние
+            digitalWrite(PUMP_TRANSFER_PIN, isPumpOn ? HIGH : LOW); // Устанавливаем пин
+            PUMP_TRANSFER = isPumpOn ? HIGH : LOW; // Обновляем состояние
+        }
     }
 }
 

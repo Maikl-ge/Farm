@@ -60,7 +60,7 @@ void updateWatering() {
     bool wateringReady = !pumpIsOn && timeSinceLastStart >= (wateringInterval * 60) && pumpIsOffLevel == 0;
     if (wateringReady) {
         digitalWrite(PUMP_WATERING_PIN, HIGH);
-        Serial.print("💧 Насос ВКЛЮЧЕН  ");  Serial.println(CurrentTime);
+        Serial.print("🔵 Насос ВКЛЮЧЕН  ");  Serial.println(CurrentTime);
         ph_osmo = true;
 
         pumpOnTimeSeconds = currentTimeSeconds;
@@ -95,7 +95,7 @@ if (!drainIsOn && drainDelayTimeSeconds > 0) {
     if (drainTimeReached) {
         digitalWrite(WATER_OUT_PIN, HIGH);
         tds_osmo = true;
-        Serial.print("🚰 Слив ВКЛЮЧЕН  ");  Serial.println(CurrentTime);
+        Serial.print("🟢 Слив ВКЛЮЧЕН  ");  Serial.println(CurrentTime);
         drainIsOn = true;
         drainOnTimeSeconds = currentTimeSeconds;
         WATER_OUT = true;

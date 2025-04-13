@@ -37,11 +37,11 @@
 #define HITER_WATER_PIN 14  // Нагрев воды (PWM) (GPIO14, нога 12)
 
 // Пины для управления нагрузками ON/OFF
-#define PUMP_WATERING_PIN 33    // Полив (ON/OFF) (GPIO32, нога 8)
+#define PUMP_WATERING_PIN 17    // Полив (ON/OFF) (GPIO32, нога 8)
 #define WATER_OUT_PIN 27 // Слив (ON/OFF) (GPIO27, нога 11)
 #define STEAM_IN_PIN 32  // Парогенератор (ON/OFF) (GPI033, нога 7)
 
-#define PUMP_TRANSFER_PIN 17   // Подача в бак полива osmo воды (ON/OFF) (GPIO17, нога )
+#define PUMP_TRANSFER_PIN 33   // Подача в бак полива osmo воды (ON/OFF) (GPIO17, нога )
 #define OSMOS_ON_PIN 3 // Подача очищенной воды (ON/OFF) (GPIO03, нога 34)
 
 // Шаговый двигатель (Step, Dir, Enable)
@@ -79,7 +79,7 @@
 // GPIO36     нога 3 --> START_BUTTON_PIN 
 // GPIO39     нога 4 --> POWER_MONITOR_PIN // Пин для мониторинга питающей сети (GPIO34, нога 5)
 // GPIO34     нога 5 --> STOP_BUTTON_PIN 
-// GPIO35     нога 6 --> WATERING_LEVEL_BOX_PIN // Датчик наполнения лотка полива в боксе
+// GPIO35     нога 6 --> WATERING_BOX_PIN // Датчик наполнения лотка полива в боксе
 // GPIO32     нога 7  <-- OSMOS_ON_PIN
 // GPIO33     нога 8  <-- PUMP_WATERING_PIN
 // GPIO25     нога 9  <-- ENABLE_PIN // Включение шагового двигателя 

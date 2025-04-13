@@ -163,7 +163,7 @@ void fetchAndSaveSettings() {
         PHASE1_DURATION = doc["phase1_duration"];    
         PHASE1_TEMP =  static_cast<uint16_t>(doc["phase1_temp"].as<float>() * 10);     
         PHASE1_HUMIDITY =  static_cast<uint16_t>(doc["phase1_hum"].as<float>() * 10);     
-        PHASE1_WATER_TEMP = static_cast<uint16_t>(doc["phase1_water_temp"].as<float>() * 10);   
+        PHASE1_WATER_TEMP = static_cast<uint16_t>(doc["phase1_water_temp"].as<float>() * 10); 
         PHASE1_LIGHT =  doc["phase1_light"];            
         PHASE1_CIRCULATION =  doc["phase1_circ"];  
         PHASE1_VENTILATION = doc["phase1_vent"];  
@@ -172,9 +172,9 @@ void fetchAndSaveSettings() {
         PHASE1_ROTATION = doc["phase1_rot"];  
         // Фаза 2
         PHASE2_DURATION = doc["phase2_duration"];
-        PHASE2_TEMP =  static_cast<uint16_t>(doc["phase1_temp"].as<float>() * 10);     
-        PHASE2_HUMIDITY =  static_cast<uint16_t>(doc["phase1_hum"].as<float>() * 10);     
-        PHASE2_WATER_TEMP = static_cast<uint16_t>(doc["phase1_water_temp"].as<float>() * 10); 
+        PHASE2_TEMP =  static_cast<uint16_t>(doc["phase2_temp"].as<float>() * 10);     
+        PHASE2_HUMIDITY =  static_cast<uint16_t>(doc["phase2_hum"].as<float>() * 10);      
+        PHASE2_WATER_TEMP = static_cast<uint16_t>(doc["phase2_water_temp"].as<float>() * 10); 
         PHASE2_LIGHT = doc["phase2_light"];
         PHASE2_CIRCULATION = doc["phase2_circ"];
         PHASE2_VENTILATION = doc["phase2_vent"];
@@ -183,9 +183,9 @@ void fetchAndSaveSettings() {
         PHASE2_ROTATION = doc["phase2_rot"];
         // Фаза 3
         PHASE3_DURATION = doc["phase3_duration"];
-        PHASE3_TEMP =  static_cast<uint16_t>(doc["phase1_temp"].as<float>() * 10);     
-        PHASE3_HUMIDITY =  static_cast<uint16_t>(doc["phase1_hum"].as<float>() * 10);     
-        PHASE3_WATER_TEMP = static_cast<uint16_t>(doc["phase1_water_temp"].as<float>() * 10); 
+        PHASE3_TEMP =  static_cast<uint16_t>(doc["phase3_temp"].as<float>() * 10);     
+        PHASE3_HUMIDITY =  static_cast<uint16_t>(doc["phase3_hum"].as<float>() * 10);     
+        PHASE3_WATER_TEMP = static_cast<uint16_t>(doc["phase3_water_temp"].as<float>() * 10); 
         PHASE3_LIGHT = doc["phase3_light"];
         PHASE3_CIRCULATION = doc["phase3_circ"];
         PHASE3_VENTILATION = doc["phase3_vent"];
@@ -194,9 +194,9 @@ void fetchAndSaveSettings() {
         PHASE3_ROTATION = doc["phase3_rot"];
         // Фаза 4
         PHASE4_DURATION = doc["phase4_duration"];
-        PHASE4_TEMP =  static_cast<uint16_t>(doc["phase1_temp"].as<float>() * 10);     
-        PHASE4_HUMIDITY =  static_cast<uint16_t>(doc["phase1_hum"].as<float>() * 10);     
-        PHASE4_WATER_TEMP = static_cast<uint16_t>(doc["phase1_water_temp"].as<float>() * 10); 
+        PHASE4_TEMP =  static_cast<uint16_t>(doc["phase4_temp"].as<float>() * 10);     
+        PHASE4_HUMIDITY =  static_cast<uint16_t>(doc["phase4_hum"].as<float>() * 10);     
+        PHASE4_WATER_TEMP = static_cast<uint16_t>(doc["phase4_water_temp"].as<float>() * 10); 
         PHASE4_LIGHT = doc["phase4_light"];
         PHASE4_CIRCULATION = doc["phase4_circ"];
         PHASE4_VENTILATION = doc["phase4_vent"];
@@ -205,9 +205,9 @@ void fetchAndSaveSettings() {
         PHASE4_ROTATION = doc["phase4_rot"];
         // Фаза 5
         PHASE5_DURATION = doc["phase5_duration"];
-        PHASE5_TEMP =  static_cast<uint16_t>(doc["phase1_temp"].as<float>() * 10);     
-        PHASE5_HUMIDITY =  static_cast<uint16_t>(doc["phase1_hum"].as<float>() * 10);     
-        PHASE5_WATER_TEMP = static_cast<uint16_t>(doc["phase1_water_temp"].as<float>() * 10); 
+        PHASE5_TEMP =  static_cast<uint16_t>(doc["phase5_temp"].as<float>() * 10);     
+        PHASE5_HUMIDITY =  static_cast<uint16_t>(doc["phase5_hum"].as<float>() * 10);     
+        PHASE5_WATER_TEMP = static_cast<uint16_t>(doc["phase5_water_temp"].as<float>() * 10); 
         PHASE5_LIGHT = doc["phase5_light"];
         PHASE5_CIRCULATION = doc["phase5_circ"];
         PHASE5_VENTILATION = doc["phase5_vent"];
@@ -216,9 +216,9 @@ void fetchAndSaveSettings() {
         PHASE5_ROTATION = doc["phase5_rot"];
         // Фаза 6
         PHASE6_DURATION = doc["phase6_duration"];
-        PHASE6_TEMP =  static_cast<uint16_t>(doc["phase1_temp"].as<float>() * 10);     
-        PHASE6_HUMIDITY =  static_cast<uint16_t>(doc["phase1_hum"].as<float>() * 10);     
-        PHASE6_WATER_TEMP = static_cast<uint16_t>(doc["phase1_water_temp"].as<float>() * 10); 
+        PHASE6_TEMP =  static_cast<uint16_t>(doc["phase6_temp"].as<float>() * 10);     
+        PHASE6_HUMIDITY =  static_cast<uint16_t>(doc["phase6_hum"].as<float>() * 10);     
+        PHASE6_WATER_TEMP = static_cast<uint16_t>(doc["phase6_water_temp"].as<float>() * 10); 
         PHASE6_LIGHT = doc["phase6_light"];
         PHASE6_CIRCULATION = doc["phase6_circ"];
         PHASE6_VENTILATION = doc["phase6_vent"];
