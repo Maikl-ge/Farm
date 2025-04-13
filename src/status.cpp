@@ -14,6 +14,7 @@ uint16_t longPhacse3 = 0;
 uint16_t longPhacse4 = 0;
 uint16_t longPhacse5 = 0;
 uint16_t longPhacse6 = 0;
+uint16_t longPhacseEnd = 0;
 uint16_t wateringInterval = 0;
 uint16_t wateringDraining = 0;
 int phaseToGrowe = -1;
@@ -22,7 +23,7 @@ bool pintStatusFarm = false;
 // Определение текущего статуса фермы
 void CurrentStatusFarm() {
     //EEPROMRead();  // Чтение Параметров из EEPROM
-    if(statusFarm == "Work" || statusFarm == "Pause" || statusFarm == "Stop") {
+    if(statusFarm == "Work" || statusFarm == "Pause"  || statusFarm == "Stop" || statusFarm == "Ready") {
         CheckStatusFarm();   // Проверка фазы роста
     }
     if(phaseToGrowe == 1) {
@@ -114,6 +115,7 @@ void CurrentStatusFarm() {
         Serial.println("Текущая фаза - 06  " + String(currentPhase) + "  " + String(statusFarm));  
     }    
     else {
+        statusFarm = "Ready";
         Serial.println("Ошибка: Фаза не определена.");
     } 
 }
@@ -133,8 +135,9 @@ void CheckStatusFarm() {
     longPhacse4 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60;
     longPhacse5 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60;
     longPhacse6 = PHASE1_DURATION * 60 + PHASE2_DURATION * 60 + PHASE3_DURATION * 60 + PHASE4_DURATION * 60 + PHASE5_DURATION * 60 + PHASE6_DURATION * 60;
-        
-    if(statusFarm == "Work" || statusFarm == "Pause") {        
+    longPhacseEnd = longPhacse6 + 1;
+    
+    if(statusFarm == "Work" || statusFarm == "Pause" || statusFarm == "Ready" || statusFarm == "End" ) {        
         currentTimeInMinutes = getCurrentTimeInMinutes();  // Получаем текущее время в минутах
         uint16_t currentDate = getCurrentDate(); // Получаем текущую дату в днях с 1 января 1970
         GROWE_MODE_DATE = readFromEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS);
@@ -173,7 +176,8 @@ void checkPhaseToGrowe() {
         longPhacse3,
         longPhacse4,
         longPhacse5,
-        longPhacse6
+        longPhacse6,
+        longPhacseEnd
     };
 
     const char* phaseMessages[] = {
@@ -182,15 +186,19 @@ void checkPhaseToGrowe() {
         "Текущая фаза 3 ",
         "Текущая фаза 4 ",
         "Текущая фаза 5 ",
-        "Текущая фаза 6 "
+        "Текущая фаза 6 ",
+        "Рост завершон "
     };
 
     // Если выращивание завершилось
-    if ((longPhacse6 - totalMinutesElapsed) == 0 || ((longPhacse6 - totalMinutesElapsed) + 1) == 0) {
+    //if ((longPhacse6 - totalMinutesElapsed) == 0 || ((longPhacse6 - totalMinutesElapsed) + 1) == 0 || ((longPhacse6 - totalMinutesElapsed) + 1) > 0) {
+    if ((longPhacseEnd - totalMinutesElapsed) == 0) {
+    
         statusFarm = "End";
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
         EEPROM.commit();
         Serial.println("Выращивание завершено. Статус фермы: " + statusFarm);
+        totalMinutesElapsed = 0;
     }
 
     // Обнуляем phaseToGrowe перед проверкой
@@ -203,9 +211,9 @@ void checkPhaseToGrowe() {
         }
     }
     if (phaseToGrowe == -1) {
-        statusFarm = "Abort";
+        statusFarm = "Ready";
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
         EEPROM.commit();
-        Serial.println("Выращивание завершено. Статус фермы: " + statusFarm);    
+        Serial.println("Ready" + statusFarm);    
     }
 }

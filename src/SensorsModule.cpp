@@ -222,8 +222,11 @@ void readAllDS18B20() {
 
     Serial.print("Temperature: ");
     Serial.print(rawTemperature);
-    Serial.println("°C");
-
+    Serial.print("°C  ");
+    Serial.print(HITER_WATER);
+    Serial.print("° ");
+    Serial.print(currentWaterTemperatura);
+    Serial.println("°C  ");
 }
 
 // Обновление состояния датчиков
@@ -239,8 +242,8 @@ float readDS18B20Temperature() {
     
     ds.reset(); // Сбрасываем шину и выбираем устройство по адресу
     ds.select(sensorWaterOsmoAddress);
-    ds.write(0x44, 0);  // Запрашиваем конверсию температуры (команда 0x44) 1 - паразитное питание включено (если требуется)
-    delay(500);  // Ждем завершения конверсии (200 мс для 10 бит)
+    ds.write(0x44, 1);  // Запрашиваем конверсию температуры (команда 0x44) 1 - паразитное питание включено (если требуется)
+    delay(300);  // Ждем завершения конверсии (200 мс для 10 бит)
     ds.reset();  // Сбрасываем шину и выбираем устройство снова для чтения
     ds.select(sensorWaterOsmoAddress);
     ds.write(0xBE); // Читаем Scratchpad (команда 0xBE)

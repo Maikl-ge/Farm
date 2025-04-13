@@ -14,8 +14,15 @@ uint16_t readFromEEPROM(int address);
 extern uint16_t wateringInterval;
 extern uint16_t wateringDraining;
 extern uint16_t totalMinutesElapsed;
-extern uint16_t longPhacse6;
 extern bool pintStatusFarm;
+
+extern uint16_t longPhacse;
+extern uint16_t longPhacse1;
+extern uint16_t longPhacse2;
+extern uint16_t longPhacse3;
+extern uint16_t longPhacse4;
+extern uint16_t longPhacse5;
+extern uint16_t longPhacse6;
 
 extern int phaseToGrowe;
 

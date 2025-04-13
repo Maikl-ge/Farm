@@ -8,10 +8,10 @@
 const float WATER_HYSTERESIS = 0.25;       // Гистерезис температуры воды (±0.5°C)
 const float WATER_TEMP_RANGE = 1.0;       // Диапазон пропорционального управления (±2°C)
 const int PWM_CHANNEL = 5;                // Канал PWM для нагревателя
-const int PWM_FREQ = 21000;                // Частота PWM (21 кГц)
+const int PWM_FREQ = 11000;                // Частота PWM (21 кГц)
 const int PWM_RESOLUTION = 10;            // Разрешение PWM (10 бит, 0-1023)
 const int PWM_MIN = 0;                    // Минимальное значение PWM
-const int PWM_MAX = 1023;                 // Максимальное значение PWM
+const int PWM_MAX = 1000;                 // Максимальное значение PWM
 const int MIN_EFFECTIVE_PWM = 0;          // Минимальное эффективное значение PWM для нагрева
 // Задержки нагревателя
 const unsigned long HEATER_ON_DELAY = 500;  // Задержка перед включением нагревателя (мс)

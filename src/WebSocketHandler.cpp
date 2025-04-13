@@ -75,6 +75,7 @@ void parceMessageFromServer(const String& messageFromServer) {
     // Обработка сообщения КОМАНДЫ
     currentTimeInMinutes = getCurrentTimeInMinutes();
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
+        totalMinutesElapsed = 0;
         statusFarm = "Work";
         CurrentStatusFarm();
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
@@ -95,6 +96,7 @@ void parceMessageFromServer(const String& messageFromServer) {
         breakTime(rawTime, t); // Разбираем в структуру времени
         
         Serial.printf("Dата начала цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
+        totalMinutesElapsed = 0;
     }
     
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
@@ -119,7 +121,6 @@ void parceMessageFromServer(const String& messageFromServer) {
         
         Serial.printf("Dата завершения цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
         totalMinutesElapsed = 0;
-        longPhacse6 = 0;
     }
 
     if (messageFromServer == SERVER_CMD_RESTART) {    // SCMR Перезагрузка фермы

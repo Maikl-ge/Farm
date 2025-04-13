@@ -78,7 +78,7 @@ void updateSensorsTask(void *parameter) {
         // Отправка ping каждые 10 секунд
         webSocket.ping();
         } 
-        vTaskDelay(9000 / portTICK_PERIOD_MS);  // Задержка 9000 мс
+        vTaskDelay(10000 / portTICK_PERIOD_MS);  // Задержка 10000 мс
     }
 }
 
@@ -112,7 +112,7 @@ void sendDataTask(void *parameter) {
         //Serial.println("Время передачи: " + String(timeSlot) + " ms");  
         timeSlot = (millis() - timeStartSlot);      
         //Serial.println("Время слота: " + String(timeSlot) + " ms");   
-        vTaskDelay((60000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
+        vTaskDelay((59999 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
 }
 
