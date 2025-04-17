@@ -22,7 +22,7 @@ int EEPROM_CULTURE_ADDRESS = 0x12;     // Текущая культура
 
 String FARM_RES_STATUS = "FRQW";        // Ответ статуса фермы на запрос сервера
 String FARM_RES_DATA = "FRQD";          // Ответ с данными фермы на запрос сервера
-String FARM_RES_SETTINGS = "FRQS";      // Запрос у сервера настроек и базы данных 
+String FARM_RES_SETTINGS = "FRQS";      // Запрос у сервера настроек из базы данных 
 String FARM_RES_PARAMETERS = "FRQP";    // Ответ параметров фермы на запрос сервера
 String FARM_RES_PROFILE = "FRQF";       // Ответ профиля фермы на запрос сервера
 String FARM_RES_CURRENT = "FRQC";       // Ответ текущих данных фермы

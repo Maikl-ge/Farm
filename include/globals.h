@@ -68,6 +68,8 @@ void updateClimateControl(); // Обновление управления кли
 void CheckStatusFarm(); // Проверка фазы роста
 void updateSoakState();  //
 
+extern const char* CMDtoFarm;
+extern String jsonString;
 // Объявление объекта ds18b20
 extern DallasTemperature ds18b20;
 // Объявление адресов датчиков DS18B20

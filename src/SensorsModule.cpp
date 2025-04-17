@@ -64,28 +64,17 @@ float tds_osmo = 0.0;
 // Глобальная переменная для хранения состояния PCF8574
 uint8_t sensorState = 0;
 OneWire ds(ONE_WIRE_BUS); // Создаем объект OneWire
-float readDS18B20Temperature();
+// DeviceAddress sensorWateringAddress = {0x28, 0x8B, 0x63, 0x58, 0x00, 0x00, 0x00, 0x97};  // подключен
+// DeviceAddress sensorOutdoorAddress = {0x28, 0x2F, 0x1E, 0x49, 0xF6, 0xE6, 0x3C, 0xBF};  // подключен
 
+float readDS18B20Temperature(DeviceAddress sensorAddress);
+void initializeSensor(DeviceAddress sensorAddress);
 // Инициализация всех сенсоров
 void initializeSensors() {
-        // Установка разрешения 12 бит (0x7F)
-        ds.reset();
-        ds.select(sensorWaterOsmoAddress);
-        ds.write(0x4E);        // Команда Write Scratchpad
-        ds.write(0x00);        // Th (не используется)
-        ds.write(0x00);        // Tl (не используется)
-        ds.write(0x3F);        // Конфигурация: 12 бит (0x7F)
-                                //9 бит (0.5°C) - 0x1F
-                                // 10 бит (0.25°C) - 0x3F
-                                // 11 бит (0.125°C) - 0x5F
-                                // 12 бит (0.0625°C) - 0x7F
-        
-        // Сохраняем в EEPROM (иначе сбросится после питания)
-        ds.reset();
-        ds.select(sensorWaterOsmoAddress);
-        ds.write(0x48);        // Команда Copy Scratchpad (запись в EEPROM)
-        delay(20);             // Требуется пауза для завершения записи    
-        Serial.println("DS18B20 sensor initialized with 12-bit resolution");
+
+    initializeSensor(sensorWateringAddress);
+    initializeSensor(sensorOutdoorAddress);
+    Serial.println("All DS18B20 sensors initialized");
 
     // Инициализация I2C экспандера
     if (pcf8574.begin()) {
@@ -202,66 +191,80 @@ void readAllHTU21D() {
     humidity_5 = data.humidity;
 }
 
-void readAllDS18B20() {
-    float rawTemperature = readDS18B20Temperature();
-
-    // Обработка шума и ошибок
-    if (rawTemperature == -127.0 || rawTemperature == 85.0 || rawTemperature < -127.0 || rawTemperature > 99.0) {
-        Serial.print("Noise or error detected: ");
-        Serial.print(rawTemperature);
-        Serial.println("°C, using fallback");
-        water_temperature_watering = rawTemperature; // Сохраняем сырое значение для отладки
-        rawTemperature = currentWaterTemperatura + 0.111; // Фallback значение
-    }
-
-    // Обновляем все температуры
-    water_temperature_osmo = rawTemperature;
-    water_temperature_watering = rawTemperature;
-    air_temperature_outdoor = rawTemperature;
-    air_temperature_inlet = rawTemperature;
-
-    Serial.print("Temperature: ");
-    Serial.print(rawTemperature);
-    Serial.print("°C  ");
-    Serial.print(HITER_WATER);
-    Serial.print("° ");
-    Serial.print(currentWaterTemperatura);
-    Serial.println("°C  ");
-}
-
 // Обновление состояния датчиков
 void updateSensors() {
     readAllHTU21D();
     readPCF8574(); 
-    readAllDS18B20();    
+    readAllDS18B20();   
     power_monitor = analogRead(POWER_MONITOR_PIN); // Обновление состояния мониторинга питающей сети
 }
 
-float readDS18B20Temperature() {
-    byte data[9];
-    
-    ds.reset(); // Сбрасываем шину и выбираем устройство по адресу
-    ds.select(sensorWaterOsmoAddress);
-    ds.write(0x44, 1);  // Запрашиваем конверсию температуры (команда 0x44) 1 - паразитное питание включено (если требуется)
-    delay(300);  // Ждем завершения конверсии (200 мс для 10 бит)
-    ds.reset();  // Сбрасываем шину и выбираем устройство снова для чтения
-    ds.select(sensorWaterOsmoAddress);
-    ds.write(0xBE); // Читаем Scratchpad (команда 0xBE)
+void readAllDS18B20() {
+    //float rawTemperature = readDS18B20Temperature();
 
-    // Читаем 9 байт данных
+    float tempWatering = readDS18B20Temperature(sensorWateringAddress);
+    float tempOutdoor  = readDS18B20Temperature(sensorOutdoorAddress);
+    // Обработка шума и ошибок
+        if (tempWatering < -127.0 || tempWatering > 85.0 || tempWatering == 85.0) {
+            Serial.println("Ошибка датчика полива, fallback");
+            tempWatering = currentWaterTemperatura + 0.111;
+        }
+    
+        if (tempOutdoor < -127.0 || tempOutdoor > 85.0 || tempOutdoor == 85.0) {
+            Serial.println("Ошибка уличного датчика, fallback");
+            tempOutdoor = currentWaterTemperatura + 0.222;
+        }
+    // Обновляем все температуры
+    water_temperature_osmo = tempWatering;
+    water_temperature_watering = tempWatering;
+    air_temperature_outdoor = tempOutdoor;
+    air_temperature_inlet = tempOutdoor;
+
+    Serial.print("Temperature: ");
+    Serial.print(tempOutdoor);
+    Serial.print(" °C  ");
+    Serial.print(HITER_WATER);
+    Serial.print("° ");
+    Serial.print(tempWatering);
+    Serial.println(" °C  ");
+}
+
+float readDS18B20Temperature(DeviceAddress sensorAddress) {
+    byte data[9];
+
+    ds.reset();
+    ds.select(sensorAddress);
+    ds.write(0x44, 1);  // Старт измерения температуры
+    delay(300);         // Ждем завершения (под 12 бит – до 750 мс)
+
+    ds.reset();
+    ds.select(sensorAddress);
+    ds.write(0xBE);     // Чтение scratchpad
+
     for (int i = 0; i < 9; i++) {
         data[i] = ds.read();
     }
 
-    // Проверяем CRC
     if (OneWire::crc8(data, 8) != data[8]) {
         Serial.println("CRC check failed");
-        return currentWaterTemperatura; // Возвращаем последнее значение при ошибке
+        return -127.0;  // Ошибка
     }
 
-    // Преобразуем данные в температуру
     int16_t raw = (data[1] << 8) | data[0];
-    float temperature = (float)raw / 16.0; // Для 12 бит делим на 16, для 10 бит результат уже скорректирован
+    return (float)raw / 16.0;
+}
 
-    return temperature;
+// Инициализация (применимо ко всем сенсорам)
+void initializeSensor(DeviceAddress sensorAddress) {
+    ds.reset();
+    ds.select(sensorAddress);
+    ds.write(0x4E);  // Write Scratchpad
+    ds.write(0x00);  // Th
+    ds.write(0x00);  // Tl
+    ds.write(0x3F);  // 10 бит (0.25 °C), можно заменить на 0x7F для 12 бит
+
+    ds.reset();
+    ds.select(sensorAddress);
+    ds.write(0x48);  // Copy Scratchpad
+    delay(20);
 }

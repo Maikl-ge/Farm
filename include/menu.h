@@ -7,6 +7,8 @@
 
 // Объявление глобальных переменных
 extern uint8_t buttonState;
+extern bool startButton;
+extern bool stopButton;
 extern float power_monitor;
 
 // Объявление функций

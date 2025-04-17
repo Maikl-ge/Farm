@@ -7,6 +7,7 @@
 #include <SDCard.h>
 #include <TimeLib.h>
 #include <queue>
+#include <menu.h>
 #include <status.h>
 #include "TimeModule.h"
 #include <EEPROM.h>
@@ -72,14 +73,30 @@ void webSocketEvent(WebsocketsEvent event, String data) {
 }
 
 void parceMessageFromServer(const String& messageFromServer) {
+    Serial.print(" Получена команда от сервера: ");
+    Serial.println(messageFromServer);
+    const unsigned long waitDuration = 5000;
+    unsigned long waitStart = millis(); 
     // Обработка сообщения КОМАНДЫ
-    currentTimeInMinutes = getCurrentTimeInMinutes();
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
+        while (millis() - waitStart < waitDuration) {   // Ожидаем 5 секунд, пока не нажата нужная комбинация кнопок
+            if (startButton) {
+                break;
+            }
+            delay(10); // лёгкая пауза, чтобы не перегружать цикл
+        }
+        if (!startButton) {
+            Serial.println("Запуск отменен: кнопка подтверждения не нажата."); return; // Прерываем выполнение команды
+            
+        }
+
+        bool startButton = false;
+        currentTimeInMinutes = getCurrentTimeInMinutes();
         totalMinutesElapsed = 0;
         statusFarm = "Work";
         CurrentStatusFarm();
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
-        Serial.println("Команда от сервера: START");
+        Serial.println("Команда от сервера: START"); 
 
         GROWE_MODE_TIME = currentTimeInMinutes;
         saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);   
@@ -100,6 +117,18 @@ void parceMessageFromServer(const String& messageFromServer) {
     }
     
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
+        while (millis() - waitStart < waitDuration) {   // Ожидаем 5 секунд, пока не нажата нужная комбинация кнопок
+            if (stopButton) {
+                break;
+            }
+            delay(10); // лёгкая пауза, чтобы не перегружать цикл
+        }
+        if (!stopButton) {
+            Serial.println("Остановка отменена: кнопка подтверждения не нажата."); return; // Прерываем выполнение команды
+            
+        }
+
+        stopButton = false;
         statusFarm = "Stop";
         CurrentStatusFarm();
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);        

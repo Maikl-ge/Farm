@@ -7,6 +7,7 @@
 #include "Profile.h"
 #include <ArduinoJson.h>
 #include <pinout.h>
+#include <status.h>
 
 // Отправка данных
 void sendDataIfNeeded() {
@@ -18,7 +19,7 @@ void sendDataIfNeeded() {
         // unsigned long currentTime = millis();
         sendMessageOK = false;
 
-        DynamicJsonDocument doc(512);
+        DynamicJsonDocument doc(2048);
         doc["DF"] = CurrentDate;
         doc["TF"] = CurrentTime;
         doc["start_Button"] = 1; //startButtonPressed ? 1 : 0;
@@ -65,7 +66,7 @@ void sendDataIfNeeded() {
 void serializeStatus() {
 
         // Создаем объект JSON
-        DynamicJsonDocument doc(512);
+        DynamicJsonDocument doc(2048);
 
         // Заполняем объект данными
         doc["OSMOS_ON"] = OSMOS_ON ? 1 : 0;           // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)
@@ -87,6 +88,13 @@ void serializeStatus() {
         doc["DIR"] = DIR;                   // Направление (GPIO0, нога 25)
         doc["ENABLE"] = ENABLE ? 1 : 0;     // Включение (GPIO0, нога 25)
 
+        doc["STATUS_BOX"] = currentPhase;
+        doc["PHASE"] = statusFarm;
+        doc["CULTURE"] = CULTURE;
+        doc["GROWE_TIME"] = GROWE_MODE_TIME;
+        doc["GROWE_DATE"] = GROWE_MODE_DATE;
+        doc["ELAPSED"] = totalMinutesElapsed;
+
         // Сериализуем в строку JSON
         String jsonStatus;
         serializeJson(doc, jsonStatus);  // Сериализация в строку JSON Статуса фермы
@@ -102,4 +110,5 @@ void serializeStatus() {
         sendWebSocketMessage(messageToSend);  // Отправка сообщения
 
 }
+
 

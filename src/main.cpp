@@ -16,6 +16,7 @@
 #include "SDcard.h"
 #include "fanControl.h"
 #include "status.h"
+#include <httpHandler.h>
 
 //#define WEBSOCKETS_MAX_DATA_SIZE 4096 // Максимальный размер данных
 
@@ -37,9 +38,11 @@ void setupStepper(); // Инициализация шагового двигат
 void updateStepperControl(); // Обновление состояния двигателя
 void updateSoakState();
 void readAllHTU21D();
+void sendHttpJson(const String& jsonString);
 
 // Объявление объекта класса AccessPoint
 AccessPoint accessPoint;   
+const char* CMDtoFarm = ""; // <= фактическое определение
 
 // Задачи для FreeRTOS
 void updateWebSocketTask(void *parameter) {
@@ -86,6 +89,10 @@ void sendDataTask(void *parameter) {
     for (;;) {  
         pintStatusFarm = true;  
         Serial.print("< --- > Тик передачи данных  ");  Serial.println(CurrentTime); 
+
+        // CMDtoFarm = "SRDT";
+        // sendHttpCommand(CMDtoFarm.c_str());
+
         CurrentStatusFarm(); // Определение текущего статуса фермы  
         timeSlot = 0;
         unsigned long timeStartSlot = millis(); // Время начала передачи
@@ -204,17 +211,10 @@ void setup() {
 
     readAllDS18B20();
 
+    sendHttpCommand("SRST");
+
     pintStatusFarm = true;   
     CurrentStatusFarm(); // Определение текущего статуса фермы  
-
-    //updateFanControl(); // Обновление вентиляции
-    //updateLightBrightness(); // Обновление яркости света
-
-    if (connected) {
-        Serial.println("WebSocket connected started");    
-    } else {
-        Serial.println("WebSocket connection not started");
-    }
 
     // Создание задач
     xTaskCreatePinnedToCore(
@@ -275,11 +275,11 @@ void loop() {
 }
 
 // Функция для отправки запроса "Settings" и получения ответа
-void requestSettings() {
-    // Отправка запроса на сервер через WebSocket
-    sendWebSocketMessage("FRQS");
-    Serial.println("Запрос 'Settings' отправлен серверу.");
-}
+// void requestSettings() {
+//     // Отправка запроса на сервер через WebSocket
+//     serializeSettings();("FRQS");
+//     Serial.println("Запрос 'Settings' отправлен серверу.");
+// }
 // Функция для подключения к WiFi
 void connectToWiFi() {
     const int maxAttempts = 3;            // Количество попыток подключения
