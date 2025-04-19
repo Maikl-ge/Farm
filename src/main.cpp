@@ -12,7 +12,7 @@
 #include "WebSocketHandler.h"
 #include <AccessPoint.h>
 #include "menu.h"
-#include <FS.h>
+// #include <FS.h>
 #include "SDcard.h"
 #include "fanControl.h"
 #include "status.h"
@@ -42,6 +42,7 @@ void sendHttpJson(const String& jsonString);
 
 // Объявление объекта класса AccessPoint
 AccessPoint accessPoint;   
+
 const char* CMDtoFarm = ""; // <= фактическое определение
 
 // Задачи для FreeRTOS
@@ -90,9 +91,6 @@ void sendDataTask(void *parameter) {
         pintStatusFarm = true;  
         Serial.print("< --- > Тик передачи данных  ");  Serial.println(CurrentTime); 
 
-        // CMDtoFarm = "SRDT";
-        // sendHttpCommand(CMDtoFarm.c_str());
-
         CurrentStatusFarm(); // Определение текущего статуса фермы  
         timeSlot = 0;
         unsigned long timeStartSlot = millis(); // Время начала передачи
@@ -104,7 +102,7 @@ void sendDataTask(void *parameter) {
             }
             // Отправка данных из очереди               
             if(dequeueIndex > 0 || enqueueIndex > 0) {
-                while((millis() - timeStartSlot) < 45000) {  // временное окно для пересылки сообщений из SD 45000 мс
+                while((millis() - timeStartSlot) < 50000) {  // временное окно для пересылки сообщений из SD 50000 мс
                     if(dequeueIndex == 0 && enqueueIndex == 0) {
                         break;
                     }                    
@@ -134,7 +132,6 @@ void updateWaterTask(void *parameter) {
     for (;;) {
         webSocket.poll(); // Обработка WebSocket событий
         readPCF8574(); // Чтение состояния датчиков холла  
-
         updateWatering();       
         updateLightBrightness();  
         updateWater();        
@@ -148,7 +145,8 @@ void updateWaterTask(void *parameter) {
 void setup() {
     Serial.begin(115200);
     Serial.setDebugOutput(false); // Отключение вывода отладочных сообщений
-    //ArduinoOTA.begin();
+    // Подключение к WiFi
+    WiFi.begin(ssid, password);
 
     EEPROM.begin(2048); // Инициализация EEPROM с размером 512 байт
 
@@ -172,10 +170,6 @@ void setup() {
         }
     }
     executeOnce = false;
-
-
-    // Подключение к WiFi
-    WiFi.begin(ssid, password);
     
     connectToWiFi();
 
@@ -211,10 +205,17 @@ void setup() {
 
     readAllDS18B20();
 
-    sendHttpCommand("SRST");
+    //sendHttpCommand("SRST");
 
     pintStatusFarm = true;   
     CurrentStatusFarm(); // Определение текущего статуса фермы  
+
+    ArduinoOTA.setHostname("esp32");
+    ArduinoOTA.begin();
+
+    serializeSettings();  // отправка настроек на сервер
+
+    serializeStatus();  // отправка статуса фермы
 
     // Создание задач
     xTaskCreatePinnedToCore(
@@ -269,17 +270,12 @@ void setup() {
 }
 
 void loop() {
-    // ArduinoOTA.handle(); // Обработка OTA обновлений
+    updateStepperControl(); // Обновление состояния двигателя
+    ArduinoOTA.handle(); // Обработка OTA обновлений
+    accessPoint.handleClient();  // ✅ теперь вызываешь через публичный метод
     // Другие задачи, если есть
-    updateStepperControl();
 }
 
-// Функция для отправки запроса "Settings" и получения ответа
-// void requestSettings() {
-//     // Отправка запроса на сервер через WebSocket
-//     serializeSettings();("FRQS");
-//     Serial.println("Запрос 'Settings' отправлен серверу.");
-// }
 // Функция для подключения к WiFi
 void connectToWiFi() {
     const int maxAttempts = 3;            // Количество попыток подключения

@@ -53,7 +53,6 @@ void CurrentStatusFarm() {
         currentLight = PHASE2_LIGHT;
         currentPhase = "Germ";  // Рост
         Serial.println("Текущая фаза - 02  " + String(currentPhase) + "  " + String(statusFarm));  
-        Serial.println("currentRotation " + String(currentRotation));
     } 
     else if (phaseToGrowe == 3) { 
         currentlongPhacse = PHASE3_DURATION;
@@ -68,7 +67,6 @@ void CurrentStatusFarm() {
         currentLight = PHASE3_LIGHT;
         currentPhase = "Act";  // Рост
         Serial.println("Текущая фаза - 03  " + String(currentPhase) + "  " + String(statusFarm)); 
-        Serial.println("currentRotation " + String(currentRotation)); 
     } 
     else if (phaseToGrowe == 4) {
         currentlongPhacse = PHASE4_DURATION;
@@ -83,7 +81,6 @@ void CurrentStatusFarm() {
         currentLight = PHASE4_LIGHT;
         currentPhase = "Early";  // Рост
         Serial.println("Текущая фаза - 04  " + String(currentPhase) + "  " + String(statusFarm));  
-        Serial.println("currentRotation " + String(currentRotation));
     } 
     else if (phaseToGrowe == 5) {
         currentlongPhacse = PHASE5_DURATION;
@@ -98,7 +95,6 @@ void CurrentStatusFarm() {
         currentLight = PHASE5_LIGHT;
         currentPhase = "Grow";  // Рост
         Serial.println("Текущая фаза - 05  " + String(currentPhase) + "  " + String(statusFarm));  
-        Serial.println("currentRotation " + String(currentRotation));
     } 
     else if (phaseToGrowe == 6) {
         currentlongPhacse = PHASE6_DURATION;

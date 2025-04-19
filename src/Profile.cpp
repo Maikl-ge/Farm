@@ -5,6 +5,7 @@
 #include "Profile.h"
 #include "DataSender.h"
 #include "WebSocketHandler.h"
+#include "httpHandler.h"
 
 //  Константы глобальных переменных
 uint8_t ID_FARM = 255;  // ID фермы
@@ -522,7 +523,13 @@ void serializeSettings() {
     LENGTH_MSG = jsonSettings.length(); // Длина JSON сообщения
     messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonSettings;
     // Отправка сообщения
-    Serial.print("Настройки: ");
-    transmitionTime = millis();  // Запоминаем время отправки
-    sendWebSocketMessage(messageToSend);
+    // Serial.print("Настройки: ");
+    // transmitionTime = millis();  // Запоминаем время отправки
+    // sendWebSocketMessage(messageToSend);
+
+
+    const char* urlReopt = "http://207.244.250.144:8080/report";
+    sendHttpJsonLikeSocket(urlReopt, messageToSend.c_str());
+    Serial.println("Настройки из EEPROM отправлены по http");
+
 }

@@ -160,7 +160,7 @@ SensorData readHTU21D(Adafruit_HTU21DF &htu) {
     float hum = htu.readHumidity();
 
     // Проверяем данные на NaN
-    data.temperature = isnan(temp) ? 2.0 : roundf(temp * 100) / 100.0;
+    data.temperature = isnan(temp) ? 26.0 : roundf(temp * 100) / 100.0;
     data.humidity = isnan(hum) ? 5.0 : roundf(hum * 10) / 10.0; 
 
     return data;
@@ -205,12 +205,12 @@ void readAllDS18B20() {
     float tempWatering = readDS18B20Temperature(sensorWateringAddress);
     float tempOutdoor  = readDS18B20Temperature(sensorOutdoorAddress);
     // Обработка шума и ошибок
-        if (tempWatering < -127.0 || tempWatering > 85.0 || tempWatering == 85.0) {
+        if (tempWatering <= -127.0 || tempWatering > 85.0 || tempWatering == 85.0) {
             Serial.println("Ошибка датчика полива, fallback");
             tempWatering = currentWaterTemperatura + 0.111;
         }
     
-        if (tempOutdoor < -127.0 || tempOutdoor > 85.0 || tempOutdoor == 85.0) {
+        if (tempOutdoor <= -127.0 || tempOutdoor > 85.0 || tempOutdoor == 85.0) {
             Serial.println("Ошибка уличного датчика, fallback");
             tempOutdoor = currentWaterTemperatura + 0.222;
         }
@@ -226,7 +226,7 @@ void readAllDS18B20() {
     Serial.print(HITER_WATER);
     Serial.print("° ");
     Serial.print(tempWatering);
-    Serial.println(" °C  ");
+    Serial.println(" °C  new");
 }
 
 float readDS18B20Temperature(DeviceAddress sensorAddress) {

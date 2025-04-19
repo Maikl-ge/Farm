@@ -13,7 +13,7 @@ const int FAN_INLET_CHANNEL = 4;
 const float TEMP_TOLERANCE = 0.25;
 const float HUM_TOLERANCE = 1.0;
 const int MIN_PWM = 0;
-const int MAX_PWM = 1023;
+const int MAX_PWM = 1000;
 
 // Коэффициенты пропорционального управления
 const float K_TEMP = 100.0; // Коэффициент для нагревателя (PWM на °C ошибки)

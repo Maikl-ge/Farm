@@ -56,6 +56,10 @@ void AccessPoint::handleRoot() {
     server.send(200, "text/html", html);
 }
 
+void AccessPoint::handleClient() {
+    server.handleClient();  
+}
+
 void AccessPoint::handleSave() {
     if (server.hasArg("ssid") && server.hasArg("password")) {
         String ssid = server.arg("ssid");

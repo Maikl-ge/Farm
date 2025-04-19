@@ -8,6 +8,7 @@
 #include <ArduinoJson.h>
 #include <pinout.h>
 #include <status.h>
+#include <httpHandler.h>
 
 // Отправка данных
 void sendDataIfNeeded() {
@@ -56,10 +57,15 @@ void sendDataIfNeeded() {
         LENGTH_MSG = jsonMessage.length(); // Длина JSON сообщения
         messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonMessage;
 
-        // Отправка Параметров фермы и ожидание ACK 
-        Serial.print("Параметры  ");
-        transmitionTime = millis();  // Запоминаем время отправки
-        sendWebSocketMessage(messageToSend);  // Отправка сообщения
+        const char* urlReopt = URL_REPORT; //"http://207.244.250.144:8080/report";
+        sendHttpJsonLikeSocket(urlReopt, messageToSend.c_str());
+        Serial.println("Данные сенсоров  на http");
+
+
+        // // Отправка Параметров фермы и ожидание ACK 
+        // Serial.print("Параметры  ");
+        // transmitionTime = millis();  // Запоминаем время отправки
+        // sendWebSocketMessage(messageToSend);  // Отправка сообщения
     
 }
 // Функция для сериализации переменных в JSON
@@ -104,10 +110,14 @@ void serializeStatus() {
         LENGTH_MSG = jsonStatus.length(); // Длина JSON сообщения
         messageToSend = String(ID_FARM) + " " + TYPE_MSG + " " + String(LENGTH_MSG) + " " + jsonStatus;
 
-        // Отправка сообщения Статуса фермы и ожидание ACK
-        Serial.print("Статус  ");
-        transmitionTime = millis();  // Запоминаем время отправки
-        sendWebSocketMessage(messageToSend);  // Отправка сообщения
+        const char* urlReopt = URL_REPORT; //"http://207.244.250.144:8080/report";
+        sendHttpJsonLikeSocket(urlReopt, messageToSend.c_str());
+        Serial.println("Статус  на http");
+
+        // // Отправка сообщения Статуса фермы и ожидание ACK
+        // Serial.print("Статус  ");
+        // transmitionTime = millis();  // Запоминаем время отправки
+        // sendWebSocketMessage(messageToSend);  // Отправка сообщения
 
 }
 

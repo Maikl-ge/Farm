@@ -87,11 +87,11 @@ void updateButtonState() {
     // Обрвботка коротких нажатий
     if (buttonState == 0b00001001) {  // Короткое нажатие START 
         startButton = true;
-        Serial.println("Клавиатура: короткий START");
+        //Serial.println("Клавиатура: короткий START");
     }
     if (buttonState == 0b00001010) {  // Короткое нажатие STOP
         stopButton = true;
-        Serial.println("Клавиатура: короткий STOP");
+        //Serial.println("Клавиатура: короткий STOP");
     }
     if (buttonState == 0b00001011) {  // Короткое нажатие START + STOP
         Serial.println("Клавиатура: короткий START + STOP");

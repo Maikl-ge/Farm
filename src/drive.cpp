@@ -43,6 +43,7 @@ void setupStepper() {
     digitalWrite(STEP_PIN, LOW);
     digitalWrite(DIR_PIN, motorDirection);
     digitalWrite(ENABLE_PIN, HIGH); // Выключен по умолчанию
+    Serial.print("Setup Stepper ");
 }
 
 float accelerate(float target) {
@@ -124,6 +125,8 @@ void pauseLeft() {
 void rightStep() {
     digitalWrite(ENABLE_PIN, LOW);
     ENABLE = LOW;   
+    STEP = stepInterval;
+    DIR = currentDir;
     if (statusStep == 1) {
         digitalWrite(DIR_PIN, currentDir);
         if (currentStepTime - lastStepTime >= stepInterval) {
@@ -153,6 +156,8 @@ void pauseRight() {
 
 void leftStep() {
     digitalWrite(ENABLE_PIN, LOW);
+    STEP = stepInterval;
+    DIR = currentDir;
     ENABLE = LOW; 
     if (statusStep == 3) {
         digitalWrite(DIR_PIN, currentDir);
@@ -177,7 +182,7 @@ void updateStepperControl() {
             soakRotation();
             return;
         } else if (currentPhase == "Germ" || currentPhase == "Act" || currentPhase == "Early" || 
-                currentPhase == "Grow" || currentPhase == "Finish") {
+                currentPhase == "Grow" || currentPhase == "Finish") {      
             germRotation();
             return;
         }

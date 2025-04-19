@@ -9,14 +9,16 @@ class AccessPoint {
 public:
     AccessPoint();
     void start();
+    void handleClient();  
     String getSSID();
     String getPassword();
-    void handleRoot();
-    void handleSave();
 
 private:
     WebServer server;
     Preferences preferences;
+
+    void handleRoot();
+    void handleSave();
 };
 
 #endif

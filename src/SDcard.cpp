@@ -158,7 +158,7 @@ void dequeue() {
         sendWebSocketMessage(buffer);
         // Удаление файла
         unsigned long dequeueWait = millis();
-        while(millis() - dequeueWait < 4000) {  // ждем 4000 мс
+        while(millis() - dequeueWait < 1000) {  // ждем 4000 мс
             if (enqueueASK == "sendOk") {
             //Serial.println("enqueueASK " + enqueueASK);  
             if (sd.remove(filename)) {

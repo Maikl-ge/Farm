@@ -75,22 +75,25 @@ void webSocketEvent(WebsocketsEvent event, String data) {
 void parceMessageFromServer(const String& messageFromServer) {
     Serial.print(" Получена команда от сервера: ");
     Serial.println(messageFromServer);
+    CurrentStatusFarm();
     const unsigned long waitDuration = 5000;
     unsigned long waitStart = millis(); 
     // Обработка сообщения КОМАНДЫ
+    startButton = false;
+    stopButton = false;
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
         while (millis() - waitStart < waitDuration) {   // Ожидаем 5 секунд, пока не нажата нужная комбинация кнопок
-            if (startButton) {
+            if (startButton || statusFarm == "Work") {
                 break;
             }
             delay(10); // лёгкая пауза, чтобы не перегружать цикл
         }
-        if (!startButton) {
-            Serial.println("Запуск отменен: кнопка подтверждения не нажата."); return; // Прерываем выполнение команды
-            
+        if (!startButton || statusFarm == "Work") {
+            Serial.println("Запуск отменен: кнопка подтверждения не нажата."); 
+            return; // Прерываем выполнение команды
         }
 
-        bool startButton = false;
+        startButton = false;
         currentTimeInMinutes = getCurrentTimeInMinutes();
         totalMinutesElapsed = 0;
         statusFarm = "Work";
@@ -125,7 +128,6 @@ void parceMessageFromServer(const String& messageFromServer) {
         }
         if (!stopButton) {
             Serial.println("Остановка отменена: кнопка подтверждения не нажата."); return; // Прерываем выполнение команды
-            
         }
 
         stopButton = false;
