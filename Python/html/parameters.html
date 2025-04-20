@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>System Parameters</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e1e1e;
+            margin: 5px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 250px;
+            margin: 10 auto;
+            padding: 10px;
+            background: #2e2e2e;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            text-align: center;
+        }
+        .profile-list, .profile-item, .profile-name, .edit-button, .page-title {
+            font-family: 'Inter', sans-serif;
+        }
+        .profile-list {
+            font-weight: 600;
+            font-size: 24px;
+            padding: 5px;
+            text-align: left;
+
+            
+        }
+        .profile-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            color: #ccc;
+            justify-content: space-between;
+        }
+        .profile-name {
+	        font-weight: 300;
+            font-size: 16px;
+            flex-grow: 1;
+            color: #ccc;
+            text-align: left;
+            background-color: transparent;
+            border: none;
+            padding: 5px;
+        }
+        .edit-button {
+            font-weight: 300;
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: transparent;
+            color: #ccc;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: auto;
+        }
+        .edit-button:hover {
+            background-color: #d3d3d3;
+            color: #333;
+        }
+        .page-title {
+            padding: 10px;
+            font-size: 24px;
+            font-weight: 300;
+            color: #aaa;
+            text-align: left;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #0ff000;
+            cursor: pointer;
+            margin-right: 15px;
+            margin-left: 10px;
+        }
+        .select-button {
+            font-weight: 300;
+            padding: 10px 10px;
+            font-size: 14px;
+            background-color: transparent;
+            color: #ccc;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: auto;
+            width: 95%;
+        }
+        .select-button:hover {
+            background-color: #d3d3d3;
+            color: #333;
+        }
+    </style>
+    <script>
+        function enforceSingleSelection(event) {
+            document.querySelectorAll('input[name="select-profile"]').forEach(checkbox => {
+                if (checkbox !== event.target) {
+                    checkbox.checked = false;
+                }
+            });
+        }
+    </script>
+<script>
+    function enforceSingleSelection(event) {
+        document.querySelectorAll('input[name="select-profile"]').forEach(checkbox => {
+            if (checkbox !== event.target) {
+                checkbox.checked = false;
+            }
+        });
+    }
+
+    function submitSelection() {
+        const selectedCheckbox = document.querySelector('input[name="select-profile"]:checked');
+        if (selectedCheckbox) {
+            const profileId = selectedCheckbox.value;
+            const url = `/parameters/${profileId}/select`;
+            fetch(url, {
+                method: 'POST', // или 'GET', если сервер так ожидает
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ profileId: profileId }) // если нужно отправить данные в теле запроса
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                // Можно добавить обработку успешного ответа от сервера, например, обновление UI
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        } else {
+            alert("Please select a profile.");
+        }
+    }
+</script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">Grow box # 1</h1>
+        {% if params %}
+            <ul class="profile-list">
+                {% for param in params %}
+                    <li class="profile-item">
+                        <input type="checkbox" name="select-profile" value="{{ param.profileid }}" onclick="enforceSingleSelection(event)">
+                        <span class="profile-name">{{ param.nameprofile }}</span>
+                        <a href="/parameters/{{param.profileid}}/edit" class="edit-button">Edit Profile</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <button class="select-button" onclick="submitSelection()">Select</button>
+        {% else %}
+            <p>No profiles found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

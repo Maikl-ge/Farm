@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8"> <!-- Устанавливаем кодировку страницы -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Устанавливаем параметр viewport для корректного отображения на мобильных устройствах -->
+    <title>Контейнеры на странице</title> <!-- Устанавливаем заголовок страницы -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Устанавливаем шрифт для страницы */
+            margin: 0; /* Убираем внешние отступы */
+            padding: 5px; /* Устанавливаем внутренние отступы */
+            background-color: #1e1e1e; /* Фон страницы */
+            display: flex; /* Используем flexbox для выравнивания */
+            flex-direction: column; /* Размещаем элементы в колонку */
+            align-items: center; /* Выравниваем элементы по центру */
+            gap: 10px; /* Равномерные отступы между секциями */
+        }
+        
+        .container {
+            background-color: #252525; /* Фон контейнера */
+            border-radius: 5px; /* Скругляем углы */
+            box-shadow: 0 4px 5px rgba(0, 0, 0, 0.3); /* Добавляем тень */
+            color: white; /* Устанавливаем цвет текста */
+            display: flex; /* Используем flexbox для выравнивания */
+            justify-content: center; /* Выравниваем элементы по горизонтали */
+            align-items: center; /* Выравниваем элементы по вертикали */
+            box-sizing: border-box; /* Включаем padding и border в размеры элемента */
+        }
+
+        .container-title {
+            width: 100%; /* Устанавливаем ширину на 100% */
+            max-width: 1230px; /* Максимальная ширина */
+            height: 50px; /* Высота контейнера */
+            display: flex; /* Используем flexbox для выравнивания */
+            justify-content: flex-start; /* Размещаем элементы по левому краю */
+            align-items: center; /* Выравниваем элементы по вертикали */
+            padding: 0 10px; /* Устанавливаем внутренние отступы */
+            position: relative; /* Устанавливаем относительное позиционирование */
+            margin-left: 0; /* Убираем левый отступ */
+        }            
+
+        .container-large {
+            width: 100%; /* Устанавливаем ширину на 100% */
+            max-width: 1230px; /* Максимальная ширина */
+            height: 300px; /* Высота контейнера */
+            margin-left: 0; /* Убираем левый отступ */
+        }
+
+        .container-square {
+            width: 100%; /* Устанавливаем ширину на 100% */
+            max-width: 220px; /* Максимальная ширина */
+            height: 220px; /* Высота контейнера */
+        }
+
+        .container-slim {
+            width: 100%; /* Устанавливаем ширину на 100% */
+            height: 100%;
+            max-width: 300px; /* Максимальная ширина */
+            max-height: 75px; /* Высота контейнера */
+        }
+
+        .container-control {
+            width: 100%; /* Устанавливаем ширину на 100% */
+            max-width: 300px; /* Максимальная ширина */
+            height: 40px; /* Высота контейнера */
+        }
+        
+		.row {
+		    display: flex;
+		    justify-content: flex-start;
+		    flex-wrap: wrap;
+		    width: 100%;
+		    max-width: 1245px;
+		    gap: 10px;
+		}
+
+       .logo {
+            width: 7,5%; /* Ширина логотипа */
+            height: 27%; /* Высота логотипа */
+            position: absolute; /* Абсолютное позиционирование */
+            left: 2%; /* Смещение слева */
+        }
+        
+        @media (max-width: 768px) {
+            .container-large, .container-square, .container-slim, .container-control {
+                width: 100%; /* Устанавливаем ширину на 100% для мобильных устройств */
+                max-width: 100%; /* Максимальная ширина на 100% */
+            }
+
+            .row {
+                justify-content: center; /* Центрируем элементы для мобильных устройств */
+            }
+        }
+        
+        .title-element {
+            font-family: 'Inter', sans-serif;
+            font-weight: lighter;
+            background-color: transparent; /* Цвет фона */
+            padding: 5px; /* Внутренние отступы */
+            text-align: center; /* Выравнивание текста по центру */
+            position: absolute; /* Устанавливаем абсолютное позиционирование */
+        }
+        
+        #grow-box-number {
+            font-size: 24px;
+            color: #aaa;
+            left: 150px; /* Положение элемента */
+        }
+
+        #current-culture {
+            font-size: 20px;
+            color: #aaa;
+            left: 27%; /* Положение элемента */
+        }
+
+        #current-growing-start {
+            font-size: 16px;
+            color: #aaa;
+            top: 0px;
+            left: 35%; /* Положение элемента */
+        }
+
+        #current-growing-left {
+            font-size: 16px;
+            color: #aaa;
+            top: 20px;
+            left: 35%; /* Положение элемента */
+        }
+
+        #current-date {
+	        font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: #aaa;
+            top: 0px;
+            right: 20px; /* Положение элемента */
+        }
+
+        #current-time {
+	        font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: #aaa;
+            top: 20px;
+            right: 20px; /* Положение элемента */
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container container-title">
+	    <img src="http://207.244.250.144:8080/templates/logo.png" alt="logo" class="logo">
+        <span class="title-element" id="grow-box-number">Grow box #1</span>
+        <span class="title-element" id="current-culture"></span>
+        <span class="title-element" id="current-growing-start"></span>
+        <span class="title-element" id="current-growing-left"></span>
+        <span class="title-element" id="current-date"></span>        
+        <span class="title-element" id="current-time"></span>
+    </div>	
+    <div class="container container-large">
+        <iframe src="iframe_graf_t_h.html" style="border: none; width: 100%; height: 100%;"></iframe>
+    </div>
+    
+    <div class="row">
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_temp" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_circulation" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_rotation" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_pH" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_temp_out" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_inlet" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_light" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-slim">
+            <iframe src="http://207.244.250.144:8080/iframe_line_TDS" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/pump_watering" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/pump_mixing" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+    </div>    
+    <div class="row">
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/pump_watering" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/pump_mixing" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+        <div class="container container-control">
+        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
+        </div>
+    </div> 
+    <script>
+        function updateTime() {
+            const currentCulture = 'Basilic';
+            const currentGrowingStart = '17:32';
+            const currentGrowingLeft = '47:55';
+
+            document.getElementById('current-culture').textContent = currentCulture;
+            document.getElementById('current-growing-start').innerHTML = `start: ${currentGrowingStart} h`;
+            document.getElementById('current-growing-left').innerHTML = `left: ${currentGrowingLeft} h`;
+
+            const now = new Date();
+            const formattedDate = now.toISOString().slice(0, 10);
+            const formattedTime = now.toISOString().slice(11, 19);
+
+            document.getElementById('current-date').textContent = formattedDate;
+            document.getElementById('current-time').textContent = formattedTime;
+        }
+
+        updateTime(); // Обновляем время при загрузке страницы
+        setInterval(updateTime, 1000); // Обновляем время каждую секунду
+    </script>   
+</body>
+</html>

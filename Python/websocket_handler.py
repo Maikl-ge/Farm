@@ -1,8 +1,10 @@
 import asyncio
 import json
 import logging
+from aiohttp import web  
 from typing import Set
 from message_handler import MessageHandler
+from farm_http_handler import FarmHTTPHandler
 from logging_protocol import LoggingWebSocketServerProtocol
 import websockets
 
@@ -11,7 +13,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("websocket_handler.log"),
+        #logging.FileHandler("websocket_handler.log"),
         logging.StreamHandler()
     ]
 )
@@ -19,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class FarmWebSocketHandler:
-    def __init__(self, db_manager, ping_interval=5, ping_timeout=30):
+    def __init__(self, db_manager, ping_interval=6, ping_timeout=10):
         """
         Инициализация WebSocket обработчика
         ping_interval=5 - интервал пинга в секундах
@@ -33,7 +35,16 @@ class FarmWebSocketHandler:
         self.frqs_data = None
         self.logger = logger
         self.message_handler = MessageHandler(db_manager, self)
+        
+    async def get_websocket_state(self, request):
+        """API: Получение состояния WebSocket"""
+        response_data = {
+            "state": self.websocket_state
+        }
 
+        self.logger.info(f"WebSocket state response: {response_data}")
+        return web.json_response(response_data)
+        
     def update_websocket_state(self, new_state: str) -> None:
         """Обновление состояния WebSocket"""
         if self.websocket_state != new_state:
@@ -42,31 +53,38 @@ class FarmWebSocketHandler:
 
     async def check_websocket_state(self) -> None:
         """Проверка состояния WebSocket соединений"""
+        self.logger.info("check_websocket_state started")
+
         while True:
             try:
-                await asyncio.sleep(5)
-                if self.connected_clients:
-                    self.update_websocket_state("connected")
-                else:
-                    self.update_websocket_state("disconnected")
+                await asyncio.sleep(1)
+
+                # Очистим закрытые соединения
+                self.connected_clients = {ws for ws in self.connected_clients if ws.open}
+
+                # Обновим состояние
+                self.update_websocket_state(
+                    "connected" if self.connected_clients else "disconnected"
+                )
+
             except asyncio.CancelledError:
                 self.logger.info("WebSocket state check task cancelled")
                 break
             except Exception as e:
                 self.logger.error(f"Error in check_websocket_state: {e}")
-                await asyncio.sleep(5)
+                await asyncio.sleep(1)
+
 
     async def broadcast_message(self, message: str) -> None:
         """Отправка сообщения всем подключенным клиентам"""
         if not self.connected_clients:
             return
-
+            
         clients = self.connected_clients.copy()
         disconnected_clients = set()
-
         for client in clients:
             try:
-                if len(message) > 1024:  # Ограничение на длину сообщения
+                if len(message) > 2048:  # Ограничение на длину сообщения
                     raise ValueError("Message size exceeds limit")
                 if client.open:
                     await client.send(message)
@@ -95,14 +113,16 @@ class FarmWebSocketHandler:
             if not isinstance(command, str):
                 raise ValueError(f"Expected command to be a str, got {type(command)}")
 
-            if len(command) > 1024:  # Ограничение на длину команды
+            if len(command) > 2048:  # Ограничение на длину команды
                 raise ValueError("Command size exceeds limit")
+                
             await self.broadcast_message(command)
             self.logger.debug(f"Command {command} sent to {len(self.connected_clients)} clients")
             return True
         except Exception as e:
             self.logger.error(f"Error sending command: {e}")
             return False
+
 
     async def send_raw_command(self, command) -> bool:
         """Отправка команды контроллеру без изменений"""
@@ -120,6 +140,8 @@ class FarmWebSocketHandler:
             self.logger.error(f"Error sending raw command: {e}")
             return False
 
+
+
     async def command_to_farm(self, parameter: dict) -> bool:
         """Асинхронная отправка команды на ферму"""
         try:
@@ -127,7 +149,7 @@ class FarmWebSocketHandler:
                 raise ValueError(f"Expected parameter to be a dict, got {type(parameter)}")
             command_str = json.dumps(parameter)
             
-            if len(command_str) > 1024:  # Ограничение на длину команды
+            if len(command_str) > 2048:  # Ограничение на длину команды
                 raise ValueError("Command size exceeds limit")
             await self.broadcast_message(command_str)
             self.logger.info(f"Command sent to farm: {command_str}")
@@ -135,9 +157,16 @@ class FarmWebSocketHandler:
         except Exception as e:
             self.logger.error(f"Error sending command to farm: {e}")
             return False
+            
 
     async def handle_connection(self, websocket: LoggingWebSocketServerProtocol, path: str) -> None:
         """Обработка WebSocket соединения"""
+        
+        self.logger.info(f"[RECONNECT] Replacing any dead clients before adding new one")
+        self.connected_clients = {ws for ws in self.connected_clients if ws.open}
+        self.connected_clients.add(websocket)
+        self.update_websocket_state("connected")
+        
         client_id = id(websocket)
         self.logger.info(f"New client connected: {client_id}")
 
@@ -148,7 +177,7 @@ class FarmWebSocketHandler:
 
             async for message in websocket:
                 try:
-                    if len(message) > 1024:  # Ограничение на длину сообщения
+                    if len(message) > 2048:  # Ограничение на длину сообщения
                         raise ValueError("Message size exceeds limit")
 
                     # Используем MessageHandler для обработки сообщения
@@ -168,45 +197,25 @@ class FarmWebSocketHandler:
         finally:
             if websocket in self.connected_clients:
                 self.connected_clients.remove(websocket)
+                self.logger.info(f"Client {client_id} removed on close")
+
             await websocket.close()
             self.logger.info(f"Client {client_id} connection closed normally")
-            self.reset_state()
+
+            # Обновим статус вручную
+            if not self.connected_clients:
+                self.update_websocket_state("disconnected")
 
     async def get_frqs_data(self):
         """Получение текущих FRQS данных"""
+        # Формируем параметры команды
+        #command_data = {"command": "SRSE", "ask_comm": "ASK"}
+        #await self.send_cmd.FarmHTTPHandler(json.dumps(command_data))
         return self.frqs_data
 
-    def reset_state(self):
-        """Очистка состояния WebSocket обработчика"""
-        self.connected_clients.clear()
-        self.websocket_state = "disconnected"
-        self.frqs_data = None
-        self.logger.info("WebSocket handler state reset")
-        
-
-    async def send_cmd(self, request):
-        """Метод для отправки команд по клику"""
-        try:
-            data = await request.json()  # Получаем JSON из запроса
-            cmd = data.get("command")  # Извлекаем команду
-
-            if not cmd:
-                raise web.HTTPBadRequest(text="Missing 'command' parameter")
-
-            farm_id = "255"
-            command_str = f"{farm_id} {cmd} {cmd}"  # Формируем строку команды
-
-            if self.websocket_handler:
-                result = await self.websocket_handler.send_raw_command(command_str)
-            else:
-                raise web.HTTPInternalServerError(text="WebSocket handler is not initialized")
-
-            print(f"Sent command: {command_str}")
-
-            return aiohttp_jinja2.render_template(
-                'command.html', request, {'command': command_str, 'result': result}
-            )
-
-        except Exception as e:
-            print(f"Error sending command: {e}")
-            raise web.HTTPInternalServerError(text=f"Internal Server Error: {str(e)}")
+#    def reset_state(self):
+#        """Очистка состояния WebSocket обработчика"""
+#        self.connected_clients.clear()
+#        self.websocket_state = "disconnected"
+#        self.frqs_data = None
+#        self.logger.info("WebSocket handler state reset")

@@ -1,33 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            font-size: 12px; /* Размер шрифта */
-            background-color: #f4f4f4;
-            margin: 10;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            background-color: #1e1e1e;
+            margin: 5px;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
         h1 {
             text-align: center;
-            color: #333; /* Зеленый цвет текста */
-            font-size: 16px; /* Размер шрифта */
-            margin-bottom: 10px; /* Отступ снизу */
-            font-weight: bold; /* Жирный шрифт */
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            color: #aaa;
+            font-size: 18px;
+            margin-bottom: 5px;
         }
         form {
-            background: #fff;
+            background: #2e2e2e;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            color: #aaa;
             padding: 10px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 600px; /* Увеличена ширина для двух столбиков */
+            max-width: 600px;
+            width: 90%;
         }
         .form-row {
             display: flex;
@@ -35,144 +45,554 @@
             margin-bottom: 5px;
         }
         .form-column {
-            width: 48%; /* Две колонки занимают по 48% ширины */
+            width: 48%;
         }
         label {
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
         }
         .input-container {
-            margin-bottom: 5px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .input-container label {
+            width: 55%;
+            text-align: left;
         }
         .input-container input {
-            width: 75px; /* Ширина контейнера */
+            width: 30%;
             padding: 5px;
-            font-family: Arial, sans-serif;
-            font-size: 12px; /* Размер шрифта */
-            margin-bottom: 5px;
-            border: 1px solid #ccc;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            color: #aaa;
+            background-color: transparent;
+            border: 0px solid #6d6d6d;
             border-radius: 5px;
             box-sizing: border-box;
         }
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .tab {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+            padding: 5px;
+            background: #3e3e3e;
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 2px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+        .tab.active {
+            background: #aaa;
+            color: #1e1e1e;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
         input[type="submit"] {
             background-color: transparent;
-            color: #333;
-            border: 1px solid #333; /* Задание контура */
+            color: #aaa;
+            border: 1px solid #6d6d6d;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
+            margin-top: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
         }
         input[type="submit"]:hover {
-            background-color: #d3d3d3;
+            background-color: #aaa;
+            color: #1e1e1e;
+        }
+        .error-message {
+            color: #ff5555;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+        /* Стили для контейнера с профилями */
+        .profiles-container {
+            background: #2e2e2e;
+            padding: 5px;
+
+            max-width: 600px;
+            width: 100%;
+            margin-bottom: 10px;
+            justify-content: center;
+            color: #aaa;
+        }
+        .profiles-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .profile-item {
+            width: 38%;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            background: #3e3e3e;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid #aaa; /* Тонкая рамка вокруг элементов */
+        }
+        @media (max-width: 600px) {
+            .form-row { flex-direction: column; }
+            .form-column { width: 100%; }
+            .input-container label { width: 50%; }
+            .input-container input { width: 45%; }
+            .tabs { font-size: 12px; }
+            .tab { padding: 6px; }
+            input[type="submit"] { padding: 12px; }
+            .profiles-row { flex-direction: column; }
+            .profile-item { width: 100%; margin-bottom: 10px; }
         }
     </style>
 </head>
 <body>
-    <form method="post">
-        <h1>Edit Profile</h1>
+    <form id="profileForm" method="post" onsubmit="return handleSubmit(event)">
+	    <input type="hidden" id="profileId" name="profileId">
+    <!-- Контейнер с профилями -->
+        <h1 id="editProfileTitle">edit profile</h1> 
+        <br />
+        <!-- Общие параметры -->
         <div class="form-row">
             <div class="form-column">
                 <div class="input-container">
                     <label for="nameProfile">Name Profile:</label>
                     <input type="text" id="nameProfile" name="nameProfile" value="{{ params.nameprofile }}" required>
                 </div>
-
                 <div class="input-container">
-                    <label for="cycle">Cycle:</label>
+                    <label for="cycle">Cycle (days):</label>
                     <input type="number" id="cycle" name="cycle" value="{{ params.cycle }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="sunrise">Sunrise:</label>
-                    <input type="time" id="sunrise" name="sunrise" value="{{ params.sunrise }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="sunset">Sunset:</label>
-                    <input type="time" id="sunset" name="sunset" value="{{ params.sunset }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="dayTemperatureStart">Day Temperature Start:</label>
-                    <input type="number" step="1.0" id="dayTemperatureStart" name="dayTemperatureStart" value="{{ params.daytemperaturestart }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="dayTemperatureEnd">Day Temperature End:</label>
-                    <input type="number" step="0.1" id="dayTemperatureEnd" name="dayTemperatureEnd" value="{{ params.daytemperatureend }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="nightTemperatureStart">Night Temperature Start:</label>
-                    <input type="number" step="0.1" id="nightTemperatureStart" name="nightTemperatureStart" value="{{ params.nighttemperaturestart }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="nightTemperatureEnd">Night Temperature End:</label>
-                    <input type="number" step="0.1" id="nightTemperatureEnd" name="nightTemperatureEnd" value="{{ params.nighttemperatureend }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="dayHumidityStart">Day Humidity Start:</label>
-                    <input type="number" step="0.1" id="dayHumidityStart" name="dayHumidityStart" value="{{ params.dayhumiditystart }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="dayHumidityEnd">Day Humidity End:</label>
-                    <input type="number" step="0.1" id="dayHumidityEnd" name="dayHumidityEnd" value="{{ params.dayhumidityend }}" required>
                 </div>
             </div>
             <div class="form-column">
                 <div class="input-container">
-                    <label for="nightHumidityStart">Night Humidity Start:</label>
-                    <input type="number" step="0.1" id="nightHumidityStart" name="nightHumidityStart" value="{{ params.nighthumiditystart }}" required>
+                    <label for="sunrise">Sunrise:</label>
+                    <input type="time" id="sunrise" name="sunrise" value="{{ params.sunrise }}" required>
                 </div>
-
                 <div class="input-container">
-                    <label for="nightHumidityEnd">Night Humidity End:</label>
-                    <input type="number" step="0.1" id="nightHumidityEnd" name="nightHumidityEnd" value="{{ params.nighthumidityend }}" required>
+                    <label for="sunset">Sunset:</label>
+                    <input type="time" id="sunset" name="sunset" value="{{ params.sunset }}" required>
                 </div>
+            </div>
+        </div>
+        <!-- Вкладки -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab(1)">1&nbsp;&nbsp;&nbsp;Soak</div>
+            <div class="tab" onclick="showTab(2)">2&nbsp;&nbsp;&nbsp;Germ</div>
+            <div class="tab" onclick="showTab(3)">3&nbsp;&nbsp;&nbsp;Act</div>
+            <div class="tab" onclick="showTab(4)">4&nbsp;&nbsp;&nbsp;Early</div>
+            <div class="tab" onclick="showTab(5)">5&nbsp;&nbsp;&nbsp;Grow</div>
+            <div class="tab" onclick="showTab(6)">6&nbsp;&nbsp;&nbsp;Finish</div>
+        </div>
 
-                <div class="input-container">
-                    <label for="waterTemperature">Water Temperature:</label>
-                    <input type="number" step="0.1" id="waterTemperature" name="waterTemperature" value="{{ params.watertemperature }}" required>
+        <!-- Вкладка 1 -->
+        <div id="tab1" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase1_duration">Duration (h):</label>
+                        <input type="number" id="phase1_duration" name="phase1_duration" value="{{ params.phase1_duration }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_temp">Temperature (°C):</label>
+                        <input type="number" step="0.1" id="phase1_temp" name="phase1_temp" value="{{ params.phase1_temp }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_hum">Humidity (%):</label>
+                        <input type="number" step="0.1" id="phase1_hum" name="phase1_hum" value="{{ params.phase1_hum }}" required>
+                    </div>                    
+                    <div class="input-container">
+                        <label for="phase1_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase1_water_temp" name="phase1_water_temp" value="{{ params.phase1_water_temp }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase1_light" name="phase1_light" value="{{ params.phase1_light }}" required>
+                    </div>
                 </div>
-
-                <div class="input-container">
-                    <label for="dayWateringInterval">Day Watering Interval (HH:MM):</label>
-                    <input type="time" id="dayWateringInterval" name="dayWateringInterval" value="{{ params.daywateringinterval }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="nightWateringInterval">Night Watering Interval (HH:MM):</label>
-                    <input type="time" id="nightWateringInterval" name="nightWateringInterval" value="{{ params.nightwateringinterval }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="dayCirculation">Day Circulation:</label>
-                    <input type="number" id="dayCirculation" name="dayCirculation" value="{{ params.daycirculation }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="nightCirculation">Night Circulation:</label>
-                    <input type="number" id="nightCirculation" name="nightCirculation" value="{{ params.nightcirculation }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="dayVentilation">Day Ventilation:</label>
-                    <input type="number" id="dayVentilation" name="dayVentilation" value="{{ params.dayventilation }}" required>
-                </div>
-
-                <div class="input-container">
-                    <label for="nightVentilation">Night Ventilation:</label>
-                    <input type="number" id="nightVentilation" name="nightVentilation" value="{{ params.nightventilation }}" required>
+                
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase1_circ">Circulation (mm):</label>
+                        <input type="number" id="phase1_circ" name="phase1_circ" value="{{ params.phase1_circ }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_vent">Ventilation (mm):</label>
+                        <input type="number" id="phase1_vent" name="phase1_vent" value="{{ params.phase1_vent }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_watering">Watering (mm):</label>
+                        <input type="number" step="0.1" id="phase1_watering" name="phase1_watering" value="{{ params.phase1_watering }}" required>
+                    </div>                                        
+                    <div class="input-container">
+                        <label for="phase1_draining">Draining (mm):</label>
+                        <input type="number" step="0.1" id="phase1_draining" name="phase1_draining" value="{{ params.phase1_draining }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase1_rot">Rotation (prm):</label>
+                        <input type="number" id="phase1_rot" name="phase1_rot" value="{{ params.phase1_rot }}" required>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <input type="submit" value="Save">
-    </form>
+        <!-- Вкладка 2 -->
+        <div id="tab2" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase2_duration">Duration (h):</label>
+                        <input type="number" id="phase2_duration" name="phase2_duration" value="{{ params.phase2_duration }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_temp">Temperature (°C):</label>
+                        <input type="number" step="0.1" id="phase2_temp" name="phase2_temp" value="{{ params.phase2_temp }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_hum">Humidity (%):</label>
+                        <input type="number" step="0.1" id="phase2_hum" name="phase2_hum" value="{{ params.phase2_hum }}" required>
+                    </div>                    
+                    <div class="input-container">
+                        <label for="phase2_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase2_water_temp" name="phase2_water_temp" value="{{ params.phase2_water_temp }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase2_light" name="phase2_light" value="{{ params.phase2_light }}" required>
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase2_circ">Circulation (mm):</label>
+                        <input type="number" id="phase2_circ" name="phase2_circ" value="{{ params.phase2_circ }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_vent">Ventilation (mm):</label>
+                        <input type="number" id="phase2_vent" name="phase2_vent" value="{{ params.phase2_vent }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_watering">Watering (mm):</label>
+                        <input type="number" step="0.1" id="phase2_watering" name="phase2_watering" value="{{ params.phase2_watering }}" required>
+                    </div>                                        
+                    <div class="input-container">
+                        <label for="phase2_draining">Draining (mm):</label>
+                        <input type="number" step="0.1" id="phase2_draining" name="phase2_draining" value="{{ params.phase2_draining }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase2_rot">Rotation (prm):</label>
+                        <input type="number" id="phase2_rot" name="phase2_rot" value="{{ params.phase2_rot }}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 3 -->
+        <div id="tab3" class="tab-content">
+            <div class="form-row">
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase3_duration">Duration (h):</label>
+                        <input type="number" id="phase3_duration" name="phase3_duration" value="{{ params.phase3_duration }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_temp">Temperature (°C):</label>
+                        <input type="number" step="0.1" id="phase3_temp" name="phase3_temp" value="{{ params.phase3_temp }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_hum">Humidity (%):</label>
+                        <input type="number" step="0.1" id="phase3_hum" name="phase3_hum" value="{{ params.phase3_hum }}" required>
+                    </div>                    
+                    <div class="input-container">
+                        <label for="phase3_water_temp">Water Temp (°C):</label>
+                        <input type="number" step="0.1" id="phase3_water_temp" name="phase3_water_temp" value="{{ params.phase3_water_temp }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_light">Light (µmol/m²/s):</label>
+                        <input type="number" id="phase3_light" name="phase3_light" value="{{ params.phase3_light }}" required>
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <div class="input-container">
+                        <label for="phase3_circ">Circulation (mm):</label>
+                        <input type="number" id="phase3_circ" name="phase3_circ" value="{{ params.phase3_circ }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_vent">Ventilation (mm):</label>
+                        <input type="number" id="phase3_vent" name="phase3_vent" value="{{ params.phase3_vent }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_watering">Watering (mm):</label>
+                        <input type="number" step="0.1" id="phase3_watering" name="phase3_watering" value="{{ params.phase3_watering }}" required>
+                    </div>                                        
+                    <div class="input-container">
+                        <label for="phase3_draining">Draining (mm):</label>
+                        <input type="number" step="0.1" id="phase3_draining" name="phase3_draining" value="{{ params.phase3_draining }}" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="phase3_rot">Rotation (prm):</label>
+                        <input type="number" id="phase3_rot" name="phase3_rot" value="{{ params.phase3_rot }}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 4 -->
+<!-- Вкладка 4 -->
+<div id="tab4" class="tab-content">
+    <div class="form-row">
+        <div class="form-column">
+            <div class="input-container">
+                <label for="phase4_duration">Duration (h):</label>
+                <input type="number" id="phase4_duration" name="phase4_duration" value="{{ params.phase4_duration }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase4_temp">Temperature (°C):</label>
+                <input type="number" step="0.1" id="phase4_temp" name="phase4_temp" value="{{ params.phase4_temp }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase4_hum">Humidity (%):</label>
+                <input type="number" step="0.1" id="phase4_hum" name="phase4_hum" value="{{ params.phase4_hum }}" required>
+            </div>                    
+            <div class="input-container">
+                <label for="phase4_water_temp">Water Temp (°C):</label>
+                <input type="number" step="0.1" id="phase4_water_temp" name="phase4_water_temp" value="{{ params.phase4_water_temp }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase4_light">Light (µmol/m²/s):</label>
+                <input type="number" id="phase4_light" name="phase4_light" value="{{ params.phase4_light }}" required>
+            </div>
+        </div>
+        
+        <div class="form-column">
+            <div class="input-container">
+                <label for="phase4_circ">Circulation (mm):</label>
+                <input type="number" id="phase4_circ" name="phase4_circ" value="{{ params.phase4_circ }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase4_vent">Ventilation (mm):</label>
+                <input type="number" id="phase4_vent" name="phase4_vent" value="{{ params.phase4_vent }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase4_watering">Watering (mm):</label>
+                <input type="number" step="0.1" id="phase4_watering" name="phase4_watering" value="{{ params.phase4_watering }}" required>
+            </div>                                        
+            <div class="input-container">
+                <label for="phase4_draining">Draining (mm):</label>
+                <input type="number" step="0.1" id="phase4_draining" name="phase4_draining" value="{{ params.phase4_draining }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase4_rot">Rotation (prm):</label>
+                <input type="number" id="phase4_rot" name="phase4_rot" value="{{ params.phase4_rot }}" required>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Вкладка 5 -->
+<div id="tab5" class="tab-content">
+    <div class="form-row">
+        <div class="form-column">
+            <div class="input-container">
+                <label for="phase5_duration">Duration (h):</label>
+                <input type="number" id="phase5_duration" name="phase5_duration" value="{{ params.phase5_duration }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase5_temp">Temperature (°C):</label>
+                <input type="number" step="0.1" id="phase5_temp" name="phase5_temp" value="{{ params.phase5_temp }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase5_hum">Humidity (%):</label>
+                <input type="number" step="0.1" id="phase5_hum" name="phase5_hum" value="{{ params.phase5_hum }}" required>
+            </div>                    
+            <div class="input-container">
+                <label for="phase5_water_temp">Water Temp (°C):</label>
+                <input type="number" step="0.1" id="phase5_water_temp" name="phase5_water_temp" value="{{ params.phase5_water_temp }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase5_light">Light (µmol/m²/s):</label>
+                <input type="number" id="phase5_light" name="phase5_light" value="{{ params.phase5_light }}" required>
+            </div>
+        </div>
+        
+        <div class="form-column">
+            <div class="input-container">
+                <label for="phase5_circ">Circulation (mm):</label>
+                <input type="number" id="phase5_circ" name="phase5_circ" value="{{ params.phase5_circ }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase5_vent">Ventilation (mm):</label>
+                <input type="number" id="phase5_vent" name="phase5_vent" value="{{ params.phase5_vent }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase5_watering">Watering (mm):</label>
+                <input type="number" step="0.1" id="phase5_watering" name="phase5_watering" value="{{ params.phase5_watering }}" required>
+            </div>                                        
+            <div class="input-container">
+                <label for="phase5_draining">Draining (mm):</label>
+                <input type="number" step="0.1" id="phase5_draining" name="phase5_draining" value="{{ params.phase5_draining }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase5_rot">Rotation (prm):</label>
+                <input type="number" id="phase5_rot" name="phase5_rot" value="{{ params.phase5_rot }}" required>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Вкладка 6 -->
+<div id="tab6" class="tab-content">
+    <div class="form-row">
+        <div class="form-column">
+            <div class="input-container">
+                <label for="phase6_duration">Duration (h):</label>
+                <input type="number" id="phase6_duration" name="phase6_duration" value="{{ params.phase6_duration }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase6_temp">Temperature (°C):</label>
+                <input type="number" step="0.1" id="phase6_temp" name="phase6_temp" value="{{ params.phase6_temp }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase6_hum">Humidity (%):</label>
+                <input type="number" step="0.1" id="phase6_hum" name="phase6_hum" value="{{ params.phase6_hum }}" required>
+            </div>                    
+            <div class="input-container">
+                <label for="phase6_water_temp">Water Temp (°C):</label>
+                <input type="number" step="0.1" id="phase6_water_temp" name="phase6_water_temp" value="{{ params.phase6_water_temp }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase6_light">Light (µmol/m²/s):</label>
+                <input type="number" id="phase6_light" name="phase6_light" value="{{ params.phase6_light }}" required>
+            </div>
+        </div>
+        
+        <div class="form-column">
+            <div class="input-container">
+                <label for="phase6_circ">Circulation (mm):</label>
+                <input type="number" id="phase6_circ" name="phase6_circ" value="{{ params.phase6_circ }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase6_vent">Ventilation (mm):</label>
+                <input type="number" id="phase6_vent" name="phase6_vent" value="{{ params.phase6_vent }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase6_watering">Watering (mm):</label>
+                <input type="number" step="0.1" id="phase6_watering" name="phase6_watering" value="{{ params.phase6_watering }}" required>
+            </div>                                        
+            <div class="input-container">
+                <label for="phase6_draining">Draining (mm):</label>
+                <input type="number" step="0.1" id="phase6_draining" name="phase6_draining" value="{{ params.phase6_draining }}" required>
+            </div>
+            <div class="input-container">
+                <label for="phase6_rot">Rotation (prm):</label>
+                <input type="number" id="phase6_rot" name="phase6_rot" value="{{ params.phase6_rot }}" required>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="submit" value="Save">
+<div id="errorMessage" class="error-message"></div>
+</form>
+
+<script>
+window.onload = function() {
+    console.log('Скрипт успешно загружен');
+    document.querySelectorAll('.tab').forEach((tab, index) => {
+        tab.addEventListener('click', () => showTab(index + 1));
+    });
+    showTab(1);
+};
+
+function selectProfile(id) {
+    console.log(`Выбран профиль с ID: ${id}`);
+    document.getElementById('profileId').value = id;
+
+    fetch(`http://207.244.250.144:8080/read_profile_db?id=${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке профиля');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Данные профиля:', data);
+        populateForm(data);
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        document.getElementById('errorMessage').textContent = 'Ошибка при загрузке профиля';
+        document.getElementById('errorMessage').style.display = 'block';
+    });
+}
+
+function populateForm(data) {
+    document.getElementById('profileId').value = data.id || '';
+    document.getElementById('nameProfile').value = data.nameProfile || '';
+    document.getElementById('cycle').value = data.cycle || '';
+    document.getElementById('sunrise').value = data.sunrise || '';
+    document.getElementById('sunset').value = data.sunset || '';
+
+    if (data.phases && Array.isArray(data.phases)) {
+        data.phases.forEach((phase, index) => {
+            const tabNumber = index + 1;
+            if (tabNumber <= 6) {
+				document.getElementById(phase${tabNumber}_duration).value = phase.duration || ' ';
+                document.getElementById(`phase${tabNumber}_temp`).value = phase.temp || '';
+                document.getElementById(`phase${tabNumber}_hum`).value = phase.hum || '';
+                document.getElementById(`phase${tabNumber}_water_temp`).value = phase.waterTemp || '';
+                document.getElementById(`phase${tabNumber}_watering`).value = phase.watering || '';
+                document.getElementById(`phase${tabNumber}_vent`).value = phase.vent || '';
+                document.getElementById(`phase${tabNumber}_circ`).value = phase.circ || '';
+                document.getElementById(`phase${tabNumber}_rot`).value = phase.rot || '';
+                document.getElementById(`phase${tabNumber}_draining`).value = phase.draining || '';
+                document.getElementById(`phase${tabNumber}_light`).value = phase.light || '';
+            }
+        });
+    }
+}
+
+function showTab(tabNumber) {
+    console.log(`Переключение на вкладку ${tabNumber}`);
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.querySelector(`.tab:nth-child(${tabNumber})`).classList.add('active');
+    document.getElementById(`tab${tabNumber}`).classList.add('active');
+}
+
+</script>
 </body>
 </html>

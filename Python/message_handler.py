@@ -14,9 +14,7 @@ class MessageHandler:
         self.logger.info(f"Received message from client {client_id}: {message}")
 
         parts = message.split(' ', 3)
-        if len(parts) < 4:
-            return
-
+        
         id_farm = parts[0]
         type_msg = parts[1]
         ack_message = f"{id_farm} {type_msg} ACK"
@@ -24,8 +22,12 @@ class MessageHandler:
         # Отправляем ACK
         if websocket.open:
             await websocket.send(ack_message)
+            self.logger.info(f"Отправляем ACK ================ {ack_message}")
         else:
-            self.logger.warning(f"Cannot send ACK, connection closed for client {client_id}")
+            self.logger.warning(f"Cannot send ACK, connection closed for client {client_id}")        
+        
+        if len(parts) < 4:
+            return
 
         # Логирование и обработка данных
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -37,6 +39,11 @@ class MessageHandler:
         if type_msg == "FRQS":
             self.websocket_handler.frqs_data = data
             self.logger.info(f"FRQS data updated: {data}")
+            if success:
+                self.logger.info(f"{timestamp} - Параметры от клиента {id_farm} получены и сохранены в буфер")
+            else:
+                self.logger.error(f"{timestamp} - Ошибка при сохранении ПАРАМЕТРОВ")    
+                       
         elif type_msg == "FLIN":
             success = await self.db_manager.save_sensor_data(data, timestamp)
             if success:

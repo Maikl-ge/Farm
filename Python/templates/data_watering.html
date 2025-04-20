@@ -1,243 +1,260 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <meta charset="UTF-8"> <!-- Устанавливаем кодировку страницы -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Устанавливаем параметр viewport для корректного отображения на мобильных устройствах -->
-    <title>Контейнеры на странице</title> <!-- Устанавливаем заголовок страницы -->
+	    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            font-family: 'Inter', sans-serif; /* Устанавливаем шрифт для страницы */
-            margin: 0; /* Убираем внешние отступы */
-            padding: 5px; /* Устанавливаем внутренние отступы */
-            background-color: #1e1e1e; /* Фон страницы */
-            display: flex; /* Используем flexbox для выравнивания */
-            flex-direction: column; /* Размещаем элементы в колонку */
-            align-items: center; /* Выравниваем элементы по центру */
-            gap: 10px; /* Равномерные отступы между секциями */
-        }
-        
-        .container {
-            background-color: #252525; /* Фон контейнера */
-            border-radius: 5px; /* Скругляем углы */
-            box-shadow: 0 4px 5px rgba(0, 0, 0, 0.3); /* Добавляем тень */
-            color: white; /* Устанавливаем цвет текста */
-            display: flex; /* Используем flexbox для выравнивания */
-            justify-content: center; /* Выравниваем элементы по горизонтали */
-            align-items: center; /* Выравниваем элементы по вертикали */
-            box-sizing: border-box; /* Включаем padding и border в размеры элемента */
-        }
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'Inter', sans-serif;
+      background: #1c1c1c;
+      color: #fff;
+    }
+    .control-panel {
+      width: 1190px;
+      height: 40px;
+      font-weight: 200;
+      font-family: 'Inter', sans-serif;
+      background: #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .control-panel div {
+      width: 25%;
+      text-align: center;
+      font-size: clamp(12px, 1.5vw, 16px);
+      
+      transition: all 0.3s;
+    }
+    .container {
+      width: 1200px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      padding: 10px;
+      transition: all 0.3s;
+    }
+    .block {
+      height: 50px;
+      background: #2e2e2e;
+      display: flex;
+      align-items: center;
+      font-weight: 200;
+      font-family: 'Inter', sans-serif;
+      position: relative;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .line, .line-sens {
+      position: absolute;
+      height: 17%;
+      border-radius: 10px;
+      top: 60%;
+      left: 5%;
+    }
+    .line {
+      width: 90%;
+      background: #555;
+    }
+    .line-sens {
+      background: #00ff99;
+      width: 0;
+      transition: width 0.3s;
+    }
+    .text {
+      position: absolute;
+      font-size: 14px;
+      color: #aaa;
+    }
+    .label { left: 6%; top: 16%; }
+    .set { left: 45%; top: 16%; }
+    .sens { left: 80%; top: 16%; }
 
-        .container-title {
-            width: 100%; /* Устанавливаем ширину на 100% */
-            max-width: 1230px; /* Максимальная ширина */
-            height: 50px; /* Высота контейнера */
-            display: flex; /* Используем flexbox для выравнивания */
-            justify-content: flex-start; /* Размещаем элементы по левому краю */
-            align-items: center; /* Выравниваем элементы по вертикали */
-            padding: 0 10px; /* Устанавливаем внутренние отступы */
-            position: relative; /* Устанавливаем относительное позиционирование */
-            margin-left: 0; /* Убираем левый отступ */
-        }            
-
-        .container-large {
-            width: 100%; /* Устанавливаем ширину на 100% */
-            max-width: 1230px; /* Максимальная ширина */
-            height: 300px; /* Высота контейнера */
-            margin-left: 0; /* Убираем левый отступ */
-        }
-
-        .container-square {
-            width: 100%; /* Устанавливаем ширину на 100% */
-            max-width: 220px; /* Максимальная ширина */
-            height: 220px; /* Высота контейнера */
-        }
-
-        .container-slim {
-            width: 100%; /* Устанавливаем ширину на 100% */
-            height: 100%;
-            max-width: 300px; /* Максимальная ширина */
-            max-height: 75px; /* Высота контейнера */
-        }
-
-        .container-control {
-            width: 100%; /* Устанавливаем ширину на 100% */
-            max-width: 300px; /* Максимальная ширина */
-            height: 40px; /* Высота контейнера */
-        }
-        
-		.row {
-		    display: flex;
-		    justify-content: flex-start;
-		    flex-wrap: wrap;
-		    width: 100%;
-		    max-width: 1245px;
-		    gap: 10px;
-		}
-
-       .logo {
-            width: 7,5%; /* Ширина логотипа */
-            height: 27%; /* Высота логотипа */
-            position: absolute; /* Абсолютное позиционирование */
-            left: 2%; /* Смещение слева */
-        }
-        
-        @media (max-width: 768px) {
-            .container-large, .container-square, .container-slim, .container-control {
-                width: 100%; /* Устанавливаем ширину на 100% для мобильных устройств */
-                max-width: 100%; /* Максимальная ширина на 100% */
-            }
-
-            .row {
-                justify-content: center; /* Центрируем элементы для мобильных устройств */
-            }
-        }
-        
-        .title-element {
-            font-family: 'Inter', sans-serif;
-            font-weight: lighter;
-            background-color: transparent; /* Цвет фона */
-            padding: 5px; /* Внутренние отступы */
-            text-align: center; /* Выравнивание текста по центру */
-            position: absolute; /* Устанавливаем абсолютное позиционирование */
-        }
-        
-        #grow-box-number {
-            font-size: 24px;
-            color: #aaa;
-            left: 150px; /* Положение элемента */
-        }
-
-        #current-culture {
-            font-size: 20px;
-            color: #aaa;
-            left: 27%; /* Положение элемента */
-        }
-
-        #current-growing-start {
-            font-size: 16px;
-            color: #aaa;
-            top: 0px;
-            left: 35%; /* Положение элемента */
-        }
-
-        #current-growing-left {
-            font-size: 16px;
-            color: #aaa;
-            top: 20px;
-            left: 35%; /* Положение элемента */
-        }
-
-        #current-date {
-	        font-family: 'Inter', sans-serif;
-            font-size: 16px;
-            color: #aaa;
-            top: 0px;
-            right: 20px; /* Положение элемента */
-        }
-
-        #current-time {
-	        font-family: 'Inter', sans-serif;
-            font-size: 16px;
-            color: #aaa;
-            top: 20px;
-            right: 20px; /* Положение элемента */
-        }
-        
-    </style>
+    .error-message {
+      color: #ff5555;
+      font-size: 14px;
+      margin: 10px 0;
+      display: none;
+    }
+	@media (max-width: 1024px) {
+      .container {
+	  grid-template-columns: repeat(3, 1fr); width: 95%; }
+      .control-panel { width: 95%; flex-direction: column; height: auto; padding: 5px; }
+      .control-panel div { width: 95%; margin-bottom: 10px; }
+    }
+	@media (max-width: 768px) {
+	  .container {
+	  grid-template-columns: repeat(2, 1fr);
+	  }
+	}
+	@media (max-width: 480px) {
+      .container { grid-template-columns: repeat(2, 1fr); }
+      .control-panel { padding: 5px; }
+      .control-panel div { margin-bottom: 5px; font-size: 12px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container container-title">
-	    <img src="http://207.244.250.144:8080/templates/logo.png" alt="logo" class="logo">
-        <span class="title-element" id="grow-box-number">Grow box #1</span>
-        <span class="title-element" id="current-culture"></span>
-        <span class="title-element" id="current-growing-start"></span>
-        <span class="title-element" id="current-growing-left"></span>
-        <span class="title-element" id="current-date"></span>        
-        <span class="title-element" id="current-time"></span>
-    </div>	
-    <div class="container container-large">
-        <iframe src="iframe_graf_t_h.html" style="border: none; width: 100%; height: 100%;"></iframe>
+  <div class="control-panel">
+<div id="phase"><span>Текущая фаза: </span><span id="phaseValue">wait</span></div>
+  <div id="statusBox"><span>Текущий режим: </span><span id="statusBoxValue">wait</span></div>
+  <div id="culture"><span>Культура: </span><span id="cultureValue">wait</span></div>
+  <div id="elapsed"><span>Прошло времени: </span><span id="elapsedValue">wait</span><span> мин</span></div>
+  </div>
+  <div class="error-message" id="errorMessage">Ошибка загрузки данных</div>
+  <div class="container">
+    <div class="block" id="block0">
+      <div class="text label" id="label0">Param</div>
+      <div class="text set" id="set0">0.0°C</div>
+      <div class="text sens" id="sens0">0.0°C</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens0"></div>
     </div>
-    
-    <div class="row">
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_temp" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_circulation" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_rotation" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_pH" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
+    <div class="block" id="block1">
+      <div class="text label" id="label1">Param</div>
+      <div class="text set" id="set1">0.0°C</div>
+      <div class="text sens" id="sens1">0.0°C</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens1"></div>
     </div>
-
-    <div class="row">
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_temp_out" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_inlet" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_light" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-slim">
-            <iframe src="http://207.244.250.144:8080/iframe_line_TDS" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
+    <div class="block" id="block2">
+      <div class="text label" id="label2">Param</div>
+      <div class="text set" id="set2">0.0°C</div>
+      <div class="text sens" id="sens2">0.0°C</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens2"></div>
     </div>
-    
-    <div class="row">
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/pump_watering" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/pump_mixing" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-    </div>    
-    <div class="row">
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/pump_watering" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/pump_mixing" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
-        <div class="container container-control">
-        	<iframe src="http://207.244.250.144:8080/us_humidifier" style="border: none; width: 100%; height: 100%;"></iframe>
-        </div>
+    <div class="block" id="block3">
+      <div class="text label" id="label3">Param</div>
+      <div class="text set" id="set3">0.0 Lx</div>
+      <div class="text sens" id="sens3">0.0 Lx</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens3"></div>
+    </div>
+    <div class="block" id="block4">
+      <div class="text label" id="label4">Param</div>
+      <div class="text set" id="set4">0.0°C</div>
+      <div class="text sens" id="sens4">0.0°C</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens4"></div>
+    </div>
+    <div class="block" id="block5">
+      <div class="text label" id="label5">Param</div>
+      <div class="text set" id="set5">0.0°C</div>
+      <div class="text sens" id="sens5">0.0°C</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens5"></div>
+    </div>
+    <div class="block" id="block6">
+      <div class="text label" id="label6">Param</div>
+      <div class="text set" id="set6">0.0°C</div>
+      <div class="text sens" id="sens6">0.0°C</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens6"></div>
+    </div>
+    <div class="block" id="block7">
+      <div class="text label" id="label7">Param</div>
+      <div class="text set" id="set7">0.0°C</div>
+      <div class="text sens" id="sens7">0.0°C</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens7"></div>
+    </div>
+    <div class="block" id="block8">
+      <div class="text label" id="label8">Param</div>
+      <div class="text set" id="set8">0.0%</div>
+      <div class="text sens" id="sens8">0.0%</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens8"></div>
     </div> 
-    <script>
-        function updateTime() {
-            const currentCulture = 'Basilic';
-            const currentGrowingStart = '17:32';
-            const currentGrowingLeft = '47:55';
+    <div class="block" id="block9">
+      <div class="text label" id="label9">Param</div>
+      <div class="text set" id="set9">0.0%</div>
+      <div class="text sens" id="sens9">0.0%</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens9"></div>
+    </div>
+    <div class="block" id="block10">
+      <div class="text label" id="label10">Param</div>
+      <div class="text set" id="set10">0.0%</div>
+      <div class="text sens" id="sens10">0.0%</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens10"></div>
+    </div>
+    <div class="block" id="block11">
+      <div class="text label" id="label11">Param</div>
+      <div class="text set" id="set11">0.0%</div>
+      <div class="text sens" id="sens11">0.0%</div>
+      <div class="line"></div>
+      <div class="line-sens" id="lineSens11"></div>
+    </div>
+                      
+  </div>
+  
+  <script>
+    function updateDisplay(index, label, set, current, color, units) {
+      const labelElement = document.getElementById(`label${index}`);
+      const setElement = document.getElementById(`set${index}`);
+      const sensElement = document.getElementById(`sens${index}`);
+      const lineSensElement = document.getElementById(`lineSens${index}`);
+      if (!labelElement || !setElement || !sensElement || !lineSensElement) return;
+      labelElement.textContent = label;
+      setElement.textContent = set + units;
+      sensElement.textContent = current + units;
+      sensElement.style.color = color;
+      lineSensElement.style.backgroundColor = color;
+      const lineMaxPercent = 90, baseRatio = 1;
+      let ratio = set === 0 ? 0 : current / set;
+      let visualRatio = Math.min(ratio * baseRatio, 1);
+      lineSensElement.style.width = visualRatio * lineMaxPercent + "%";
 
-            document.getElementById('current-culture').textContent = currentCulture;
-            document.getElementById('current-growing-start').innerHTML = `start: ${currentGrowingStart} h`;
-            document.getElementById('current-growing-left').innerHTML = `left: ${currentGrowingLeft} h`;
-
-            const now = new Date();
-            const formattedDate = now.toISOString().slice(0, 10);
-            const formattedTime = now.toISOString().slice(11, 19);
-
-            document.getElementById('current-date').textContent = formattedDate;
-            document.getElementById('current-time').textContent = formattedTime;
-        }
-
-        updateTime(); // Обновляем время при загрузке страницы
-        setInterval(updateTime, 1000); // Обновляем время каждую секунду
-    </script>   
+      document.getElementById(`block${index}`).style.border = current >= set * 1.025 ? "1px solid #FF0000" : "none";
+    }
+    async function fetchAndUpdate() {
+      const errorMessage = document.getElementById("errorMessage");
+      try {
+        const sensorRes = await fetch("http://207.244.250.144:8080/latest_sensor");
+        const statusRes = await fetch("http://207.244.250.144:8080/latest_status");
+        
+        if (!sensorRes.ok || !statusRes.ok) throw new Error("Ошибка сервера");
+        const sensorData = (await sensorRes.json()).data || {};
+        const statusData = (await statusRes.json()).data || {};
+        
+		// Обновление control-panel (только значения в <span>)
+		document.getElementById("phaseValue").textContent = statusData.PHASE || "wait";
+		document.getElementById("statusBoxValue").textContent = statusData.STATUS_BOX || "wait";
+		document.getElementById("cultureValue").textContent = statusData.CULTURE || "wait";
+		document.getElementById("elapsedValue").textContent = statusData.ELAPSED || "wait";
+        
+        updateDisplay(0, "Watering", 23.5, sensorData.WTW || 0, "#00ff99", "°C");
+        updateDisplay(1, "Temperature", 25.0, sensorData.T1 || 0, "#00ff99", "°C");
+        updateDisplay(2, "Humidity", 75, sensorData.H1 || 0, "#00ccff", " %");
+        updateDisplay(3, "Light", 102, (statusData.LIGHT / 10) || 0, "#ccff00", " lx");
+        updateDisplay(4, "Ventilation", 100, (statusData.FAN_CIRC / 10) || 0, "#009dda", " %");
+        updateDisplay(5, "Circulation", 100, statusData.FAN_SHELF / 10 || 0, "#009dda", " %");
+        updateDisplay(6, "Inlet", 100, statusData.FAN_INLET / 10 || 0, "#009dda", " %");
+        updateDisplay(7, "Rotation", 8, Math.round((60 * 1_000_000) / (statusData.STEP * 3200)) || 0, "#66ff66", "rpm");
+        updateDisplay(8, "Hiter water", 100, statusData.HITER_WATER / 10 || 0, "#cf0030", " %");
+        updateDisplay(9, "Hiter air", 100, (statusData.HITER_AIR - 23) / 10 || 0, "#cf0030", " %"); 
+        updateDisplay(10, "Humidifier", 100, statusData.STEAM_IN * 100 || 0, "#00ccff", " %");  
+        updateDisplay(11, "Water Osmo", 22.0, sensorData.WTO || 0, "#00ff99", "°C");                
+        errorMessage.style.display = "none";
+      } catch (err) {
+        errorMessage.textContent = "Ошибка загрузки данных: " + err.message;
+        errorMessage.style.display = "block";
+      }
+    }
+    fetchAndUpdate();
+    setInterval(fetchAndUpdate, 10000);
+  </script>
 </body>
 </html>

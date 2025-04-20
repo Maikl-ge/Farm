@@ -463,4 +463,5 @@ class FarmHTTPHandler:
                 return web.Response(text=profile_json, content_type="application/json")
             
         except Exception as e:
-            return web.Response(text=str(e), status=500)
+            return web.Response(text=str(e), status=500)      
+            

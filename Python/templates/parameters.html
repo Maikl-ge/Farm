@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Parameters</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+        .container {
+            width: 300px;
+            padding: 20px;
+            box-sizing: border-box;
+            border: 2px solid #333; /* Для наглядности */
+            background-color: #f9f9f9;
+        }
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+        .profile-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .profile-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .profile-name {
+            width: 80px;
+            padding: 5px;
+        }
+        .select-button, .edit-button {
+            padding: 5px 10px;
+            font-size: 16px;
+            background-color: transparent;
+            color: #333;
+            border: 1px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+        .select-button:hover, .edit-button:hover {
+            background-color: #d3d3d3;
+        }
+        @media (max-width: 768px) {
+            .container-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .container {
+                width: 100%;
+                max-width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <!-- Контейнер 1 -->
+        <div class="container">
+            <h1 class="page-title">Параметры 1</h1>
+            <ul class="profile-list">
+                <li class="profile-item">
+                    <a href="#" class="select-button">Выбрать</a>
+                    <span class="profile-name">Профиль A</span>
+                    <a href="#" class="edit-button">Редактировать</a>
+                </li>
+                <li class="profile-item">
+                    <a href="#" class="select-button">Выбрать</a>
+                    <span class="profile-name">Профиль B</span>
+                    <a href="#" class="edit-button">Редактировать</a>
+                </li>
+            </ul>
+        </div>
+        <!-- Контейнер 2 -->
+        <div class="container">
+            <h1 class="page-title">Параметры 2</h1>
+            <ul class="profile-list">
+                <li class="profile-item">
+                    <a href="#" class="select-button">Выбрать</a>
+                    <span class="profile-name">Профиль C</span>
+                    <a href="#" class="edit-button">Редактировать</a>
+                </li>
+                <li class="profile-item">
+                    <a href="#" class="select-button">Выбрать</a>
+                    <span class="profile-name">Профиль D</span>
+                    <a href="#" class="edit-button">Редактировать</a>
+                </li>
+            </ul>
+        </div>
+        <!-- Контейнер 3 -->
+        <div class="container">
+            <h1 class="page-title">Параметры 3</h1>
+            <ul class="profile-list">
+                <li class="profile-item">
+                    <a href="#" class="select-button">Выбрать</a>
+                    <span class="profile-name">Профиль E</span>
+                    <a href="#" class="edit-button">Редактировать</a>
+                </li>
+                <li class="profile-item">
+                    <a href="#" class="select-button">Выбрать</a>
+                    <span class="profile-name">Профиль F</span>
+                    <a href="#" class="edit-button">Редактировать</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

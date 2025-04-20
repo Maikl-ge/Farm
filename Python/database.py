@@ -3,11 +3,40 @@ import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
 
+class DataBuffer:
+    def __init__(self):
+        # Буфер для данных сенсоров
+        self.sensor_data: Dict[str, Any] = {}
+        self.sensor_timestamp: str = ""
+        # Буфер для статусных данных
+        self.status_data: Dict[str, Any] = {}
+        self.status_timestamp: str = ""
+
+    def update_sensor(self, data: Dict[str, Any], timestamp: str):
+        self.sensor_data = data.copy()
+        self.sensor_timestamp = timestamp
+
+    def get_sensor(self) -> Dict[str, Any]:
+        return {
+            "timestamp": self.sensor_timestamp,
+            "data": self.sensor_data
+        }
+
+    def update_status(self, data: Dict[str, Any], timestamp: str):
+        self.status_data = data.copy()
+        self.status_timestamp = timestamp
+
+    def get_status(self) -> Dict[str, Any]:
+        return {
+            "timestamp": self.status_timestamp,
+            "data": self.status_data
+        }
+
 class DatabaseManager:
     def __init__(self):
         """
         Инициализация менеджера баз данных.
-        Настраивает конфигурацию для двух баз данных и логирование.
+        Настраивает конфигурацию для двух баз данных, буфер и логирование.
         """
         # Строки подключения к базам данных
         self.sensor_db_config = {
@@ -21,7 +50,7 @@ class DatabaseManager:
         self.params_db_config = {
             'user': 'CytiFarm',
             'password': 'Farm',
-            'database': 'SystemParams',  # Имя базы данных, содержащей таблицу status_farm
+            'database': 'SystemParams',
             'host': 'localhost',
             'port': 5432        
         }
@@ -29,6 +58,9 @@ class DatabaseManager:
         # Пулы подключений
         self.sensor_pool: Optional[asyncpg.Pool] = None
         self.params_pool: Optional[asyncpg.Pool] = None
+        
+        # Инициализация буфера
+        self.buffer = DataBuffer()
         
         # Настройка логирования
         self.logger = logging.getLogger(__name__)
@@ -63,7 +95,7 @@ class DatabaseManager:
         self.logger.info("Database pools closed")
 
     async def save_sensor_data(self, data: Dict[str, Any], timestamp: str) -> bool:
-        """Сохранение данных сенсоров"""
+        """Сохранение данных сенсоров в БД и обновление буфера"""
         if not self.sensor_pool:
             raise RuntimeError("Sensor database pool not initialized")
             
@@ -72,6 +104,7 @@ class DatabaseManager:
             timestamp_dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
             # Преобразование объекта datetime в строку
             timestamp_str = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S")
+            
             async with self.sensor_pool.acquire() as conn:
                 await conn.execute('''
                     INSERT INTO sensor_data(
@@ -93,6 +126,9 @@ class DatabaseManager:
                     data["H3"], data["T4"], data["H4"], data["T5"], data["H5"], 
                     data["WTO"], data["WTW"], data["ATO"], data["ATI"], data["ph"], 
                     data["tds"], data["pm"])
+                
+                # Обновляем буфер после успешного сохранения в БД
+                self.buffer.update_sensor(data, timestamp)
                 self.logger.info(f"Sensor data saved successfully at {timestamp}")
                 return True
         except Exception as e:
@@ -100,13 +136,14 @@ class DatabaseManager:
             return False
 
     async def save_status_data(self, data: Dict[str, Any], timestamp: str) -> bool:
-        """Сохранение статусных данных"""
+        """Сохранение статусных данных в БД и обновление буфера"""
         if not self.params_pool:
             raise RuntimeError("Status database pool not initialized")
         
         try:
             # Преобразование строки timestamp в объект datetime
             timestamp_dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+            
             # Преобразование целочисленных значений в булевые
             data["OSMOS_ON"] = bool(data["OSMOS_ON"])
             data["PUMP_WATERING"] = bool(data["PUMP_WATERING"])
@@ -114,22 +151,34 @@ class DatabaseManager:
             data["WATER_OUT"] = bool(data["WATER_OUT"])
             data["STEAM_IN"] = bool(data["STEAM_IN"])
             data["ENABLE"] = bool(data["ENABLE"])
+            
             async with self.params_pool.acquire() as conn:
                 await conn.execute('''
                     INSERT INTO status_farm(
                         timestamp, osmos_on, pump_watering, pump_transfer, water_out, steam_in,
                         light, fan_rack, fan_shelf, fan_circ, fan_inlet, hiter_air, hiter_water, fan_option,
-                        step, dir, enable
-                    ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                        step, dir, enable, status_box, phase, culture, growe_time, growe_date, elapsed
+                    ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
                 ''',
                 timestamp_dt, data["OSMOS_ON"], data["PUMP_WATERING"], data["PUMP_TRANSFER"], data["WATER_OUT"], data["STEAM_IN"],
                 data["LIGHT"], data["FAN_RACK"], data["FAN_SHELF"], data["FAN_CIRC"], data["FAN_INLET"], data["HITER_AIR"], data["HITER_WATER"], data["FAN_OPTION"],
-                data["STEP"], data["DIR"], data["ENABLE"])
+                data["STEP"], data["DIR"], data["ENABLE"], data["STATUS_BOX"], data["PHASE"], data["CULTURE"], data["GROWE_TIME"], data["GROWE_DATE"], data["ELAPSED"])
+                
+                # Обновляем буфер после успешного сохранения в БД
+                self.buffer.update_status(data, timestamp)
                 self.logger.info(f"Status data saved successfully at {timestamp}")
                 return True
         except Exception as e:
             self.logger.error(f"Error saving status data: {e}")
             return False
+
+    def get_latest_sensor_data(self) -> Dict[str, Any]:
+        """Получение последних данных сенсоров из буфера"""
+        return self.buffer.get_sensor()
+
+    def get_latest_status_data(self) -> Dict[str, Any]:
+        """Получение последних статусных данных из буфера"""
+        return self.buffer.get_status()
 
     async def get_system_params(self, profile_id: int = 10) -> Optional[Dict[str, Any]]:
         """Получение параметров системы"""
@@ -187,78 +236,6 @@ class DatabaseManager:
             self.logger.error(f"Error updating system parameters: {e}")
             return False
 
-    async def save_profile_data(self, profile_data: Dict[str, Any]) -> bool:
-        if 'nameProfile' not in profile_data or 'phases' not in profile_data:
-            self.logger.error("Missing required profile fields")
-            return False
-
-        try:
-            self.logger.info(f"Received profile data: {profile_data}")
-            async with self.params_pool.acquire() as conn:
-                async with conn.transaction():
-                    sunrise_hours, sunrise_minutes = map(int, profile_data['sunrise'].split(':'))
-                    sunset_hours, sunset_minutes = map(int, profile_data['sunset'].split(':'))
-                    sunrise_total = sunrise_hours * 60 + sunrise_minutes
-                    sunset_total = sunset_hours * 60 + sunset_minutes
-
-                    profile_id = profile_data.get('id')
-                    if profile_id:
-                        # Проверяем, существует ли запись, и обновляем её
-                        result = await conn.execute('''
-                            UPDATE system_params 
-                            SET nameprofile = $1, cycle = $2, sunrise = $3, sunset = $4
-                            WHERE id = $5
-                        ''', profile_data['nameProfile'], profile_data['cycle'], sunrise_total, sunset_total, profile_id)
-                        if result == "UPDATE 0":  # Если запись не найдена
-                            self.logger.error(f"No profile found with id {profile_id}")
-                            return False
-                    else:
-                        # Создаем новую запись
-                        profile_id = await conn.fetchval('''
-                            INSERT INTO system_params (nameprofile, cycle, sunrise, sunset)
-                            VALUES ($1, $2, $3, $4)
-                            ON CONFLICT (nameprofile) DO UPDATE
-                            SET cycle = EXCLUDED.cycle,
-                                sunrise = EXCLUDED.sunrise,
-                                sunset = EXCLUDED.sunset
-                            RETURNING id
-                        ''', profile_data['nameProfile'], profile_data['cycle'], sunrise_total, sunset_total)
-
-                    # Удаляем старые фазы
-                    await conn.execute('DELETE FROM profile_phases WHERE profile_id = $1', profile_id)
-
-                    # Вставляем новые фазы
-                    for i, phase in enumerate(profile_data['phases'], 1):
-                        if not isinstance(phase, dict):
-                            self.logger.error(f"Phase {i} is not a dictionary: {phase}")
-                            return False
-
-                        await conn.execute('''
-                            INSERT INTO profile_phases (
-                                profile_id, phase_number, duration,
-                                day_temperature, night_temperature,
-                                day_humidity, night_humidity,
-                                day_watering_interval, night_watering_interval,
-                                water_temperature, day_ventilation,
-                                night_ventilation, day_circulation,
-                                night_circulation, day_rotation,
-                                night_rotation, light_intensity
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-                        ''', profile_id, i, phase.get('duration', 0),
-                            phase.get('dayTemp', 0.0), phase.get('nightTemp', 0.0),
-                            phase.get('dayHum', 0.0), phase.get('nightHum', 0.0),
-                            phase.get('dayWater', 0), phase.get('nightWater', 0),
-                            phase.get('waterTemp', 0.0), phase.get('dayVent', 0),
-                            phase.get('nightVent', 0), phase.get('dayCirc', 0),
-                            phase.get('nightCirc', 0), phase.get('dayRot', 0),
-                            phase.get('nightRot', 0), phase.get('light', 0))
-
-                    self.logger.info(f"Profile data saved successfully with ID: {profile_id}")
-                    return True
-        except Exception as e:
-            self.logger.error(f"Error saving profile data: {e}")
-            return False
-        
     async def save_profile_data(self, profile_data: Dict[str, Any]) -> bool:
         if 'nameProfile' not in profile_data or 'phases' not in profile_data:
             self.logger.error("Missing required profile fields")

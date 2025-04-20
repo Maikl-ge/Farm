@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring grow box</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0px;
+            background-color: #2e2e2e;
+            display: flex;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        
+        .card {
+            width: 100%;
+            height: 100%;
+            background-color: #2e2e2e;
+            border-radius: 5px;
+            color: white;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 1px;
+        }
+
+        .header .title {
+            margin-left: 25px;
+            font-weight: lighter;
+            font-size: 16px;
+            color: #bbb;
+        }
+
+        #chart {
+            left: 0px;
+            width: 100%;
+            height: calc(95% - 12%);
+        }
+
+        .time-range {
+            position: absolute;
+            bottom: 20px;
+            left: 40px;
+            display: flex;
+            gap: 15px;
+            font-weight: lighter;
+            font-size: 16px;
+            color: #bbb;
+        }
+
+        .time-range span {
+            cursor: pointer;
+        }
+
+        .time-range span:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="legend" id="legend"></div>
+        </div>
+        <div id="chart"></div>
+        <div class="time-range">
+            <span onclick="updateData(10)">Live</span>
+            <span onclick="updateData(30)">30 minut</span>
+            <span onclick="updateData(60)">1 hour</span>
+            <span onclick="updateData(120)">2 hour</span>
+            <span onclick="updateData(240)">4 hours</span>
+            <span onclick="updateData(480)">8 hours</span>
+            <span onclick="updateData(720)">12 hours</span>
+        </div>
+    </div>
+    
+    <script>
+        let chart = echarts.init(document.getElementById('chart')); // Инициализируем график ECharts
+        let defaultRecords = 40; // Значение по умолчанию для количества записей
+
+        // Функция для загрузки данных
+        async function loadData(records = defaultRecords) {
+            try {
+                const response = await fetch(`/api/data_watering?limit=${records}`); // Запрашиваем данные с сервера
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`); // Обрабатываем ошибки запроса
+                }
+                const data = await response.json(); // Преобразуем ответ в JSON
+                updateChart(data); // Обновляем график с новыми данными
+            } catch (error) {
+                console.error('Error loading data:', error); // Логируем ошибки
+            }
+        }
+
+        // Функция для обновления графика
+        function updateChart(data) {
+            if (!data || data.length === 0) {
+                console.warn('No data available to update chart'); // Логируем предупреждение, если данных нет
+                return;
+            }
+            
+            let labels = data.map(d => new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); // Форматируем метки времени
+            let temperatureData = data.map(d => d.temperature_1  || 0); // Извлекаем данные температуры
+            let humidityData = data.map(d => d.humidity_1 || 0); // Извлекаем данные влажности
+
+            let option = {
+                backgroundColor: '#2e2e2e', // Устанавливаем цвет фона графика
+                tooltip: { 
+                    trigger: 'axis' // Включаем всплывающие подсказки при наведении на ось
+                },
+                legend: { 
+                    textStyle: { 
+                        color: '#bbb', 
+                        fontSize: 16, 
+                        fontFamily: 'Inter', 
+                        fontWeight: 'lighter' 
+                    }, 
+                    data: ['Temperature', 'Humidity'], 
+                    left: '5%', 
+                    top: 'top', 
+                    orient: 'horizontal', 
+                    itemWidth: 20, 
+                    itemHeight: 10, 
+                    itemStyle: { 
+                        borderWidth: 0, 
+                        borderColor: '#bbb' 
+                    }, 
+                    icon: 'rect' 
+                },
+                grid: {
+                    left: '2%', // Позиционирование сетки
+                    right: '2%',
+                    bottom: '3%',
+                    top: '10%', // Устанавливаем верхний отступ для области сетки
+                    containLabel: true // Включаем в сетку метки
+                },
+                xAxis: {
+                    type: 'category', // Тип оси
+                    data: labels, // Метки для оси X
+                    axisLine: { lineStyle: { color: '#bbb' } }, // Стиль линии оси
+                    axisLabel: { 
+                        color: '#bbb', // Цвет меток оси
+                        fontSize: 12 // Размер шрифта меток оси
+                    },
+                    splitLine: { // Линии сетки на оси X
+                        show: true,
+                        lineStyle: {
+                            color: '#444', // Цвет линий сетки
+                            type: 'dashed' // Тип линий сетки
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value', // Тип оси
+                    axisLine: { lineStyle: { color: '#bbb' } }, // Стиль линии оси
+                    axisLabel: { 
+                        color: '#bbb', // Цвет меток оси
+                        fontSize: 12 // Размер шрифта меток оси
+                    },
+                    splitLine: { // Линии сетки на оси Y
+                        show: true,
+                        lineStyle: {
+                            color: '#444', // Цвет линий сетки
+                            type: 'dashed' // Тип линий сетки
+                        }
+                    },
+                    min: 10, // Минимальное значение оси Y
+                    max: 30 // Максимальное значение оси Y
+                },
+                series: [
+                    {
+                        name: 'Temperature',
+                        type: 'line', // Тип серии
+                        smooth: true, // Сглаживаем линию
+                        data: temperatureData, // Данные для серии
+                        color: '#00ff7f', // Цвет линии
+                        lineStyle: {
+                            width: 2 // Ширина линии
+                        },
+                        areaStyle: {
+                            color: 'rgba(0, 255, 127, 0.1)' // Цвет заливки области
+                        },
+                        symbol: 'none' // Убираем точки с линии
+                    },
+                    {
+                        name: 'Humidity',
+                        type: 'line', // Тип серии
+                        smooth: true, // Сглаживаем линию
+                        data: humidityData, // Данные для серии
+                        color: '#08e8de', // Цвет линии
+                        lineStyle: {
+                            width: 2 // Ширина линии
+                        },
+                        areaStyle: {
+                            color: 'rgba(8, 232, 222, 0.1)' // Цвет заливки области
+                        },
+                        symbol: 'none' // Убираем точки с линии
+                    }
+                ]
+            };
+            chart.setOption(option); // Устанавливаем опции для графика
+        }
+
+        // Функция для обновления данных и сохранения значения в localStorage
+        function updateData(records) {
+            localStorage.setItem('records', records); // Сохраняем значение в localStorage
+            loadData(records); // Обновляем данные с указанным количеством записей
+        }
+
+        // Получаем значение записей из localStorage или используем значение по умолчанию
+        var savedRecords = localStorage.getItem('records') || defaultRecords;
+        loadData(savedRecords); // Загружаем начальные данные с сохраненным значением или значением по умолчанию
+        
+        setTimeout(function(){
+            location.reload();
+        }, 60000);
+        
+    </script>
+</body>
+</html>
