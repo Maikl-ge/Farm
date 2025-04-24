@@ -66,7 +66,7 @@ bool HttpHandler::sendText(const char* url, const char* payload) {
 
     if (httpResponseCode > 0) {
         String response = http.getString();
-        Serial.printf("HTTP response: %s\n", response.c_str());
+        //Serial.printf("HTTP response: %s\n", response.c_str());
     } else {
         Serial.printf("HTTP request failed, error: %s\n", http.errorToString(httpResponseCode).c_str());
     }

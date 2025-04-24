@@ -21,8 +21,8 @@ struct SensorData {
 };
 
 // Объявление переменных для хранения состояния датчиков температуры и влажности
-extern float temperature_1;
-extern float humidity_1;
+extern float temperatureHTU21D;
+extern float humidityHTU21D;
 extern float temperature_2;
 extern float humidity_2;
 extern float temperature_3;

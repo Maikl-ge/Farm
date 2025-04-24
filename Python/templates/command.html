@@ -551,14 +551,23 @@
     <script>
         let websocketCheckInterval;
 
-        window.onload = function() {
-            document.querySelectorAll('.tab').forEach((tab, index) => {
-                tab.addEventListener('click', () => showTab(index + 1));
-            });
-            showTab(1);
-            loadFrqsData();
-            checkWebsocketState();
-            websocketCheckInterval = setInterval(checkWebsocketState, 5000);
+	    window.onload = async function () {
+		document.querySelectorAll('.tab').forEach((tab, index) => {
+			tab.addEventListener('click', () => showTab(index + 1));
+		});
+	
+		showTab(1);
+	
+		// 1. Отправляем первую команду
+		await new Promise(resolve => {
+			sendCommand('SRSE', '12', { classList: { add: () => {}, remove: () => {} } });  // эмуляция кнопки
+			setTimeout(resolve, 1500);  // Пауза 1 сек
+		});
+	
+		// 2. Потом загружаем всё остальное
+		loadFrqsData();
+		checkWebsocketState();
+		websocketCheckInterval = setInterval(checkWebsocketState, 5000);
         };
 
         window.onbeforeunload = function() {

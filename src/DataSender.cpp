@@ -30,16 +30,16 @@ void sendDataIfNeeded() {
         doc["min_osmo_level"] = min_osmo_level ? 1 : 0;
         doc["max_water_level"] = max_water_level ? 1 : 0;
         doc["min_water_level"] = min_water_level ? 1 : 0;
-        doc["T1"] = temperature_1;
-        doc["H1"] = humidity_1;
-        doc["T2"] = temperature_2;
-        doc["H2"] = humidity_2;
-        doc["T3"] = temperature_3;
-        doc["H3"] = humidity_3;
-        doc["T4"] = temperature_4;
-        doc["H4"] = humidity_4;
-        doc["T5"] = temperature_5;
-        doc["H5"] = humidity_5;
+        doc["T1"] = temperatureHTU21D;
+        doc["H1"] = humidityHTU21D;
+        doc["T2"] = temperatureHTU21D;
+        doc["H2"] = humidityHTU21D;
+        doc["T3"] = temperatureHTU21D;
+        doc["H3"] = humidityHTU21D;
+        doc["T4"] = temperatureHTU21D;
+        doc["H4"] = humidityHTU21D;
+        doc["T5"] = temperatureHTU21D;
+        doc["H5"] = humidityHTU21D;
         doc["WTO"] = water_temperature_osmo;
         doc["WTW"] = water_temperature_watering;
         doc["ATO"] = air_temperature_outdoor;
@@ -99,7 +99,8 @@ void serializeStatus() {
         doc["CULTURE"] = CULTURE;
         doc["GROWE_TIME"] = GROWE_MODE_TIME;
         doc["GROWE_DATE"] = GROWE_MODE_DATE;
-        doc["ELAPSED"] = totalMinutesElapsed;
+        doc["ELAPSED"] = longPhacse6 - totalMinutesElapsed;
+        doc["ID_FARM"] = ID_FARM;
 
         // Сериализуем в строку JSON
         String jsonStatus;

@@ -303,4 +303,3 @@ void connectToWiFi() {
     Serial.println("Failed to connect to WiFi after 3 attempts.");
     // Здесь можно добавить дополнительные действия, например, включение режима AP
 }
-

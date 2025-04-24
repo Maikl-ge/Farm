@@ -11,7 +11,7 @@ const int PWM_RESOLUTION = 10;
 const int HITER_AIR_CHANNEL = 3;
 const int FAN_INLET_CHANNEL = 4;
 const float TEMP_TOLERANCE = 0.25;
-const float HUM_TOLERANCE = 1.0;
+const float HUM_TOLERANCE = 2.0;
 const int MIN_PWM = 0;
 const int MAX_PWM = 1000;
 bool steamActive = LOW;
@@ -19,6 +19,14 @@ bool steamActive = LOW;
 const float K_TEMP = 100.0; // Коэффициент для нагревателя (PWM на °C ошибки)
 const float K_FAN_TEMP = 150.0; // Коэффициент для вентилятора по температуре (PWM на °C)
 const float K_FAN_HUM = 10.0;  // Коэффициент для вентилятора по влажности (PWM на %)
+
+// Статические переменные для хранения предыдущих значений
+static float smoothedTempOutput = 0.0;
+static float smoothedFanOutput = MIN_PWM;
+
+// Переменные для управления (рассчитанные значения)
+float newTempOutput = 0.0; // Новое значение для нагревателя
+float newFanOutput = MIN_PWM; // Новое значение для вентилятора
 
 // Коэффициент сглаживания (0.0–1.0, чем меньше, тем плавнее)
 const float ALPHA = 0.5;
@@ -39,14 +47,14 @@ void setupClimateControl() {
 
 void updateClimateControl() {
     if(statusFarm == "Work" || statusFarm == "Pause") {
-        unsigned long currentTime = millis();
-        static unsigned long lastUpdateClimatTime = 0;
-        if (currentTime - lastUpdateClimatTime < 250) return; // Интервал 1 секунда
+        // unsigned long currentTime = millis();
+        // static unsigned long lastUpdateClimatTime = 0;
+        // if (currentTime - lastUpdateClimatTime < 250) return; // Интервал 1 секунда
 
         // Установка текущих и целевых значений
-        float tempInput = temperature_1;
+        float tempInput = temperatureHTU21D;
         float tempSetpoint = currentTemperatura;
-        float humInput = humidity_1;
+        float humInput = humidityHTU21D;
         float humSetpoint = currentHumidity;
 
         // Проверка условий
@@ -60,22 +68,16 @@ void updateClimateControl() {
         float fanTempError = tempInput - tempSetpoint; // Ошибка температуры для вентилятора
         float fanHumError = humInput - humSetpoint;   // Ошибка влажности для вентилятора
 
-        // Переменные для управления (рассчитанные значения)
-        float newTempOutput = 0.0; // Новое значение для нагревателя
-        float newFanOutput = MIN_PWM; // Новое значение для вентилятора
-
-        // Статические переменные для хранения предыдущих значений
-        static float smoothedTempOutput = 0.0;
-        static float smoothedFanOutput = MIN_PWM;
-
         // === Комбинированная логика на основе таблицы ===
 
         if (tempHigh && humHigh) {
             // ↑ ↑ : Вентиляция
             newFanOutput = max(K_FAN_TEMP * fanTempError, K_FAN_HUM * fanHumError);
+            steamActive = false;  // Парогенератор выключен
+            newTempOutput = MIN_PWM; // Сброс нагревателя
         }
 
-        else if (tempHigh && !humHigh && !humLow) {
+        else if (tempHigh && !humHigh) {
             // ↑ = : Вентиляция
             newFanOutput = K_FAN_TEMP * fanTempError;
         }
@@ -83,7 +85,6 @@ void updateClimateControl() {
         else if (tempHigh && humLow) {
             // ↑ ↓ : Только увлажнение + ограниченная вентиляция
             steamActive = true;
-        
             float fanTempOutput = K_FAN_TEMP * fanTempError;
             float limitedFanOutput = constrain(fanTempOutput, MIN_PWM, MAX_PWM * 0.5);
             newFanOutput = limitedFanOutput;
@@ -91,32 +92,39 @@ void updateClimateControl() {
 
         else if (!tempHigh && !tempLow && humHigh) {
             // = ↑ : Вентиляция
+            newTempOutput = MIN_PWM; 
             newFanOutput = K_FAN_HUM * fanHumError;
+            steamActive = true;
         }
-
+        // Температура и влажность в норме
         else if (!tempHigh && !tempLow && !humHigh && !humLow) {
             // = = : Idle
-            newFanOutput = MIN_PWM; newTempOutput = MIN_PWM; steamActive = false;
+            newFanOutput = MIN_PWM; 
+            newTempOutput = MIN_PWM; 
+            steamActive = false;
         }
-
+        // Температура нормальная, влажность низкая
         else if (!tempHigh && !tempLow && humLow) {
             // = ↓ : Только увлажнение
             steamActive = true;
+            newTempOutput = MIN_PWM;
             newFanOutput = MIN_PWM;
         }
-
+        // Холодно и влажно
         else if (tempLow && humHigh) {
             // ↓ ↑ : Нагрев + Вентиляция (без увлажнения)
             newTempOutput = K_TEMP * tempError;
             newFanOutput = K_FAN_HUM * fanHumError;
+            steamActive = false;
         }
-
+        // Холодно, влажность в норме
         else if (tempLow && !humHigh && !humLow) {
             // ↓ = : Только нагрев
             newTempOutput = K_TEMP * tempError;
+            steamActive = false;
         }
-
-        else if (tempLow && humLow) {
+        // Холодно и сухо 
+        else if (tempLow && humLow) { 
             // ↓ ↓ : Нагрев + увлажнение
             newTempOutput = K_TEMP * tempError;
             steamActive = true;
@@ -141,7 +149,7 @@ void updateClimateControl() {
         FAN_INLET = fanOutput;
         STEAM_IN = steamActive;
 
-        lastUpdateClimatTime = currentTime;
+        // lastUpdateClimatTime = currentTime;
         // Применение значений к выходам
         digitalWrite(STEAM_IN_PIN, steamActive);
         ledcWrite(HITER_AIR_CHANNEL, tempOutput);

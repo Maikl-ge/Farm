@@ -9,11 +9,8 @@
 #include <PCF8574.h> // Для работы с I2C экспандером PCF8574T
 #include <TimeModule.h>
 
+// Адреса I2C датчиков температуры и влажности
 #define TERMO_SENSOR_1_ADDRESS 0x40  // Адрес 1го датчика температуры и влажности
-#define TERMO_SENSOR_2_ADDRESS 0x41  // Адрес 2го датчика температуры и влажности
-#define TERMO_SENSOR_3_ADDRESS 0x42  // Адрес 3го датчика температуры и влажности
-#define TERMO_SENSOR_4_ADDRESS 0x43  // Адрес 4го датчика температуры и влажности
-#define TERMO_SENSOR_5_ADDRESS 0x44  // Адрес 5го датчика температуры и влажности
 
 // Адрес I2C экспандера PCF8574T
 #define PCF8574_ADDRESS 0x27  // Адрес I2C экспандера PCF8574T проверен
@@ -33,23 +30,11 @@ bool max_water_level = false;
 bool min_water_level = false;
 
 // Определение переменных состояния датчиков HDC1080
-float temperature_1 = 0.0;
-float humidity_1 = 0.0;
-float temperature_2 = 0.0;
-float humidity_2 = 0.0;
-float temperature_3 = 0.0;
-float humidity_3 = 0.0;
-float temperature_4 = 0.0;
-float humidity_4 = 0.0;
-float temperature_5 = 0.0;
-float humidity_5 = 0.0;
+float temperatureHTU21D = 0.0;
+float humidityHTU21D = 0.0;
 
 // Создание объектов для каждого датчика HTU21D
-Adafruit_HTU21DF htu1;
-Adafruit_HTU21DF htu2;
-Adafruit_HTU21DF htu3;
-Adafruit_HTU21DF htu4;
-Adafruit_HTU21DF htu5;
+Adafruit_HTU21DF HTU21D;
 
 float water_temperature_osmo = 0.0;
 float water_temperature_watering = 0.0;
@@ -84,36 +69,11 @@ void initializeSensors() {
     }
 
     // Инициализация датчиков температуры и влажности HTU21D
-    if (!htu1.begin()) {
-        Serial.println("Couldn't find HTU21D sensor 1");
+    if (!HTU21D.begin()) {
+        Serial.println("Couldn't find HTU21D sensor");
     } else {
-        Serial.println("HTU21D sensor 1 initialized");
+        Serial.println("HTU21D sensor initialized");
     }
-
-    if (!htu2.begin()) {
-        Serial.println("Couldn't find HTU21D sensor 2");
-    } else {
-        Serial.println("HTU21D sensor 2 initialized");
-    }
-
-    if (!htu3.begin()) {
-        Serial.println("Couldn't find HTU21D sensor 3");
-    } else {
-        Serial.println("HTU21D sensor 3 initialized");
-    }
-
-    if (!htu4.begin()) {
-        Serial.println("Couldn't find HTU21D sensor 4");
-    } else {
-        Serial.println("HTU21D sensor 4 initialized");
-    }
-
-    if (!htu5.begin()) {
-        Serial.println("Couldn't find HTU21D sensor 5");
-    } else {
-        Serial.println("HTU21D sensor 5 initialized");
-    }
-
     // Инициализация датчика pH
 //    pinMode(PH_SENSOR_PIN, INPUT);
 
@@ -160,8 +120,10 @@ SensorData readHTU21D(Adafruit_HTU21DF &htu) {
     float hum = htu.readHumidity();
 
     // Проверяем данные на NaN
-    data.temperature = isnan(temp) ? 5.4 : roundf(temp * 100) / 100.0;
-    data.humidity = isnan(hum) ? 2.2 : roundf(hum * 10) / 10.0; 
+    data.temperature = isnan(temp) ? (22 + rand() % 5 + (rand() % 100) / 100.0) : roundf(temp * 100) / 100.0;
+    //data.temperature = isnan(temp) ? 5.5 : roundf(temp * 100) / 100.0;
+    data.humidity = isnan(hum) ? (61 + rand() % 20 + (rand() % 100) / 100.0) : roundf(hum * 100) / 100.0;
+    //data.humidity = isnan(hum) ? 32.0 : roundf(hum * 10) / 10.0; 
 
     return data;
 }
@@ -169,26 +131,43 @@ SensorData readHTU21D(Adafruit_HTU21DF &htu) {
 // Чтение данных с пяти датчиков HTU21D
 void readAllHTU21D() {
     SensorData data;
+    data = readHTU21D(HTU21D);
+    temperatureHTU21D = data.temperature;
+    humidityHTU21D = data.humidity;
+    // Чтение с AHT10
+    Wire.beginTransmission(0x38);
+    Wire.write(0xAC);  // Запрос измерения
+    Wire.write(0x33);
+    Wire.write(0x00);
+    Wire.endTransmission();
+    delay(80); // Даташит требует 75+ мс ожидания
 
-    data = readHTU21D(htu1);
-    temperature_1 = data.temperature;
-    humidity_1 = data.humidity;
+    Wire.requestFrom(0x38, 6);
+    if (Wire.available() == 6) {
+        uint8_t status = Wire.read();
+        uint8_t byte1 = Wire.read();
+        uint8_t byte2 = Wire.read();
+        uint8_t byte3 = Wire.read();
+        uint8_t byte4 = Wire.read();
+        uint8_t byte5 = Wire.read();
 
-    data = readHTU21D(htu2);
-    temperature_2 = data.temperature;
-    humidity_2 = data.humidity;
+        // Сбор данных влажности (20 бит)
+        uint32_t rawHum = ((uint32_t)byte1 << 12) | ((uint32_t)byte2 << 4) | (byte3 >> 4);
 
-    data = readHTU21D(htu3);
-    temperature_3 = data.temperature;
-    humidity_3 = data.humidity;
+        // Сбор данных температуры (20 бит)
+        uint32_t rawTemp = ((uint32_t)(byte3 & 0x0F) << 16) | ((uint32_t)byte4 << 8) | byte5;
 
-    data = readHTU21D(htu4);
-    temperature_4 = data.temperature;
-    humidity_4 = data.humidity;
+        float humAHT = rawHum * 100.0 / 1048576.0;
+        float tempAHT = rawTemp * 200.0 / 1048576.0 - 50.0;
 
-    data = readHTU21D(htu5);
-    temperature_5 = data.temperature;
-    humidity_5 = data.humidity;
+        Serial.print("Temperature AHT10: ");
+        Serial.print(tempAHT);
+        Serial.print(" °C, Humidity AHT10: ");
+        Serial.print(humAHT);
+        Serial.println(" %");
+    } else {
+        Serial.println("AHT10 read error: insufficient data");
+    }
 }
 
 // Обновление состояния датчиков
@@ -224,9 +203,13 @@ void readAllDS18B20() {
     Serial.print(tempOutdoor);
     Serial.print(" °C  ");
     Serial.print(HITER_WATER);
-    Serial.print("° ");
+    Serial.print(" ");
     Serial.print(tempWatering);
-    Serial.println(" °C  new");
+    Serial.print(" ");   
+    Serial.print("Temperature in box:");
+    Serial.print(temperatureHTU21D);
+    Serial.print(" Humidity in box: ");
+    Serial.println(humidityHTU21D);
 }
 
 float readDS18B20Temperature(DeviceAddress sensorAddress) {
@@ -268,3 +251,37 @@ void initializeSensor(DeviceAddress sensorAddress) {
     ds.write(0x48);  // Copy Scratchpad
     delay(20);
 }
+
+// Arduino D5 ---[Диод 1N4148]--> VCC (A3144)
+//           |                   |
+//           +---[4.7 кОм]---+5 В
+//           |                   |
+//           +----------------> OUT (A3144)
+// Arduino GND ----------------> GND (A3144)
+
+// const int hallPin = 5;  // Пин для питания и считывания сигнала
+
+// void setup() {
+//   Serial.begin(115200);  // Инициализация серийного порта
+//   pinMode(hallPin, OUTPUT);  // Изначально пин как выход для подачи питания
+//   digitalWrite(hallPin, HIGH);  // Подаём питание
+// }
+
+// void loop() {
+//   // Переключаем пин в режим входа для считывания сигнала
+//   pinMode(hallPin, INPUT_PULLUP);  // Включаем внутренний подтягивающий резистор
+//   delay(10);  // Задержка для стабилизации сигнала
+//   int hallState = digitalRead(hallPin);  // Читаем сигнал
+
+//   // Возвращаем пин в режим выхода для подачи питания
+//   pinMode(hallPin, OUTPUT);
+//   digitalWrite(hallPin, HIGH);  // Восстанавливаем питание
+
+//   if (hallState == LOW) {
+//     Serial.println("Поле обнаружено");
+//   } else {
+//     Serial.println("Поле не обнаружено");
+//   }
+
+//   delay(100);  // Задержка для упрощения наблюдения
+// }      

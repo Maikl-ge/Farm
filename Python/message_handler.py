@@ -1,20 +1,36 @@
+"""
+Модуль для обработки сообщений WebSocket.
+"""
+
 import json
 import logging
 from datetime import datetime
 
 class MessageHandler:
-    def __init__(self, db_manager, websocket_handler):
+    """
+    Класс для обработки сообщений, полученных через WebSocket.
+    """
+
+    def __init__(self, db_manager, websocket_handler, logger=None):
         self.db_manager = db_manager
         self.websocket_handler = websocket_handler
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger or logging.getLogger(__name__)
+
+    async def handle_frqs(self, data, id_farm, timestamp):
+        self.websocket_handler.frqs_data = data
+        self.logger.info("FRQS data updated: %s", data)
+        self.logger.info(
+            "%s - Параметры от клиента %s получены и сохранены в буфер",
+            timestamp,
+            id_farm
+        )
 
     async def handle_message(self, message: str, websocket):
-        """Обрабатывает полученное сообщение"""
-        client_id = id(websocket)
-        self.logger.info(f"Received message from client {client_id}: {message}")
+        parts = message.split()
+        if len(parts) < 4:
+            self.logger.warning("Недостаточно данных в сообщении: %s", message)
+            return
 
-        parts = message.split(' ', 3)
-        
         id_farm = parts[0]
         type_msg = parts[1]
         ack_message = f"{id_farm} {type_msg} ACK"
@@ -22,39 +38,28 @@ class MessageHandler:
         # Отправляем ACK
         if websocket.open:
             await websocket.send(ack_message)
-            self.logger.info(f"Отправляем ACK ================ {ack_message}")
+            self.logger.info("Отправляем ACK: %s", ack_message)
         else:
-            self.logger.warning(f"Cannot send ACK, connection closed for client {client_id}")        
-        
-        if len(parts) < 4:
-            return
+            self.logger.warning("Cannot send ACK, connection closed for client %s", id_farm)
 
-        # Логирование и обработка данных
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.logger.info(f"{timestamp} - Получено сообщение от {client_id}: {message}")
+        self.logger.info("%s - Получено сообщение от %s: %s", timestamp, id_farm, message)
 
-        json_length = parts[2]
         data = json.loads(parts[3])
 
         if type_msg == "FRQS":
-            self.websocket_handler.frqs_data = data
-            self.logger.info(f"FRQS data updated: {data}")
-            if success:
-                self.logger.info(f"{timestamp} - Параметры от клиента {id_farm} получены и сохранены в буфер")
-            else:
-                self.logger.error(f"{timestamp} - Ошибка при сохранении ПАРАМЕТРОВ")    
-                       
+            await self.handle_frqs(data, id_farm, timestamp)
         elif type_msg == "FLIN":
             success = await self.db_manager.save_sensor_data(data, timestamp)
             if success:
-                self.logger.info(f"{timestamp} - Данные от клиента {id_farm} успешно сохранены")
+                self.logger.info("%s - Данные от клиента %s успешно сохранены", timestamp, id_farm)
             else:
-                self.logger.error(f"{timestamp} - Ошибка при сохранении данных")
+                self.logger.error("%s - Ошибка при сохранении данных", timestamp)
         elif type_msg == "FDST":
             success = await self.db_manager.save_status_data(data, timestamp)
             if success:
-                self.logger.info(f"{timestamp} - Статусные данные от клиента {id_farm} успешно сохранены")
+                self.logger.info("%s - Статусные данные от клиента %s успешно сохранены", timestamp, id_farm)
             else:
-                self.logger.error(f"{timestamp} - Ошибка при сохранении статусных данных")
+                self.logger.error("%s - Ошибка при сохранении статусных данных", timestamp)
         else:
-            self.logger.warning(f"Unknown message type from client {client_id}: {type_msg}")
+            self.logger.warning("Unknown message type from client %s: %s", id_farm, type_msg)

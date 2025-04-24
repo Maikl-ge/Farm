@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-	    <link rel="preconnect" href="https://fonts.googleapis.com">
+	  <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
@@ -33,7 +33,6 @@
       width: 25%;
       text-align: center;
       font-size: clamp(12px, 1.5vw, 16px);
-      
       transition: all 0.3s;
     }
     .container {
@@ -78,7 +77,7 @@
     }
     .label { left: 6%; top: 16%; }
     .set { left: 45%; top: 16%; }
-    .sens { left: 80%; top: 16%; }
+    .sens { right: 6%; top: 16%; }
 
     .error-message {
       color: #ff5555;
@@ -106,10 +105,10 @@
 </head>
 <body>
   <div class="control-panel">
-<div id="phase"><span>Текущая фаза: </span><span id="phaseValue">wait</span></div>
-  <div id="statusBox"><span>Текущий режим: </span><span id="statusBoxValue">wait</span></div>
-  <div id="culture"><span>Культура: </span><span id="cultureValue">wait</span></div>
-  <div id="elapsed"><span>Прошло времени: </span><span id="elapsedValue">wait</span><span> мин</span></div>
+<div id="phase"><span>Status: </span><span id="phaseValue">wait</span></div>
+  <div id="statusBox"><span>Phase: </span><span id="statusBoxValue">wait</span></div>
+  <div id="culture"><span>Culture: </span><span id="cultureValue">wait</span></div>
+  <div id="elapsed"><span>Elapsed: </span><span id="elapsedValue">wait</span><span> мин</span></div>
   </div>
   <div class="error-message" id="errorMessage">Ошибка загрузки данных</div>
   <div class="container">
@@ -229,12 +228,12 @@
         const sensorData = (await sensorRes.json()).data || {};
         const statusData = (await statusRes.json()).data || {};
         
-		// Обновление control-panel (только значения в <span>)
-		document.getElementById("phaseValue").textContent = statusData.PHASE || "wait";
-		document.getElementById("statusBoxValue").textContent = statusData.STATUS_BOX || "wait";
-		document.getElementById("cultureValue").textContent = statusData.CULTURE || "wait";
-		document.getElementById("elapsedValue").textContent = statusData.ELAPSED || "wait";
-        
+        // Обновление control-panel (только значения в <span>)
+        document.getElementById("phaseValue").textContent = statusData.PHASE || "wait";
+        document.getElementById("statusBoxValue").textContent = statusData.STATUS_BOX || "wait";
+        document.getElementById("cultureValue").textContent = statusData.CULTURE || "wait";
+        document.getElementById("elapsedValue").textContent = statusData.ELAPSED || "wait";
+          
         updateDisplay(0, "Watering", 23.5, sensorData.WTW || 0, "#00ff99", "°C");
         updateDisplay(1, "Temperature", 25.0, sensorData.T1 || 0, "#00ff99", "°C");
         updateDisplay(2, "Humidity", 75, sensorData.H1 || 0, "#00ccff", " %");
@@ -244,9 +243,9 @@
         updateDisplay(6, "Inlet", 100, statusData.FAN_INLET / 10 || 0, "#009dda", " %");
         updateDisplay(7, "Rotation", 8, Math.round((60 * 1_000_000) / (statusData.STEP * 3200)) || 0, "#66ff66", "rpm");
         updateDisplay(8, "Hiter water", 100, statusData.HITER_WATER / 10 || 0, "#cf0030", " %");
-        updateDisplay(9, "Hiter air", 100, (statusData.HITER_AIR - 23) / 10 || 0, "#cf0030", " %"); 
+        updateDisplay(9, "Hiter air", 100, (statusData.HITER_AIR) / 10 || 0, "#cf0030", " %"); 
         updateDisplay(10, "Humidifier", 100, statusData.STEAM_IN * 100 || 0, "#00ccff", " %");  
-        updateDisplay(11, "Water Osmo", 22.0, sensorData.WTO || 0, "#00ff99", "°C");                
+        updateDisplay(11, "Water Osmo", 22.0, sensorData.ATO || 0, "#00ff99", "°C");                
         errorMessage.style.display = "none";
       } catch (err) {
         errorMessage.textContent = "Ошибка загрузки данных: " + err.message;
