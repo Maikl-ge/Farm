@@ -139,7 +139,7 @@ void saveUint16ToEEPROM(int address, uint16_t value) {
 // Функция для загрузки настроек с сервера и сохранения в глобальные переменные
 void fetchAndSaveSettings() {
         // Парсим JSON-ответ
-        DynamicJsonDocument doc(2048);
+        DynamicJsonDocument doc(4096);
         DeserializationError error = deserializeJson(doc, ack_ACK);
 
         if (error) {
@@ -435,7 +435,7 @@ String readStringFromEEPROM(int address, int maxLength) {
 // Сереализация настроек считанных из EEPROM и отправка на сервер
 void serializeSettings() {
     EEPROMRead();
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(4096);
 
     doc["nameprofile"] = CULTURE;
     doc["sunrise"] = SUNRISE;

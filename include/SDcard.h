@@ -2,8 +2,21 @@
 #define SDCARD_H
 
 #include <Arduino.h>
-#include <SdFat.h>
-//#include <FS.h>
+
+// Подключи FS и SPIFFS раньше SdFat, чтобы избежать конфликта макросов
+#include <FS.h>
+#include <SPIFFS.h>
+
+// Удали/переопредели конфликтующие макросы из FS перед SdFat
+#ifdef FILE_READ
+  #undef FILE_READ
+#endif
+
+#ifdef FILE_WRITE
+  #undef FILE_WRITE
+#endif
+
+#include <SdFat.h>  // Теперь безопасно
 
 // Объявление глобальных переменных
 extern SdFat sd;

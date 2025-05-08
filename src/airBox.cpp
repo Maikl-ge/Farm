@@ -11,12 +11,12 @@ const int PWM_RESOLUTION = 10;
 const int HITER_AIR_CHANNEL = 3;
 const int FAN_INLET_CHANNEL = 4;
 const float TEMP_TOLERANCE = 0.25;
-const float HUM_TOLERANCE = 2.0;
+const float HUM_TOLERANCE = 1.0;
 const int MIN_PWM = 0;
 const int MAX_PWM = 1000;
 bool steamActive = LOW;
 // Коэффициенты пропорционального управления
-const float K_TEMP = 100.0; // Коэффициент для нагревателя (PWM на °C ошибки)
+const float K_TEMP = 200.0; // Коэффициент для нагревателя (PWM на °C ошибки)
 const float K_FAN_TEMP = 150.0; // Коэффициент для вентилятора по температуре (PWM на °C)
 const float K_FAN_HUM = 10.0;  // Коэффициент для вентилятора по влажности (PWM на %)
 
@@ -52,9 +52,9 @@ void updateClimateControl() {
         // if (currentTime - lastUpdateClimatTime < 250) return; // Интервал 1 секунда
 
         // Установка текущих и целевых значений
-        float tempInput = temperatureHTU21D;
+        float tempInput = temperatureInBox;
         float tempSetpoint = currentTemperatura;
-        float humInput = humidityHTU21D;
+        float humInput = humidityInBox;
         float humSetpoint = currentHumidity;
 
         // Проверка условий

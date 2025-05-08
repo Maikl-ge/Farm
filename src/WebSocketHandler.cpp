@@ -4,7 +4,7 @@
 #include "globals.h"
 #include <DataSender.h>
 #include "Profile.h"
-#include <SDCard.h>
+#include <SDcard.h>
 #include <TimeLib.h>
 #include <queue>
 #include <menu.h>
@@ -29,6 +29,7 @@ bool connectedWebSocket = false;
 bool connected = false;
 unsigned long lastReconnectAttempt = 0;
 const unsigned long RECONNECT_INTERVAL = 5000; // Интервал повторного подключения в мс
+int counterReconnect = 0;
 
 // Прототипы функций
 void connectWebSocket();
@@ -36,7 +37,8 @@ void resetWebSocketState();
 void handleWebSocketMessage(const String& message);
 void parceMessageFromServer(const String& messageFromServer);
 void getCurrentDateToGrowe();
-
+void startGrowe();
+void stopGrowe();
 void initializeWebSocket() {
     WiFi.setSleep(false);
     webSocket.onMessage([](WebsocketsMessage message) {
@@ -75,83 +77,20 @@ void webSocketEvent(WebsocketsEvent event, String data) {
 void parceMessageFromServer(const String& messageFromServer) {
     Serial.print(" Получена команда от сервера: ");
     Serial.println(messageFromServer);
-    CurrentStatusFarm();
+    //CurrentStatusFarm();
     const unsigned long waitDuration = 5000;
     unsigned long waitStart = millis(); 
     // Обработка сообщения КОМАНДЫ
     startButton = false;
     stopButton = false;
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
-        while (millis() - waitStart < waitDuration) {   // Ожидаем 5 секунд, пока не нажата нужная комбинация кнопок
-            if (startButton || statusFarm == "Work") {
-                break;
-            }
-            delay(10); // лёгкая пауза, чтобы не перегружать цикл
-        }
-        if (!startButton || statusFarm == "Work") {
-            Serial.println("Запуск отменен: кнопка подтверждения не нажата."); 
-            return; // Прерываем выполнение команды
-        }
-
-        startButton = false;
-        currentTimeInMinutes = getCurrentTimeInMinutes();
-        totalMinutesElapsed = 0;
-        statusFarm = "Work";
-        CurrentStatusFarm();
-        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
-        Serial.println("Команда от сервера: START"); 
-
-        GROWE_MODE_TIME = currentTimeInMinutes;
-        saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);   
-        EEPROM.commit();        
-        Serial.println("Время начала цикла роста: " + String(GROWE_MODE_TIME));
-
-        getCurrentDateToGrowe();
-        saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
-        EEPROM.commit();
-        
-        // Распаковываем и выводим дату в читаемом виде
-        time_t rawTime = (GROWE_MODE_DATE * 86400); // Перевод дней в секунды
-        tmElements_t t;
-        breakTime(rawTime, t); // Разбираем в структуру времени
-        
-        Serial.printf("Dата начала цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
-        totalMinutesElapsed = 0;
+        startGrowe();
+        esp_restart();
     }
     
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
-        while (millis() - waitStart < waitDuration) {   // Ожидаем 5 секунд, пока не нажата нужная комбинация кнопок
-            if (stopButton) {
-                break;
-            }
-            delay(10); // лёгкая пауза, чтобы не перегружать цикл
-        }
-        if (!stopButton) {
-            Serial.println("Остановка отменена: кнопка подтверждения не нажата."); return; // Прерываем выполнение команды
-        }
-
-        stopButton = false;
-        statusFarm = "Stop";
-        CurrentStatusFarm();
-        saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);        
-        Serial.println("Команда от сервера: STOP");
-
-        getCurrentDateToGrowe();
-        saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
-        EEPROM.commit();
-
-        GROWE_MODE_TIME = currentTimeInMinutes;
-        saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);   
-        EEPROM.commit();      
-        Serial.println("Время завершения цикла роста: " + String(GROWE_MODE_TIME));
-
-        getCurrentDateToGrowe();
-        time_t rawTime = (GROWE_MODE_DATE * 86400); // Перевод дней в секунды
-        tmElements_t t;
-        breakTime(rawTime, t); // Разбираем в структуру времени
-        
-        Serial.printf("Dата завершения цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
-        totalMinutesElapsed = 0;
+        stopGrowe();
+        esp_restart();
     }
 
     if (messageFromServer == SERVER_CMD_RESTART) {    // SCMR Перезагрузка фермы
@@ -341,8 +280,15 @@ void connectWebSocket() {
         if (connected) {
             Serial.println("WebSocket connected");
             connectedWebSocket = true;
+            counterReconnect = 0;
         } else {
-            Serial.println("WebSocket connection failed");
+            counterReconnect++;
+            Serial.print("WebSocket connection failed  ");
+            Serial.println(counterReconnect);
+            if(counterReconnect >= 50) {
+                esp_restart();
+                counterReconnect = 0;
+            }
         }
     } catch (const std::exception& e) {
         Serial.print("Exception during WebSocket connection: ");
@@ -358,4 +304,69 @@ void saveStringToEEPROM(int address, String& statusFarm) {
     }
     EEPROM.write(address + len, '\0'); // Добавление терминального нуля для завершения строки    
     EEPROM.commit(); // Сохранение изменений в EEPROM
+}
+
+void stopGrowe() {
+    statusFarm = "Stop";
+    CurrentStatusFarm();
+
+    saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);        
+
+    getCurrentDateToGrowe();
+    saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
+
+    GROWE_MODE_TIME = currentTimeInMinutes;
+    saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);   
+    EEPROM.commit();      
+
+    getCurrentDateToGrowe();
+    time_t rawTime = (GROWE_MODE_DATE * 86400); // Перевод дней в секунды
+    tmElements_t t;
+    breakTime(rawTime, t); // Разбираем в структуру времени
+    totalMinutesElapsed = 0;
+    currentBrightness = 0;
+
+    EEPROMRead();  // Чтение Параметров из EEPROM
+
+    sendDataIfNeeded(); // Отправка данных на сервер
+    serializeStatus(); // Отправка статуса фермы
+
+    Serial.println("Команда от сервера: STOP");
+    Serial.println("Время завершения цикла роста: " + String(GROWE_MODE_TIME));
+    Serial.printf("Dата завершения цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
+
+}
+
+void startGrowe() {
+    // Получаем текущее время в минутах
+    currentTimeInMinutes = getCurrentTimeInMinutes();
+
+    statusFarm = "Work";
+    CurrentStatusFarm();
+    saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
+
+    GROWE_MODE_TIME = currentTimeInMinutes;
+    saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);          
+
+    getCurrentDateToGrowe();
+    saveUint16ToEEPROM(EEPROM_GROWE_MODE_DATE_ADDRESS, GROWE_MODE_DATE);
+    EEPROM.commit();
+
+    // Распаковываем и выводим дату в читаемом виде
+    time_t rawTime = (GROWE_MODE_DATE * 86400); // Перевод дней в секунды
+    tmElements_t t;
+    breakTime(rawTime, t); // Разбираем в структуру времени
+
+    totalMinutesElapsed = 0;
+
+    EEPROMRead();  // Чтение Параметров из EEPROM
+
+    sendDataIfNeeded(); // Отправка данных на сервер
+    serializeStatus(); // Отправка статуса фермы
+
+    CheckStatusFarm();
+
+    Serial.println("Команда от сервера: START"); 
+    Serial.println("Время начала цикла роста: " + String(GROWE_MODE_TIME));
+    Serial.printf("Dата начала цикла роста: %02d.%02d.%04d\n", t.Day, t.Month, t.Year + 1970);
 }

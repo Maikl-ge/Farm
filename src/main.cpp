@@ -12,7 +12,6 @@
 #include "WebSocketHandler.h"
 #include <AccessPoint.h>
 #include "menu.h"
-// #include <FS.h>
 #include "SDcard.h"
 #include "fanControl.h"
 #include "status.h"
@@ -37,7 +36,7 @@ void CurrentStatusFarm();  // Определение текущего стату
 void setupStepper(); // Инициализация шагового двигателя
 void updateStepperControl(); // Обновление состояния двигателя
 void updateSoakState();
-void readAllHTU21D();
+void readTempAndHum();
 void sendHttpJson(const String& jsonString);
 
 // Объявление объекта класса AccessPoint
@@ -136,9 +135,17 @@ void updateWaterTask(void *parameter) {
         updateLightBrightness();  
         updateWater();        
         updateFanControl();
-        //updateStepperControl(); // Обновление состояния двигателя
         updateClimateControl(); // Обновление климат-контроля
         vTaskDelay(100 / portTICK_PERIOD_MS);  // Задержка 100 мс
+    }
+}
+
+void updateSettingToServerTask(void *parameter) {
+    for (;;) {
+        serializeSettings();
+        serializeStatus();
+        sendDataIfNeeded();
+        vTaskDelay((60000 * 10) / portTICK_PERIOD_MS);  // Задержка  600 секунд
     }
 }
 
@@ -197,7 +204,7 @@ void setup() {
 
     initializeMenu(); // Инициализация модуля меню  
 
-    readAllHTU21D();
+    readTempAndHum();
 
     updateSensors(); // Обновление сенсоров
 
@@ -267,6 +274,15 @@ void setup() {
         NULL,
         tskNO_AFFINITY
     );
+    xTaskCreatePinnedToCore(
+        updateSettingToServerTask,
+        "Update Setting to Server",
+        15000,  // Размер стека задачи
+        NULL,
+        1,
+        NULL,
+        tskNO_AFFINITY
+    );    
 }
 
 void loop() {

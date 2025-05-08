@@ -47,16 +47,17 @@ void updateWatering() {
 
     bool timeStartWatering = false;
     unsigned long nowMillis = millis();
+    uint16_t wateringMinutesElapsed = totalMinutesElapsed - 1;
 
     // Фазы полива
-    if (totalMinutesElapsed < longPhacse1 ||
-        (totalMinutesElapsed >= longPhacse1 && totalMinutesElapsed < longPhacse2) ||
-        (totalMinutesElapsed >= longPhacse2 && totalMinutesElapsed < longPhacse3) ||
-        (totalMinutesElapsed >= longPhacse3 && totalMinutesElapsed < longPhacse4) ||
-        (totalMinutesElapsed >= longPhacse4 && totalMinutesElapsed < longPhacse5) ||
-        (totalMinutesElapsed >= longPhacse5 && totalMinutesElapsed < longPhacse6)) {
+    if (wateringMinutesElapsed < longPhacse1 ||
+        (wateringMinutesElapsed >= longPhacse1 && wateringMinutesElapsed < longPhacse2) ||
+        (wateringMinutesElapsed >= longPhacse2 && wateringMinutesElapsed < longPhacse3) ||
+        (wateringMinutesElapsed >= longPhacse3 && wateringMinutesElapsed < longPhacse4) ||
+        (wateringMinutesElapsed >= longPhacse4 && wateringMinutesElapsed < longPhacse5) ||
+        (wateringMinutesElapsed >= longPhacse5 && wateringMinutesElapsed < longPhacse6)) {
 
-        if ((totalMinutesElapsed % wateringInterval) == 0 && (nowMillis - lastWateringMillis >= 75000)) { // 75 секунд защитная задержка
+        if ((wateringMinutesElapsed % wateringInterval) == 0 && (nowMillis - lastWateringMillis >= 75000)) { // 75 секунд защитная задержка
             timeStartWatering = true;
             lastWateringMillis = nowMillis;
             Serial.print("🟢 Полив запущен  ");
@@ -64,7 +65,8 @@ void updateWatering() {
         }
     }
 
-    if (timeStartWatering && !pumpIsOn) {
+    max_watering_level = digitalRead(WATERING_LEVEL_BOX_PIN);
+    if (timeStartWatering && !pumpIsOn &&  max_watering_level == 1) {
         digitalWrite(PUMP_WATERING_PIN, HIGH);
         Serial.print("🔵 Насос ВКЛЮЧЕН  ");
         Serial.println(CurrentTime);

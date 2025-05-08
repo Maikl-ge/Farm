@@ -9,19 +9,11 @@
 #include <PCF8574.h> // Для работы с I2C экспандером PCF8574T
 #include <TimeModule.h>
 
-// Адреса I2C датчиков температуры и влажности
-#define TERMO_SENSOR_1_ADDRESS 0x40  // Адрес 1го датчика температуры и влажности
-
 // Адрес I2C экспандера PCF8574T
 #define PCF8574_ADDRESS 0x27  // Адрес I2C экспандера PCF8574T проверен
 
 // Создание объекта для I2C экспандера
 PCF8574 pcf8574(PCF8574_ADDRESS);
-
-// // Определение переменных состояния кнопок
-// volatile bool startButtonPressed = 0b0;
-// volatile bool stopButtonPressed = 0b0;
-// volatile bool modeButtonPressed = 0b0;
 
 // Определение переменных состояния датчиков уровня воды
 bool max_osmo_level = false;
@@ -29,9 +21,10 @@ bool min_osmo_level = false;
 bool max_water_level = false;
 bool min_water_level = false;
 
-// Определение переменных состояния датчиков HDC1080
-float temperatureHTU21D = 0.0;
-float humidityHTU21D = 0.0;
+// Определение переменных состояния датчиков Бокса
+float temperatureInBox = 0.0;
+float humidityInBox = 0.0;
+bool HTU21D_OFF = false; // Флаг подключенного датчика HTU21D
 
 // Создание объектов для каждого датчика HTU21D
 Adafruit_HTU21DF HTU21D;
@@ -54,6 +47,7 @@ OneWire ds(ONE_WIRE_BUS); // Создаем объект OneWire
 
 float readDS18B20Temperature(DeviceAddress sensorAddress);
 void initializeSensor(DeviceAddress sensorAddress);
+
 // Инициализация всех сенсоров
 void initializeSensors() {
 
@@ -70,8 +64,10 @@ void initializeSensors() {
 
     // Инициализация датчиков температуры и влажности HTU21D
     if (!HTU21D.begin()) {
+        HTU21D_OFF = false; // Датчик HTU21D найден
         Serial.println("Couldn't find HTU21D sensor");
     } else {
+        HTU21D_OFF = true; // Датчик HTU21D не найден работаем по AHT10
         Serial.println("HTU21D sensor initialized");
     }
     // Инициализация датчика pH
@@ -113,34 +109,22 @@ uint8_t readPCF8574() {
 }
 
 // Чтение данных с датчика HTU21D
-SensorData readHTU21D(Adafruit_HTU21DF &htu) {
-    SensorData data = {0.0, 0.0};
+void readTempAndHum() {
+    if(HTU21D_OFF) {
+        temperatureInBox = HTU21D.readTemperature();
+        humidityInBox = HTU21D.readHumidity();
+        temperatureInBox = isnan(temperatureInBox) ? 5.404 : roundf(temperatureInBox * 100) / 100.0;
+        humidityInBox = isnan(humidityInBox) ? 32.404 : roundf(humidityInBox * 10) / 10.0; 
+        return; // Если датчик HTU21D не найден, выходим из функции
+    }
 
-    float temp = htu.readTemperature();
-    float hum = htu.readHumidity();
-
-    // Проверяем данные на NaN
-    data.temperature = isnan(temp) ? (22 + rand() % 5 + (rand() % 100) / 100.0) : roundf(temp * 100) / 100.0;
-    //data.temperature = isnan(temp) ? 5.5 : roundf(temp * 100) / 100.0;
-    data.humidity = isnan(hum) ? (61 + rand() % 20 + (rand() % 100) / 100.0) : roundf(hum * 100) / 100.0;
-    //data.humidity = isnan(hum) ? 32.0 : roundf(hum * 10) / 10.0; 
-
-    return data;
-}
-
-// Чтение данных с пяти датчиков HTU21D
-void readAllHTU21D() {
-    SensorData data;
-    data = readHTU21D(HTU21D);
-    temperatureHTU21D = data.temperature;
-    humidityHTU21D = data.humidity;
     // Чтение с AHT10
     Wire.beginTransmission(0x38);
     Wire.write(0xAC);  // Запрос измерения
     Wire.write(0x33);
     Wire.write(0x00);
     Wire.endTransmission();
-    delay(80); // Даташит требует 75+ мс ожидания
+    delay(85); // Даташит требует 75+ мс ожидания
 
     Wire.requestFrom(0x38, 6);
     if (Wire.available() == 6) {
@@ -157,29 +141,29 @@ void readAllHTU21D() {
         // Сбор данных температуры (20 бит)
         uint32_t rawTemp = ((uint32_t)(byte3 & 0x0F) << 16) | ((uint32_t)byte4 << 8) | byte5;
 
-        float humAHT = rawHum * 100.0 / 1048576.0;
-        float tempAHT = rawTemp * 200.0 / 1048576.0 - 50.0;
-
-        Serial.print("Temperature AHT10: ");
-        Serial.print(tempAHT);
-        Serial.print(" °C, Humidity AHT10: ");
-        Serial.print(humAHT);
-        Serial.println(" %");
+        humidityInBox = roundf(rawHum * 100.0 / 1048576.0 * 100.0) / 100.0;
+        temperatureInBox = roundf((rawTemp * 200.0 / 1048576.0 - 50.0) * 100.0) / 100.0;
     } else {
         Serial.println("AHT10 read error: insufficient data");
+        // Проверяем данные на NaN для определения потерянного датчика
+        temperatureInBox = isnan(temperatureInBox) ? 5.404 : roundf(temperatureInBox * 100) / 100.0;
+        humidityInBox = isnan(humidityInBox) ? 32.404 : roundf(humidityInBox * 10) / 10.0; 
+
+//     // Если данные NaN, используем случайные значения для отладки
+//     // data.temperature = isnan(temp) ? (22 + rand() % 5 + (rand() % 100) / 100.0) : roundf(temp * 100) / 100.0;
+//        data.humidity = isnan(hum) ? (61 + rand() % 20 + (rand() % 100) / 100.0) : roundf(hum * 100) / 100.0;    
     }
 }
 
 // Обновление состояния датчиков
 void updateSensors() {
-    readAllHTU21D();
+    readTempAndHum();
     readPCF8574(); 
     readAllDS18B20();   
     power_monitor = analogRead(POWER_MONITOR_PIN); // Обновление состояния мониторинга питающей сети
 }
 
 void readAllDS18B20() {
-    //float rawTemperature = readDS18B20Temperature();
 
     float tempWatering = readDS18B20Temperature(sensorWateringAddress);
     float tempOutdoor  = readDS18B20Temperature(sensorOutdoorAddress);
@@ -203,13 +187,20 @@ void readAllDS18B20() {
     Serial.print(tempOutdoor);
     Serial.print(" °C  ");
     Serial.print(HITER_WATER);
-    Serial.print(" ");
+    Serial.print("  ");
     Serial.print(tempWatering);
-    Serial.print(" ");   
-    Serial.print("Temperature in box:");
-    Serial.print(temperatureHTU21D);
-    Serial.print(" Humidity in box: ");
-    Serial.println(humidityHTU21D);
+    Serial.print("  Temperature:");
+    Serial.print(temperatureInBox);
+    Serial.print("  Humidity: ");
+    Serial.print(humidityInBox);
+    Serial.print("  Light: ");
+    Serial.print(LIGHT);
+    Serial.print("  LIGHT: ");
+    Serial.print(currentLight);
+    Serial.print("  level: ");
+    bool max_watering_level = digitalRead(WATERING_LEVEL_BOX_PIN); 
+    Serial.println(max_watering_level);
+    
 }
 
 float readDS18B20Temperature(DeviceAddress sensorAddress) {

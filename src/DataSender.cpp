@@ -20,7 +20,7 @@ void sendDataIfNeeded() {
         // unsigned long currentTime = millis();
         sendMessageOK = false;
 
-        DynamicJsonDocument doc(2048);
+        DynamicJsonDocument doc(4096);
         doc["DF"] = CurrentDate;
         doc["TF"] = CurrentTime;
         doc["start_Button"] = 1; //startButtonPressed ? 1 : 0;
@@ -30,16 +30,16 @@ void sendDataIfNeeded() {
         doc["min_osmo_level"] = min_osmo_level ? 1 : 0;
         doc["max_water_level"] = max_water_level ? 1 : 0;
         doc["min_water_level"] = min_water_level ? 1 : 0;
-        doc["T1"] = temperatureHTU21D;
-        doc["H1"] = humidityHTU21D;
-        doc["T2"] = temperatureHTU21D;
-        doc["H2"] = humidityHTU21D;
-        doc["T3"] = temperatureHTU21D;
-        doc["H3"] = humidityHTU21D;
-        doc["T4"] = temperatureHTU21D;
-        doc["H4"] = humidityHTU21D;
-        doc["T5"] = temperatureHTU21D;
-        doc["H5"] = humidityHTU21D;
+        doc["T1"] = temperatureInBox;
+        doc["H1"] = humidityInBox;
+        doc["T2"] = temperatureInBox;
+        doc["H2"] = humidityInBox;
+        doc["T3"] = temperatureInBox;
+        doc["H3"] = humidityInBox;
+        doc["T4"] = temperatureInBox;
+        doc["H4"] = humidityInBox;
+        doc["T5"] = temperatureInBox;
+        doc["H5"] = humidityInBox;
         doc["WTO"] = water_temperature_osmo;
         doc["WTW"] = water_temperature_watering;
         doc["ATO"] = air_temperature_outdoor;
@@ -72,7 +72,7 @@ void sendDataIfNeeded() {
 void serializeStatus() {
 
         // Создаем объект JSON
-        DynamicJsonDocument doc(2048);
+        DynamicJsonDocument doc(4096);
 
         // Заполняем объект данными
         doc["OSMOS_ON"] = OSMOS_ON ? 1 : 0;           // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

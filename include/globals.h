@@ -26,6 +26,7 @@ extern String currentPhase; // Текущая фаза
 extern float currentTemperatura; // Целевая температура (°C)
 extern float currentHumidity;    // Целевая влажность (%)
 extern uint16_t currentlongPhacse;
+extern int currentBrightness;
 
 // Переменные для управления устройствами On/Off
 extern bool OSMOS_ON;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

@@ -6,8 +6,8 @@
 #include <WebSocketHandler.h>
 
 // Константы времени нажатий (в циклах опроса)
-const uint8_t SHORT_PRESS_THRESHOLD = 3; // Порог короткого нажатия
-const uint8_t MEDIUM_PRESS_THRESHOLD = 9; // Порог среднего нажатия
+const uint8_t SHORT_PRESS_THRESHOLD = 0; // Порог короткого нажатия
+const uint8_t MEDIUM_PRESS_THRESHOLD = 3; // Порог среднего нажатия
 const uint8_t LONG_PRESS_THRESHOLD = 27;   // Порог длинного нажатия
 bool startButton = false;
 bool stopButton = false;
@@ -88,9 +88,11 @@ void updateButtonState() {
     if (buttonState == 0b00001001) {  // Короткое нажатие START 
         startButton = true;
         //Serial.println("Клавиатура: короткий START");
+        //Serial.println("Клавиатура: короткий START");
     }
     if (buttonState == 0b00001010) {  // Короткое нажатие STOP
         stopButton = true;
+        //Serial.println("Клавиатура: короткий STOP");
         //Serial.println("Клавиатура: короткий STOP");
     }
     if (buttonState == 0b00001011) {  // Короткое нажатие START + STOP
@@ -99,10 +101,10 @@ void updateButtonState() {
 
     // Обработка средних нажатий
     if (buttonState == 0b00010001) {  // Среднее нажатие START
-        Serial.println("Клавиатура: средний START");
+        startButton = true;
     }
     if (buttonState == 0b00010010) {  // Среднее нажатие STOP
-        Serial.println("Клавиатура: средний STOP");
+        stopButton = true;
     }
     if (buttonState == 0b00010011) {  // Среднее нажатие START + STOP
         Serial.println("Остановка цикла роста по нажатию двух кнопок");

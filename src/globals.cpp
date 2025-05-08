@@ -21,6 +21,7 @@ float currentTemperatura = 0; // Целевая температура (°C)
 float currentHumidity = 0;    // Целевая влажность (%)
 unsigned long currentStepTime = micros();
 uint16_t currentlongPhacse = 0;
+int currentBrightness = 0;
 
 // Переменные для управления устройствами On/Off
 bool OSMOS_ON = false;          // Подача очищенной воды (ON/OFF) (GPIO32, нога 7)

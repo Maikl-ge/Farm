@@ -12,7 +12,7 @@ unsigned long brightnessInterval = 0;
 const float GAMMA = 2.2;
 
 // Глобальные переменные
-int currentBrightness = 0;
+//currentBrightness = 0;
 
 // Константы
 const int MIN_BRIGHTNESS = 0;
@@ -41,40 +41,81 @@ void updateLightBrightness() {
     if (currentLight <= 0) {
         ledcWrite(pwmLightChannel, MIN_BRIGHTNESS);
         currentBrightness = MIN_BRIGHTNESS;
-        LIGHT = MIN_BRIGHTNESS;
+        LIGHT = currentBrightness;
         return;
     }
-
     printCurrentTime();
 
     long currentLightTimeSeconds = (CurrentTime / 10000) * 3600 + ((CurrentTime / 100) % 100) * 60 + (CurrentTime % 100);
 
     int targetBrightness = 0;
+    int correctedBrightness = 0;
 
     long sunriseStart = (SUNRISE * 60) - (transitionTime / 2);
     long sunriseEnd = SUNRISE * 60;
     long sunsetStart = (SUNSET * 60) - (transitionTime / 2);
     long sunsetEnd = SUNSET * 60;
 
+    if(sunriseStart > sunsetEnd) { // в течении светогого "дня" будет переход через 00:00
+
+    }
+
     brightnessInterval = (transitionTime * 1000) / currentLight;
 
     if (currentLightTimeSeconds >= sunriseStart && currentLightTimeSeconds <= sunriseEnd) {
+        // Восход: увеличение яркости
         float progress = float(currentLightTimeSeconds - sunriseStart) / (sunriseEnd - sunriseStart);
         targetBrightness = MIN_BRIGHTNESS + progress * (currentLight - MIN_BRIGHTNESS);
     } else if (currentLightTimeSeconds >= sunsetStart && currentLightTimeSeconds <= sunsetEnd) {
+        // Закат: уменьшение яркости
         float progress = float(currentLightTimeSeconds - sunsetStart) / (sunsetEnd - sunsetStart);
         targetBrightness = currentLight - progress * (currentLight - MIN_BRIGHTNESS);
     } else if (currentLightTimeSeconds > sunriseEnd && currentLightTimeSeconds < sunsetStart) {
+        // День: максимальная яркость
         targetBrightness = currentLight;
     } else {
+        // Ночь: минимальная яркость
         targetBrightness = MIN_BRIGHTNESS;
     }
 
-    int correctedBrightness = applyGammaCorrection(targetBrightness, currentLight);
 
-    if (currentBrightness != correctedBrightness) {
-        currentBrightness = correctedBrightness;
-        ledcWrite(pwmLightChannel, currentBrightness);
-        LIGHT = currentBrightness;
+    correctedBrightness = applyGammaCorrection(targetBrightness, currentLight);
+
+    // if (currentBrightness != correctedBrightness) {
+    //     currentBrightness = correctedBrightness;
+
+    // Главное отличие здесь: если нет рассвета или заката — сразу установить яркость
+    if (targetBrightness == MIN_BRIGHTNESS ||  targetBrightness == currentLight) {
+        if (currentBrightness != correctedBrightness) {
+            currentBrightness = correctedBrightness;
+            ledcWrite(pwmLightChannel, currentBrightness);
+            LIGHT = currentBrightness;
+
+            Serial.print(currentLight);
+            Serial.print("  ");
+            Serial.print(currentBrightness);
+            Serial.println(" Мгновенная установка яркости");
+        }
+    } else { 
+        // Плавная коррекция яркости на рассвете и закате
+        if (currentBrightness == correctedBrightness) {
+            // Уже на нужной яркости — ничего делать не надо
+        } else if (millis() - lastUpdateLightTime >= brightnessInterval) {
+            lastUpdateLightTime = millis();
+
+            if (currentBrightness < correctedBrightness) {
+                currentBrightness++;
+            } else if (currentBrightness > correctedBrightness) {
+                currentBrightness--;
+            }
+            
+            Serial.print(currentLight);
+            Serial.print("  ");
+            Serial.print(currentBrightness);
+            Serial.println(" Плавная регулировка яркости");
+
+            ledcWrite(pwmLightChannel, currentBrightness);
+            LIGHT = currentBrightness;
+        }
     }
 }

@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <pinout.h>
 #include <SPI.h>
-#include <SdFat.h>
 #include <globals.h>
 #include <sdios.h>
 #include <TimeModule.h>
@@ -147,7 +146,7 @@ void dequeue() {
 
     SdFile file;
     if (file.open(filename, O_READ)) {
-        char buffer[1024];
+        char buffer[4096];
         int bytesRead = file.read(buffer, sizeof(buffer) - 1);
         buffer[bytesRead] = '\0';
         Serial.println("Элемент из очереди: " + String(dequeueIndex));
