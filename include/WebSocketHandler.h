@@ -21,5 +21,7 @@ void connectWebSocket();
 void parseMessageACK();
 void resetWebSocketState(); 
 void saveStringToEEPROM(int address, String& statusFarm);
+void startGrowe();
+void stopGrowe();
 
 #endif // WEBSOCKETHANDLER_H

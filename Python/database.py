@@ -126,7 +126,7 @@ class DatabaseManager:
                     data["H3"], data["T4"], data["H4"], data["T5"], data["H5"], 
                     data["WTO"], data["WTW"], data["ATO"], data["ATI"], data["ph"], 
                     data["tds"], data["pm"])
-                
+           
                 # Обновляем буфер после успешного сохранения в БД
                 self.buffer.update_sensor(data, timestamp)
                 self.logger.info(f"Sensor data saved successfully at {timestamp}")
@@ -151,6 +151,7 @@ class DatabaseManager:
             data["WATER_OUT"] = bool(data["WATER_OUT"])
             data["STEAM_IN"] = bool(data["STEAM_IN"])
             data["ENABLE"] = bool(data["ENABLE"])
+
             
             async with self.params_pool.acquire() as conn:
                 await conn.execute('''

@@ -178,10 +178,10 @@ void leftStep() {
 
 void updateStepperControl() {
     if(statusFarm == "Work" || statusFarm == "Pause") {
-        if (currentPhase == "Soak") {
+        if (currentPhase == "SoakK") {
             soakRotation();
             return;
-        } else if (currentPhase == "Germ" || currentPhase == "Act" || currentPhase == "Early" || 
+        } else if (currentPhase == "Soak" || currentPhase == "Germ" || currentPhase == "Act" || currentPhase == "Early" || 
                 currentPhase == "Grow" || currentPhase == "Finish") {      
             germRotation();
             return;

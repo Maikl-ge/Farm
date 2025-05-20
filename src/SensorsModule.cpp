@@ -8,6 +8,7 @@
 #include <Adafruit_HTU21DF.h>
 #include <PCF8574.h> // Для работы с I2C экспандером PCF8574T
 #include <TimeModule.h>
+#include <status.h>
 
 // Адрес I2C экспандера PCF8574T
 #define PCF8574_ADDRESS 0x27  // Адрес I2C экспандера PCF8574T проверен
@@ -170,20 +171,25 @@ void readAllDS18B20() {
     // Обработка шума и ошибок
         if (tempWatering <= -127.0 || tempWatering > 85.0 || tempWatering == 85.0) {
             Serial.println("Ошибка датчика полива, fallback");
-            tempWatering = currentWaterTemperatura + 0.111;
+            tempWatering = currentWaterTemperatura + 1.111;
         }
     
         if (tempOutdoor <= -127.0 || tempOutdoor > 85.0 || tempOutdoor == 85.0) {
             Serial.println("Ошибка уличного датчика, fallback");
-            tempOutdoor = currentWaterTemperatura + 0.222;
+            tempOutdoor = currentWaterTemperatura + 2.222;
         }
     // Обновляем все температуры
     water_temperature_osmo = tempWatering;
     water_temperature_watering = tempWatering;
     air_temperature_outdoor = tempOutdoor;
     air_temperature_inlet = tempOutdoor;
+    printCurrentTime();
+    // Выводим данные в Serial Monitor
+    Serial.print("Time: ");
+    Serial.print(CurrentTime);
+    Serial.print(" Осталось " + String(longPhacse6 - totalMinutesElapsed) + " минут ");
 
-    Serial.print("Temperature: ");
+    Serial.print("  Temperature: ");
     Serial.print(tempOutdoor);
     Serial.print(" °C  ");
     Serial.print(HITER_WATER);
@@ -193,10 +199,10 @@ void readAllDS18B20() {
     Serial.print(temperatureInBox);
     Serial.print("  Humidity: ");
     Serial.print(humidityInBox);
-    Serial.print("  Light: ");
-    Serial.print(LIGHT);
-    Serial.print("  LIGHT: ");
-    Serial.print(currentLight);
+    Serial.print("  HITER_AIR: ");
+    Serial.print(HITER_AIR);
+    Serial.print("  STEAM_IN: ");
+    Serial.print(STEAM_IN);
     Serial.print("  level: ");
     bool max_watering_level = digitalRead(WATERING_LEVEL_BOX_PIN); 
     Serial.println(max_watering_level);

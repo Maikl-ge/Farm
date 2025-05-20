@@ -4,6 +4,7 @@
 #include <globals.h>
 #include <SensorsModule.h>
 #include <status.h>
+#include <airBox.h>
 
 // Константы
 const int PWM_FREQUENCY = 5000;
@@ -11,14 +12,17 @@ const int PWM_RESOLUTION = 10;
 const int HITER_AIR_CHANNEL = 3;
 const int FAN_INLET_CHANNEL = 4;
 const float TEMP_TOLERANCE = 0.25;
-const float HUM_TOLERANCE = 1.0;
+const float HUM_TOLERANCE = 0.5;
 const int MIN_PWM = 0;
 const int MAX_PWM = 1000;
 bool steamActive = LOW;
+unsigned long currentInletTime = 0;
+static unsigned long lastUpdatInletTime = 0;
+
 // Коэффициенты пропорционального управления
-const float K_TEMP = 200.0; // Коэффициент для нагревателя (PWM на °C ошибки)
-const float K_FAN_TEMP = 150.0; // Коэффициент для вентилятора по температуре (PWM на °C)
-const float K_FAN_HUM = 10.0;  // Коэффициент для вентилятора по влажности (PWM на %)
+const float K_TEMP = 500.0; // Коэффициент для нагревателя (PWM на °C ошибки)
+const float K_FAN_TEMP = 250.0; // Коэффициент для вентилятора по температуре (PWM на °C)
+const float K_FAN_HUM = 100.0;  // Коэффициент для вентилятора по влажности (PWM на %)
 
 // Статические переменные для хранения предыдущих значений
 static float smoothedTempOutput = 0.0;
@@ -30,6 +34,9 @@ float newFanOutput = MIN_PWM; // Новое значение для вентил
 
 // Коэффициент сглаживания (0.0–1.0, чем меньше, тем плавнее)
 const float ALPHA = 0.5;
+
+// Флаги 
+bool pauseInlet = false; // Флаг для паузы подачи воздуха
 
 void setupClimateControl() {
 
@@ -43,17 +50,16 @@ void setupClimateControl() {
 
     pinMode(STEAM_IN_PIN, OUTPUT);
     digitalWrite(STEAM_IN_PIN, LOW);
+    lastUpdatInletTime = 60000;
 }
 
 void updateClimateControl() {
     if(statusFarm == "Work" || statusFarm == "Pause") {
-        // unsigned long currentTime = millis();
-        // static unsigned long lastUpdateClimatTime = 0;
-        // if (currentTime - lastUpdateClimatTime < 250) return; // Интервал 1 секунда
+        currentInletTime = millis();
 
         // Установка текущих и целевых значений
         float tempInput = temperatureInBox;
-        float tempSetpoint = currentTemperatura;
+        float tempSetpoint = currentTemperatura + TEMP_TOLERANCE;
         float humInput = humidityInBox;
         float humSetpoint = currentHumidity;
 
@@ -141,9 +147,15 @@ void updateClimateControl() {
         if (smoothedFanOutput < MIN_PWM) smoothedFanOutput = MIN_PWM;
 
         // Приведение к целому типу для ledcWrite
-        int tempOutput = (int)smoothedTempOutput;
+        int tempOutput = (int)smoothedTempOutput / 2;
         int fanOutput = (int)smoothedFanOutput;
 
+        if(tempSetpoint < tempInput) {
+           tempOutput =  MIN_PWM;
+        }
+        if((humSetpoint - HUM_TOLERANCE) > humInput) {
+            steamActive = HIGH;   
+        }
         // Обновление глобальных переменных
         HITER_AIR = tempOutput;
         FAN_INLET = fanOutput;
@@ -153,7 +165,19 @@ void updateClimateControl() {
         // Применение значений к выходам
         digitalWrite(STEAM_IN_PIN, steamActive);
         ledcWrite(HITER_AIR_CHANNEL, tempOutput);
-        ledcWrite(FAN_INLET_CHANNEL, fanOutput);         
-    }
+        ledcWrite(FAN_INLET_CHANNEL, fanOutput);  
 
+
+    }
+        // if(fanOutput == 0 && pauseInlet == false) {
+        //     if((lastUpdatInletTime + 60 * 1000) >= currentInletTime) {
+        //         pauseInlet = true;
+        //         lastUpdatInletTime = currentInletTime;
+        //     }
+        // }
+        // if( pauseInlet == true){
+        //     Serial.println("===================== INLET ======================"); 
+        //     pauseInlet == false;
+        //     lastUpdatInletTime = currentInletTime;
+        // }         
 }

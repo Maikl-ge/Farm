@@ -5,23 +5,23 @@
 
 // Константы и настройки
 const int pwmCirculationChannel = 1;  // Канал PWM для вентилятора циркуляции (FAN_CIRC_PIN)
-const int pwmVentilationChannel = 2;  // Канал PWM для приточного вентилятора (FAN_INLET_PIN)
+const int pwmVentilationChannel = 2;  // Канал PWM для приточного вентилятора (FAN_VENT_PIN)
 const int pwmFrequency = 10000;        // Частота PWM
 const int pwmResolution = 10;         // Разрешение PWM (макс. 1023)
 
 const uint16_t MAX_PWM = 1000;        // Максимальное значение PWM (аппаратный предел)
 const int MIN_CIRCULATION_PWM = 50;   // Минимальное значение PWM для вентилятора циркуляции
 const int MIN_VENTILATION_PWM = 50;   // Минимальное значение PWM для приточного вентилятора
-const int WIND_CHANGE_DELAY = 100;    // Задержка между изменениями PWM (мс)
+const int WIND_CHANGE_DELAY = 200;    // Задержка между изменениями PWM (мс)
 const int WIND_CHANGE_STEP = 10;       // Максимальный шаг изменения PWM
 
 // Глобальные переменные для вентилятора циркуляции (FAN_CIRC_PIN)
 int circulationCurrentPwm = MIN_CIRCULATION_PWM;  // Текущее значение PWM для циркуляции
-int circulationTargetPwm = MIN_CIRCULATION_PWM + 50; // Целевое значение PWM для циркуляции (начальное)
+int circulationTargetPwm = MIN_CIRCULATION_PWM; // Целевое значение PWM для циркуляции (начальное)
 
-// Глобальные переменные для приточного вентилятора (FAN_INLET_PIN)
+// Глобальные переменные для приточного вентилятора (FAN_VENT_PIN)
 int ventilationCurrentPwm = MIN_VENTILATION_PWM;  // Текущее значение PWM для притока
-int ventilationTargetPwm = MIN_VENTILATION_PWM + 50; // Целевое значение PWM для притока (начальное)
+int ventilationTargetPwm = MIN_VENTILATION_PWM; // Целевое значение PWM для притока (начальное)
 
 unsigned long lastWateringUpdateTime = 0;     // Время последнего обновления
 
@@ -31,7 +31,7 @@ void setupFan() {
     ledcAttachPin(FAN_CIRC_PIN, pwmCirculationChannel);
     ledcWrite(pwmCirculationChannel, circulationCurrentPwm); // Инициализация с минимальным значением PWM
 
-    // Настройка PWM для приточного вентилятора (FAN_INLET_PIN)
+    // Настройка PWM для приточного вентилятора (FAN_VENT_PIN)
     ledcSetup(pwmVentilationChannel, pwmFrequency, pwmResolution);
     ledcAttachPin(FAN_VENT_PIN, pwmVentilationChannel);
     ledcWrite(pwmVentilationChannel, ventilationCurrentPwm); // Инициализация с минимальным значением PWM

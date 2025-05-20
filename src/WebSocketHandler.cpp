@@ -11,6 +11,7 @@
 #include <status.h>
 #include "TimeModule.h"
 #include <EEPROM.h>
+#include "httpHandler.h"
 
 std::queue<String> ackQueue;  // Очередь для хранения ACK
 
@@ -85,11 +86,13 @@ void parceMessageFromServer(const String& messageFromServer) {
     stopButton = false;
     if (messageFromServer == SERVER_CMD_START) {    // SCMD Запуск цикла роста
         startGrowe();
+        Serial.println("Команда от сервера: START");
         esp_restart();
     }
     
     if (messageFromServer == SERVER_CMD_STOP) {      // SCMS Остановка цикла роста
         stopGrowe();
+        Serial.println("Команда от сервера: STOP");
         esp_restart();
     }
 
@@ -144,8 +147,10 @@ void sendWebSocketMessage(const String& messageToSend) {
         Serial.println(TYPE_MSG); // остается от предидущего варианта
     } else {
         Serial.println("Соединение отсутствует. Сообщение не отправлено.");
+      
         enqueue(sd, messageToSend);   
     }
+  
     handleWebSocketMessage(messageToSend);  // Разбор сообщения
     if(connected) {
 
@@ -285,7 +290,7 @@ void connectWebSocket() {
             counterReconnect++;
             Serial.print("WebSocket connection failed  ");
             Serial.println(counterReconnect);
-            if(counterReconnect >= 50) {
+            if(counterReconnect >= 5000) {
                 esp_restart();
                 counterReconnect = 0;
             }
@@ -325,9 +330,15 @@ void stopGrowe() {
     breakTime(rawTime, t); // Разбираем в структуру времени
     totalMinutesElapsed = 0;
     currentBrightness = 0;
-
+    digitalWrite(STEAM_IN_PIN, LOW);
+    wateringInterval = 0; 
+    wateringDraining = 0;  
+    currentCirculation = 0;
+    currentVentilation = 0; 
+    currentRotation = 0; 
+    delay(750);
     EEPROMRead();  // Чтение Параметров из EEPROM
-
+    CheckStatusFarm();
     sendDataIfNeeded(); // Отправка данных на сервер
     serializeStatus(); // Отправка статуса фермы
 
@@ -340,11 +351,9 @@ void stopGrowe() {
 void startGrowe() {
     // Получаем текущее время в минутах
     currentTimeInMinutes = getCurrentTimeInMinutes();
-
     statusFarm = "Work";
-    CurrentStatusFarm();
     saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
-
+ 
     GROWE_MODE_TIME = currentTimeInMinutes;
     saveUint16ToEEPROM(EEPROM_GROWE_MODE_TIME_ADDRESS, currentTimeInMinutes);          
 
@@ -358,13 +367,13 @@ void startGrowe() {
     breakTime(rawTime, t); // Разбираем в структуру времени
 
     totalMinutesElapsed = 0;
-
+    delay(750);
     EEPROMRead();  // Чтение Параметров из EEPROM
+
+    CheckStatusFarm();
 
     sendDataIfNeeded(); // Отправка данных на сервер
     serializeStatus(); // Отправка статуса фермы
-
-    CheckStatusFarm();
 
     Serial.println("Команда от сервера: START"); 
     Serial.println("Время начала цикла роста: " + String(GROWE_MODE_TIME));

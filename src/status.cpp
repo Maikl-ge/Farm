@@ -177,50 +177,40 @@ void checkPhaseToGrowe() {
         phaseToGrowe = 1;
         currentPhase = "Soak"; 
         Serial.println("Текущая фаза - " + String(currentPhase) + "  " + String(statusFarm));  
-
-        // sendDataIfNeeded(); // Отправка данных на сервер
-        // serializeStatus(); // Отправка статуса фермы
     }
+
     if(totalMinutesElapsed <= longPhacse2 && totalMinutesElapsed > longPhacse1) {
         phaseToGrowe = 2;
         currentPhase = "Germ"; 
         Serial.println("Текущая фаза - " + String(currentPhase) + "  " + String(statusFarm)); 
-        
-        // sendDataIfNeeded(); // Отправка данных на сервер
-        // serializeStatus(); // Отправка статуса фермы 
     }
+
     if(totalMinutesElapsed <= longPhacse3 && totalMinutesElapsed > longPhacse2) {
         phaseToGrowe = 3;
         currentPhase = "Act"; 
         Serial.println("Текущая фаза - " + String(currentPhase) + "  " + String(statusFarm)); 
-        
-        // sendDataIfNeeded(); // Отправка данных на сервер
-        // serializeStatus(); // Отправка статуса фермы 
+
     }
+
     if(totalMinutesElapsed <= longPhacse4 && totalMinutesElapsed > longPhacse3) {
         phaseToGrowe = 4;
         currentPhase = "Early"; 
         Serial.println("Текущая фаза - " + String(currentPhase) + "  " + String(statusFarm));  
-
-        // sendDataIfNeeded(); // Отправка данных на сервер
-        // serializeStatus(); // Отправка статуса фермы
     }
+
     if(totalMinutesElapsed <= longPhacse5 && totalMinutesElapsed > longPhacse4) {
         phaseToGrowe = 5;
         currentPhase = "Grow"; 
         Serial.println("Текущая фаза - " + String(currentPhase) + "  " + String(statusFarm));  
 
-        // sendDataIfNeeded(); // Отправка данных на сервер
-        // serializeStatus(); // Отправка статуса фермы
     }
+
     if(totalMinutesElapsed <= longPhacse6 && totalMinutesElapsed > longPhacse5) {
         phaseToGrowe = 6;
         currentPhase = "Finish"; 
         Serial.println("Текущая фаза - " + String(currentPhase) + "  " + String(statusFarm)); 
-        
-        // sendDataIfNeeded(); // Отправка данных на сервер
-        // serializeStatus(); // Отправка статуса фермы 
     }
+
     if(totalMinutesElapsed >= longPhacse6 || totalMinutesElapsed >= longPhacseEnd) {
         phaseToGrowe = 7;
         currentPhase = "End"; 
@@ -228,10 +218,7 @@ void checkPhaseToGrowe() {
         Serial.println("Текущая фаза - " + String(currentPhase) + "  " + String(statusFarm));  
         saveStringToEEPROM(EEPROM_STATUS_BOX_ADDRESS, statusFarm);
         EEPROM.commit();
-        
-        // sendDataIfNeeded(); // Отправка данных на сервер
-        // serializeStatus(); // Отправка статуса фермы 
-    
+        esp_restart();
         Serial.println("Цикл роста завершился успешно. Ферма остановлена - "  + statusFarm);
         Serial.println("Время завершения цикла роста: " + String(GROWE_MODE_TIME));
     }

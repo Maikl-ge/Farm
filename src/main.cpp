@@ -16,6 +16,7 @@
 #include "fanControl.h"
 #include "status.h"
 #include <httpHandler.h>
+#include "WebControl.h"
 
 //#define WEBSOCKETS_MAX_DATA_SIZE 4096 // Максимальный размер данных
 
@@ -76,6 +77,7 @@ void updateWebSocketTask(void *parameter) {
 
 void updateSensorsTask(void *parameter) {
     for (;;) {
+        printCurrentTime();
         updateSensors();
         if (connected) {
         // Отправка ping каждые 10 секунд
@@ -101,7 +103,7 @@ void sendDataTask(void *parameter) {
             }
             // Отправка данных из очереди               
             if(dequeueIndex > 0 || enqueueIndex > 0) {
-                while((millis() - timeStartSlot) < 50000) {  // временное окно для пересылки сообщений из SD 50000 мс
+                while((millis() - timeStartSlot) < 25000) {  // временное окно для пересылки сообщений из SD 50000 мс
                     if(dequeueIndex == 0 && enqueueIndex == 0) {
                         break;
                     }                    
@@ -116,7 +118,7 @@ void sendDataTask(void *parameter) {
         //Serial.println("Время передачи: " + String(timeSlot) + " ms");  
         timeSlot = (millis() - timeStartSlot);      
         //Serial.println("Время слота: " + String(timeSlot) + " ms");   
-        vTaskDelay((59999 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
+        vTaskDelay((30000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
 }
 
@@ -152,6 +154,53 @@ void updateSettingToServerTask(void *parameter) {
 void setup() {
     Serial.begin(115200);
     Serial.setDebugOutput(false); // Отключение вывода отладочных сообщений
+
+
+
+
+
+
+// // Массив пинов и их названий
+// const int outputPins[] = {
+//   FAN_INLET_PIN,
+//   HITER_AIR_PIN, PUMP_WATERING_PIN,
+//   WATER_OUT_PIN, PUMP_TRANSFER_PIN, OSMOS_ON_PIN
+// };
+
+// const char* pinNames[] = {
+//   "FAN_INLET_PIN",
+//   "HITER_AIR_PIN", "PUMP_WATERING_PIN",
+//   "WATER_OUT_PIN", "PUMP_TRANSFER_PIN", "OSMOS_ON_PIN"
+// };
+
+
+//   delay(1000);
+//   Serial.println("Начинаем проверку пинов...");
+
+//   for (int i = 0; i < sizeof(outputPins) / sizeof(outputPins[0]); i++) {
+//     int pin = outputPins[i];
+//     pinMode(pin, OUTPUT);
+//     digitalWrite(pin, HIGH);
+//     Serial.print("Активирован пин: ");
+//     Serial.println(pinNames[i]);
+//     delay(7000);  // 10 секунд
+//     digitalWrite(pin, LOW);
+//   }
+
+//   Serial.println("Проверка завершена.");
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Подключение к WiFi
     WiFi.begin(ssid, password);
 
@@ -212,8 +261,6 @@ void setup() {
 
     readAllDS18B20();
 
-    //sendHttpCommand("SRST");
-
     pintStatusFarm = true;   
     CurrentStatusFarm(); // Определение текущего статуса фермы  
 
@@ -223,6 +270,8 @@ void setup() {
     serializeSettings();  // отправка настроек на сервер
 
     serializeStatus();  // отправка статуса фермы
+
+    setupWebServer(); // Инициализация веб-сервера
 
     // Создание задач
     xTaskCreatePinnedToCore(
@@ -289,6 +338,7 @@ void loop() {
     updateStepperControl(); // Обновление состояния двигателя
     ArduinoOTA.handle(); // Обработка OTA обновлений
     accessPoint.handleClient();  // ✅ теперь вызываешь через публичный метод
+    server.handleClient();
     // Другие задачи, если есть
 }
 
