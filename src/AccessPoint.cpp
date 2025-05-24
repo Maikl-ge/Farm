@@ -77,3 +77,8 @@ void AccessPoint::handleSave() {
         server.send(400, "text/plain", "Invalid input!");
     }
 }
+
+// Use this token to access the HTTP API:
+// 7707296799:AAEgP4vmsSxfDBYYp9hK18Bolr03geKvNuY
+// Id: 306069126
+// https://api.telegram.org/bot7707296799:AAEgP4vmsSxfDBYYp9hK18Bolr03geKvNuY/sendMessage?chat_id=306069126&text=Test+message+from+server

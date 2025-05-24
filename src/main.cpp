@@ -155,52 +155,6 @@ void setup() {
     Serial.begin(115200);
     Serial.setDebugOutput(false); // Отключение вывода отладочных сообщений
 
-
-
-
-
-
-// // Массив пинов и их названий
-// const int outputPins[] = {
-//   FAN_INLET_PIN,
-//   HITER_AIR_PIN, PUMP_WATERING_PIN,
-//   WATER_OUT_PIN, PUMP_TRANSFER_PIN, OSMOS_ON_PIN
-// };
-
-// const char* pinNames[] = {
-//   "FAN_INLET_PIN",
-//   "HITER_AIR_PIN", "PUMP_WATERING_PIN",
-//   "WATER_OUT_PIN", "PUMP_TRANSFER_PIN", "OSMOS_ON_PIN"
-// };
-
-
-//   delay(1000);
-//   Serial.println("Начинаем проверку пинов...");
-
-//   for (int i = 0; i < sizeof(outputPins) / sizeof(outputPins[0]); i++) {
-//     int pin = outputPins[i];
-//     pinMode(pin, OUTPUT);
-//     digitalWrite(pin, HIGH);
-//     Serial.print("Активирован пин: ");
-//     Serial.println(pinNames[i]);
-//     delay(7000);  // 10 секунд
-//     digitalWrite(pin, LOW);
-//   }
-
-//   Serial.println("Проверка завершена.");
-
-
-
-
-
-
-
-
-
-
-
-
-
     // Подключение к WiFi
     WiFi.begin(ssid, password);
 

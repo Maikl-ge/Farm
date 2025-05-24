@@ -149,10 +149,7 @@ void readTempAndHum() {
         // Проверяем данные на NaN для определения потерянного датчика
         temperatureInBox = isnan(temperatureInBox) ? 5.404 : roundf(temperatureInBox * 100) / 100.0;
         humidityInBox = isnan(humidityInBox) ? 32.404 : roundf(humidityInBox * 10) / 10.0; 
-
-//     // Если данные NaN, используем случайные значения для отладки
-//     // data.temperature = isnan(temp) ? (22 + rand() % 5 + (rand() % 100) / 100.0) : roundf(temp * 100) / 100.0;
-//        data.humidity = isnan(hum) ? (61 + rand() % 20 + (rand() % 100) / 100.0) : roundf(hum * 100) / 100.0;    
+  
     }
 }
 

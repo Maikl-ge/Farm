@@ -34,14 +34,14 @@
 #define FAN_INLET_PIN 12        // Подача воздуха из вне (PWM) (GPIO12, нога 13)
 #define HITER_AIR_PIN 14    // Обогрев камеры (PWM) (GPIO13, нога 15)
 
-#define HITER_WATER_PIN 13  // Нагрев воды (PWM) (GPIO14, нога 12)
+#define HITER_WATER_PIN 27  // Нагрев воды (PWM) (GPIO14, нога 12)
 
 // Пины для управления нагрузками ON/OFF
 #define PUMP_WATERING_PIN 32    // Полив (ON/OFF) (GPIO32, нога 8)
 #define WATER_OUT_PIN 33 // Слив (ON/OFF) (GPIO27, нога 11)
 #define STEAM_IN_PIN 17  // Парогенератор (ON/OFF) (GPI033, нога 7)
 
-#define PUMP_TRANSFER_PIN 27   // Подача в бак полива osmo воды (ON/OFF) (GPIO17, нога )
+#define PUMP_TRANSFER_PIN 13   // Подача в бак полива osmo воды (ON/OFF) (GPIO17, нога )
 #define OSMOS_ON_PIN 3 // Подача очищенной воды (ON/OFF) (GPIO03, нога 34)
 
 // Шаговый двигатель (Step, Dir, Enable)

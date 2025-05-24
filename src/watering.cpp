@@ -18,10 +18,10 @@ bool drainIsOn = false;
 bool pumpIsOffLevel = false;
 bool drainPending = false;
 
-const unsigned long PUMP_RUN_TIME_SECONDS = 1 * 60;  // Время работы насоса - 1 минута
-const unsigned long DRAIN_OPEN_TIME = 0.5 * 60;      // Время открытия клапана слива - 1.5 минуты
+const unsigned long PUMP_RUN_TIME_SECONDS = 0.1 * 60;  // Время работы насоса - 1 минута
+const unsigned long DRAIN_OPEN_TIME = 5 * 60;      // Время открытия клапана слива - 2 минуты
 
-bool max_watering_level = 1;
+bool max_watering_level = 1; // Уровень воды в баке убрать после отладки
 
 void stopPump(const char* reason);
 void checkDrainDelayTime();

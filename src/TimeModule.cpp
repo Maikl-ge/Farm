@@ -165,10 +165,37 @@ void printCurrentTime() {
 }
 
 // Получение текущего времени в минутах
+// Глобальная переменная для хранения предыдущего времени в минутах
+uint16_t PreviousTimeInMinutes = 0;
+
 uint16_t getCurrentTimeInMinutes() {
+    // Временные переменные
+    uint8_t h1, m1, h2, m2, h3, m3;
+
+    // Тройное чтение RTC с паузами
     rtc.getDateTime();
-    uint16_t currentTimeInMinutes = rtc.getHour() * 60 + rtc.getMinute();
-    return currentTimeInMinutes;
+    h1 = rtc.getHour(); m1 = rtc.getMinute();
+    delay(10);
+
+    rtc.getDateTime();
+    h2 = rtc.getHour(); m2 = rtc.getMinute();
+    delay(10);
+
+    rtc.getDateTime();
+    h3 = rtc.getHour(); m3 = rtc.getMinute();
+
+    // Проверка совпадения времени
+    bool timeMatch = (h1 == h2 && h2 == h3) && (m1 == m2 && m2 == m3);
+
+    if (timeMatch) {
+        // Если совпало — обновляем предыдущее значение и возвращаем новое
+        PreviousTimeInMinutes = h1 * 60 + m1;
+        return PreviousTimeInMinutes;
+    } else {
+        // Иначе возвращаем предыдущее значение
+        Serial.println("RTC minute read mismatch — using previous time.");
+        return PreviousTimeInMinutes;
+    }
 }
 
 // Сохранение текущей даты в GROWE_MODE_DATE как число дней с 1 января 1970

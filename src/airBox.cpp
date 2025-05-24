@@ -4,23 +4,23 @@
 #include <globals.h>
 #include <SensorsModule.h>
 #include <status.h>
-#include <airBox.h>
 
 // Константы
-const int PWM_FREQUENCY = 5000;
+const int PWM_FREQUENCY = 20000;
 const int PWM_RESOLUTION = 10;
 const int HITER_AIR_CHANNEL = 3;
 const int FAN_INLET_CHANNEL = 4;
 const float TEMP_TOLERANCE = 0.25;
-const float HUM_TOLERANCE = 0.5;
+const float HUM_TOLERANCE = 3;
 const int MIN_PWM = 0;
 const int MAX_PWM = 1000;
+float HUN_CORRECTION = 4.0; // Коррекция влажности
 bool steamActive = LOW;
 unsigned long currentInletTime = 0;
 static unsigned long lastUpdatInletTime = 0;
 
 // Коэффициенты пропорционального управления
-const float K_TEMP = 500.0; // Коэффициент для нагревателя (PWM на °C ошибки)
+const float K_TEMP = 2000.0; // Коэффициент для нагревателя (PWM на °C ошибки)
 const float K_FAN_TEMP = 250.0; // Коэффициент для вентилятора по температуре (PWM на °C)
 const float K_FAN_HUM = 100.0;  // Коэффициент для вентилятора по влажности (PWM на %)
 
@@ -60,7 +60,7 @@ void updateClimateControl() {
         // Установка текущих и целевых значений
         float tempInput = temperatureInBox;
         float tempSetpoint = currentTemperatura + TEMP_TOLERANCE;
-        float humInput = humidityInBox;
+        float humInput = (humidityInBox - HUN_CORRECTION);
         float humSetpoint = currentHumidity;
 
         // Проверка условий
@@ -147,7 +147,7 @@ void updateClimateControl() {
         if (smoothedFanOutput < MIN_PWM) smoothedFanOutput = MIN_PWM;
 
         // Приведение к целому типу для ledcWrite
-        int tempOutput = (int)smoothedTempOutput / 2;
+        int tempOutput = (int)smoothedTempOutput;
         int fanOutput = (int)smoothedFanOutput;
 
         if(tempSetpoint < tempInput) {
@@ -155,6 +155,17 @@ void updateClimateControl() {
         }
         if((humSetpoint - HUM_TOLERANCE) > humInput) {
             steamActive = HIGH;   
+        }
+
+        if(humSetpoint + HUM_TOLERANCE < humInput) {
+            steamActive = LOW;   
+        }
+
+        if(fanOutput <= 200) {
+            fanOutput = 200;
+        }
+        if(tempSetpoint + TEMP_TOLERANCE >= tempInput && humInput <= humSetpoint + HUM_TOLERANCE) {
+            fanOutput = 0;
         }
         // Обновление глобальных переменных
         HITER_AIR = tempOutput;

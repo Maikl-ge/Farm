@@ -6,9 +6,9 @@
 #include <cmath>
 
 // Константы и настройки
-const int STEPS_PER_REVOLUTION = 200 * 16;  // 3200 шагов на оборот (микрошаг 1/16)
+const int STEPS_PER_REVOLUTION = 10 * 16;  // = 20 * 16; = 200 * 16;  3200 шагов на оборот (микрошаг 1/16)
 const float MIN_RPM = 0.1;                 // Минимальная скорость вращения (RPM)
-const float MAX_RPM = 50.0;                // Уменьшенная максимальная скорость
+const float MAX_RPM = 500.0;                // Уменьшенная максимальная скорость
 const int ACCELERATION_STEPS = 8000;       // Больше шагов для плавности
 const float ACCELERATION_RATE = (MAX_RPM - MIN_RPM) / (float)ACCELERATION_STEPS;
 
