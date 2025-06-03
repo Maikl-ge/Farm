@@ -1,33 +1,32 @@
 import aiohttp_jinja2
 from aiohttp import web
+from message_handler import MessageHandler
 import logging
-import json
-import traceback
-from datetime import datetime
 
-# Определяем логгер внутри модуля
+# Настройка логгера
 logger = logging.getLogger(__name__)
 
-# Глобальная переменная
+# Глобальные константы
 farm_id = '255'
 
-cmd_start = "SCMD";       # Команда на запуск
-cmd_stop = "SCMS";        # Команда на остановку
-cmd_restart = "SCMR";     # Команда на перезапуск
-cmd_update = "SCMU";      # Команда на обновление ПО
-cmd_settings = "SCME";    # Команда на обновление настроек
+cmd_start = "SCMD"       # Команда на запуск
+cmd_stop = "SCMS"        # Команда на остановку
+cmd_restart = "SCMR"     # Команда на перезапуск
+cmd_update = "SCMU"      # Команда на обновление ПО
+cmd_settings = "SCME"    # Команда на обновление настроек
 
-req_status = "SRST";      # Запрос о статусе фермы
-req_data = "SRDT";        # Запрос данных фермы
-req_settings = "SRSE";    # Запрос о настройках фермы Профиля настроек сохраненных 
-req_parameters = "SRPM";  # Запрос о параметрах фермы
-req_profile = "SRPF";     # Запрос о профиле фермы
-req_current = "SRCU";     # Запрос  текущих данных фермы
+req_status = "SRST"      # Запрос о статусе фермы
+req_data = "SRDT"        # Запрос данных фермы
+req_settings = "SRSE"    # Запрос о настройках фермы
+req_parameters = "SRPM"  # Запрос о параметрах фермы
+req_profile = "SRPF"     # Запрос о профиле фермы
+req_current = "SRCU"     # Запрос текущих данных фермы
 
 class FarmHTTPHandler:
-    def __init__(self, db_manager, websocket_handler):
+    def __init__(self, db_manager, websocket_handler, message_handler):
         self.db_manager = db_manager
         self.websocket_handler = websocket_handler
+        self.message_handler = message_handler
         self.logger = logger
 
     async def index(self, request):
@@ -61,7 +60,7 @@ class FarmHTTPHandler:
         except Exception as e:
             self.logger.error(f"Error showing parameters: {e}")
             return web.Response(text=str(e), status=500)
-            
+
     async def select_parameter(self, request):
         """Метод для выбора параметра"""
         try:
@@ -71,27 +70,23 @@ class FarmHTTPHandler:
                     SELECT * FROM profile_phases 
                     WHERE profileid = $1
                 ''', int(profile_id))
-                              
-                                    
-                # Данные для формирования команды
-                farm_id = "255"
-                req_settings = "SCME"
-                params_dict = dict(params)
+
+                if not params:
+                    raise web.HTTPNotFound(text="Profile not found")
 
                 # Формируем строку команды
-                command_str = f"{farm_id} {req_settings} {params_dict}"
+                params_dict = dict(params)
+                command_str = f"{farm_id} {cmd_settings} {params_dict}"
+
                 # Отправляем команду через WebSocket
                 result = await self.websocket_handler.send_raw_command(command_str)
 
-                print(f"Selected parameters for send: {command_str}")
-                
-                if not params:
-                    raise web.HTTPNotFound(text="Profile not found")
-                
+                self.logger.info(f"Selected parameters for send: {command_str}")
+
                 return aiohttp_jinja2.render_template(
                     'parameters.html',
                     request,
-                    {'params': dict(params)}
+                    {'params': params_dict}
                 )
 
         except web.HTTPNotFound:
@@ -101,8 +96,7 @@ class FarmHTTPHandler:
             return web.Response(text=str(e), status=400)
         except Exception as e:
             self.logger.error(f"Error selecting parameter: {e}")
-            return web.Response(text=str(e), status=500)          
-            
+            return web.Response(text=str(e), status=500)
 
     async def edit_parameters(self, request):
         """Редактирование профиля параметров"""
@@ -195,7 +189,6 @@ class FarmHTTPHandler:
                             phase6_rot = $64
                         WHERE profileid = $65
                     ''',
-                    
                     data['nameProfile'],
                     int(data['cycle']),
                     sunrise_minutes,
@@ -260,7 +253,7 @@ class FarmHTTPHandler:
                     int(data['phase6_watering']),
                     int(data['phase6_draining']),
                     int(data['phase6_rot']),
-                    int(profile_id),                     )
+                    int(profile_id))
                     
                     raise web.HTTPFound('/parameters')
 
@@ -279,82 +272,68 @@ class FarmHTTPHandler:
         except Exception as e:
             self.logger.error(f"Error editing parameters: {e}")
             return web.Response(text=str(e), status=500)
-            
-            
 
     async def send_cmd(self, request):
         """Метод для отправки команд по клику"""
         try:
             data = await request.json()  # Получаем JSON из запроса
-            cmd = data.get("command")  # Извлекаем команду
-            ask_end = data.get("ask_comm")  # Извлекаем команду            
+            cmd = data.get("command")    # Извлекаем команду
+            ask_end = data.get("ask_comm")  # Извлекаем команду
 
             if not cmd:
                 raise web.HTTPBadRequest(text="Missing 'command' parameter")
 
-            farm_id = "255"
             command_str = f"{farm_id} {cmd} {ask_end}"  # Формируем строку команды
 
             if self.websocket_handler:
                 result = await self.websocket_handler.send_raw_command(command_str)
+                self.logger.info(f"Sent command: {command_str}")
             else:
                 raise web.HTTPInternalServerError(text="WebSocket handler is not initialized")
-
-            #print(f"Sent command: {command_str}")
 
             return aiohttp_jinja2.render_template(
                 'command.html', request, {'command': command_str, 'result': result}
             )
 
         except Exception as e:
-            print(f"Error sending command: {e}")
+            self.logger.error(f"Error sending command: {e}")
             raise web.HTTPInternalServerError(text=f"Internal Server Error: {str(e)}")
-            
-            
-    async def handle_http_report(self, request: web.Request):
-        """Обрабатывает полученное HTTP-сообщение"""
-        client_ip = request.remote
-        body = await request.text()
 
-        #print(f"\nHTTP message from {client_ip} ===\n{body}\n")
-        self.logger.info(f"Received HTTP message from {client_ip}: {body}")
-
-        parts = body.split(' ', 3)
-        if len(parts) < 4:
-            return web.json_response({'error': 'Invalid message format'}, status=400)
-
-        id_farm = parts[0]
-        type_msg = parts[1]
-        json_length = parts[2]
-
+    async def http_report(self, request):
+        self.logger.info("Данные по HTTP")
+        """Обработка POST-запроса как будто он пришёл по WebSocket"""
         try:
-            data = json.loads(parts[3])
-        except json.JSONDecodeError:
-            return web.json_response({'error': 'Invalid JSON payload'}, status=400)
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        #print(f"[DEBUG] datetime = {datetime}, type = {type(datetime)}")
-        
-        #self.logger.info(f"{timestamp} - Получено сообщение по HTTP от {client_ip}: {body}")
-
-        if type_msg == "FRQS":
-            self.websocket_handler.frqs_data = data
-            self.logger.info(f"FRQS data updated: {data}")
-        elif type_msg == "FLIN":
-            success = await self.db_manager.save_sensor_data(data, timestamp)
-            if success:
-                self.logger.info(f"{timestamp} - Данные по http от клиента {id_farm} успешно сохранены")
-            else:
-                self.logger.error(f"{timestamp} - Ошибка при сохранении данных  по http")
-        elif type_msg == "FDST":
-            success = await self.db_manager.save_status_data(data, timestamp)
-            if success:
-                self.logger.info(f"{timestamp} - Статусные по http данные от клиента {id_farm} успешно сохранены")
-            else:
-                self.logger.error(f"{timestamp} - Ошибка при сохранении статусных данных по http ")
-        else:
-            self.logger.warning(f"Unknown HTTP message type from {client_ip}: {type_msg}")
-            return web.json_response({'error': 'Unknown message type'}, status=400)
-
-        # ⬇️ финальный return здесь, после всех условий
-        return web.json_response({'status': 'ok'})
+            self.logger.info(f"Обработка POST-запроса")
+            text = await request.text()
+            # Вызываем handle_message через message_handler
+            await self.message_handler.handle_message(text, websocket=None)
+            return web.json_response({"status": "OK", "message": "Processed as WebSocket"})
+        except Exception as e:
+            self.logger.exception("Error handling HTTP report")
+            return web.json_response({"error": str(e)}, status=500)
+            
+    async def http_latest_sensor(self, request):
+        """Возвращает последние данные сенсоров из буфера DatabaseManager."""
+        try:
+            data = await self.db_manager.get_latest_sensor_data()
+            if not data:
+                self.logger.info("No sensor data available")
+                return web.json_response({"status": "empty", "data": {}})
+            self.logger.info("Returning latest sensor data")
+            return web.json_response({"status": "success", "data": data})
+        except Exception as e:
+            self.logger.error(f"Error retrieving latest sensor data: {e}")
+            return web.json_response({"status": "error", "error": str(e)}, status=500)            
+            
+    async def http_latest_status(self, request):
+        """Возвращает последние данные сенсоров из буфера DatabaseManager."""
+        try:
+            data = await self.db_manager.get_latest_status_data()
+            if not data:
+                self.logger.info("No sensor data available")
+                return web.json_response({"status": "empty", "data": {}})
+            self.logger.info("Returning latest sensor data")
+            return web.json_response({"status": "success", "data": data})
+        except Exception as e:
+            self.logger.error(f"Error retrieving latest sensor data: {e}")
+            return web.json_response({"status": "error", "error": str(e)}, status=500)   

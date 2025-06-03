@@ -6,7 +6,7 @@
 #include <cmath>
 
 // Константы и настройки
-const int STEPS_PER_REVOLUTION = 10 * 16;  // = 20 * 16; = 200 * 16;  3200 шагов на оборот (микрошаг 1/16)
+const int STEPS_PER_REVOLUTION = 20 * 16;  // = 20 * 16; = 200 * 16;  3200 шагов на оборот (микрошаг 1/16)
 const float MIN_RPM = 0.1;                 // Минимальная скорость вращения (RPM)
 const float MAX_RPM = 500.0;                // Уменьшенная максимальная скорость
 const int ACCELERATION_STEPS = 8000;       // Больше шагов для плавности
@@ -106,7 +106,7 @@ void germRotation() {
 
     if (currentStepTime - lastStepTime >= stepInterval) {
         digitalWrite(STEP_PIN, HIGH);
-        delayMicroseconds(50); // Увеличенный импульс
+        delayMicroseconds(10); // Увеличенный импульс
         digitalWrite(STEP_PIN, LOW);
         lastStepTime = currentStepTime;
     }
@@ -131,7 +131,7 @@ void rightStep() {
         digitalWrite(DIR_PIN, currentDir);
         if (currentStepTime - lastStepTime >= stepInterval) {
             digitalWrite(STEP_PIN, HIGH);
-            delayMicroseconds(50);
+            delayMicroseconds(10);
             digitalWrite(STEP_PIN, LOW);
             lastStepTime = currentStepTime;
             soakStepCount++;
@@ -163,7 +163,7 @@ void leftStep() {
         digitalWrite(DIR_PIN, currentDir);
         if (currentStepTime - lastStepTime >= stepInterval) {
             digitalWrite(STEP_PIN, HIGH);
-            delayMicroseconds(50);
+            delayMicroseconds(10);
             digitalWrite(STEP_PIN, LOW);
             lastStepTime = currentStepTime;
             soakStepCount++;

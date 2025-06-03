@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Путь к проекту
-PROJECT_DIR=/root/farm
+PROJECT_DIR=~/farm
 
 # Имя сервиса systemd
 SERVICE_NAME="farm"
@@ -48,7 +48,7 @@ case "$1" in
         check_server
         ;;
     *)
-        echo "Использование: $0 {st|run|stop|rst}"
+        echo "Использование: $0 {run|stop|rst|st}"
         exit 1
         ;;
 esac

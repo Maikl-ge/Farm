@@ -14,10 +14,20 @@ const float TEMP_TOLERANCE = 0.25;
 const float HUM_TOLERANCE = 3;
 const int MIN_PWM = 0;
 const int MAX_PWM = 1000;
-float HUN_CORRECTION = 4.0; // Коррекция влажности
+float HUN_CORRECTION = 0.0; // Коррекция влажности
 bool steamActive = LOW;
 unsigned long currentInletTime = 0;
 static unsigned long lastUpdatInletTime = 0;
+// Переменные принудительной вентиляции
+unsigned long lastFanOnTime = 0;      // Последнее включение вентилятора
+unsigned long fanOnDuration = 5 * 1000;     // 30 секунд
+unsigned long fanMinInterval = 16 * 60 * 1000; // 16 минут
+unsigned long fanTriggerInterval = 15 * 60 * 1000; // каждые 15 минут
+bool fanForced = false;               // Флаг принудительного включения
+unsigned long fanForcedStartTime = 0; // Время старта принудительного включения
+int fanOutput;
+unsigned long lastFanTriggerTime = 0;
+unsigned long lastFanActualOnTime = 0;
 
 // Коэффициенты пропорционального управления
 const float K_TEMP = 2000.0; // Коэффициент для нагревателя (PWM на °C ошибки)
@@ -60,7 +70,7 @@ void updateClimateControl() {
         // Установка текущих и целевых значений
         float tempInput = temperatureInBox;
         float tempSetpoint = currentTemperatura + TEMP_TOLERANCE;
-        float humInput = (humidityInBox - HUN_CORRECTION);
+        float humInput = (humidityInBox + HUN_CORRECTION);
         float humSetpoint = currentHumidity;
 
         // Проверка условий
@@ -148,7 +158,7 @@ void updateClimateControl() {
 
         // Приведение к целому типу для ledcWrite
         int tempOutput = (int)smoothedTempOutput;
-        int fanOutput = (int)smoothedFanOutput;
+        fanOutput = (int)smoothedFanOutput;
 
         if(tempSetpoint < tempInput) {
            tempOutput =  MIN_PWM;
@@ -176,19 +186,36 @@ void updateClimateControl() {
         // Применение значений к выходам
         digitalWrite(STEAM_IN_PIN, steamActive);
         ledcWrite(HITER_AIR_CHANNEL, tempOutput);
+
+        if(!fanForced) {
         ledcWrite(FAN_INLET_CHANNEL, fanOutput);  
-
-
+        }
     }
-        // if(fanOutput == 0 && pauseInlet == false) {
-        //     if((lastUpdatInletTime + 60 * 1000) >= currentInletTime) {
-        //         pauseInlet = true;
-        //         lastUpdatInletTime = currentInletTime;
-        //     }
-        // }
-        // if( pauseInlet == true){
-        //     Serial.println("===================== INLET ======================"); 
-        //     pauseInlet == false;
-        //     lastUpdatInletTime = currentInletTime;
-        // }         
+
+    unsigned long now = millis();
+
+    // Принудительное включение вентилятора каждые 15 минут,
+    // если он не работал последние 16 минут
+    if (!fanForced &&
+        (now - lastFanTriggerTime >= fanTriggerInterval) &&
+        (now - lastFanActualOnTime >= fanMinInterval)) {
+
+        fanForced = true;
+        fanForcedStartTime = now;
+        lastFanTriggerTime = now;
+        lastFanActualOnTime = now;
+
+        int fanOutputInlet = 700;
+        FAN_INLET = fanOutputInlet;
+        ledcWrite(FAN_INLET_CHANNEL, fanOutputInlet);
+    }
+
+    // Выключение через 30 секунд
+    if (fanForced && (now - fanForcedStartTime >= fanOnDuration)) {
+        fanForced = false;
+
+        int fanOutputInlet = 0;
+        FAN_INLET = fanOutputInlet;
+        ledcWrite(FAN_INLET_CHANNEL, fanOutputInlet);
+    }        
 }

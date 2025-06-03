@@ -5,49 +5,38 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Parameters</title>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .container-wrapper {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
-            flex-wrap: wrap;
         }
         .container {
-            width: 300px;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
-            box-sizing: border-box;
-            border: 2px solid #333; /* Для наглядности */
-            background-color: #f9f9f9;
         }
-        .page-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin: 0 0 10px 0;
+        .profile-list, .profile-item, .profile-name, .edit-button, .select-button, .page-title {
+            font-family: 'Inter', sans-serif;
         }
         .profile-list {
+            font-weight: 600;
+            font-size: 16px;
             list-style-type: none;
-            padding: 0;
-            margin: 0;
+            padding: 20px;
         }
         .profile-item {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         .profile-name {
             width: 80px;
+            background-color: transparent;
+            border: none;
             padding: 5px;
         }
-        .select-button, .edit-button {
+        .edit-button, .select-button {
+            font-weight: 400;
             padding: 5px 10px;
             font-size: 16px;
             background-color: transparent;
@@ -56,73 +45,36 @@
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
-            margin-left: 5px;
+            margin-left: 2px;
         }
-        .select-button:hover, .edit-button:hover {
+        .edit-button:hover, .select-button:hover {
             background-color: #d3d3d3;
+            color: #333;
         }
-        @media (max-width: 768px) {
-            .container-wrapper {
-                flex-direction: column;
-                align-items: center;
-            }
-            .container {
-                width: 100%;
-                max-width: 400px;
-            }
+        .page-title {
+            padding: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <div class="container-wrapper">
-        <!-- Контейнер 1 -->
-        <div class="container">
-            <h1 class="page-title">Параметры 1</h1>
+    <div class="container">
+        <h1 class="page-title">System Parameters</h1>
+        {% if params %}
             <ul class="profile-list">
-                <li class="profile-item">
-                    <a href="#" class="select-button">Выбрать</a>
-                    <span class="profile-name">Профиль A</span>
-                    <a href="#" class="edit-button">Редактировать</a>
-                </li>
-                <li class="profile-item">
-                    <a href="#" class="select-button">Выбрать</a>
-                    <span class="profile-name">Профиль B</span>
-                    <a href="#" class="edit-button">Редактировать</a>
-                </li>
+                {% for param in params %}
+                    <li class="profile-item">
+                        <a href="/parameters/{{param.id}}/select" class="select-button">Select</a>
+                        <span class="profile-name">{{ param.nameprofile }}</span>
+                        <a href="/parameters/{{param.id}}/edit" class="edit-button">Edit Profile</a>
+                    </li>
+                {% endfor %}
             </ul>
-        </div>
-        <!-- Контейнер 2 -->
-        <div class="container">
-            <h1 class="page-title">Параметры 2</h1>
-            <ul class="profile-list">
-                <li class="profile-item">
-                    <a href="#" class="select-button">Выбрать</a>
-                    <span class="profile-name">Профиль C</span>
-                    <a href="#" class="edit-button">Редактировать</a>
-                </li>
-                <li class="profile-item">
-                    <a href="#" class="select-button">Выбрать</a>
-                    <span class="profile-name">Профиль D</span>
-                    <a href="#" class="edit-button">Редактировать</a>
-                </li>
-            </ul>
-        </div>
-        <!-- Контейнер 3 -->
-        <div class="container">
-            <h1 class="page-title">Параметры 3</h1>
-            <ul class="profile-list">
-                <li class="profile-item">
-                    <a href="#" class="select-button">Выбрать</a>
-                    <span class="profile-name">Профиль E</span>
-                    <a href="#" class="edit-button">Редактировать</a>
-                </li>
-                <li class="profile-item">
-                    <a href="#" class="select-button">Выбрать</a>
-                    <span class="profile-name">Профиль F</span>
-                    <a href="#" class="edit-button">Редактировать</a>
-                </li>
-            </ul>
-        </div>
+        {% else %}
+            <p>No profiles found.</p>
+        {% endif %}
     </div>
 </body>
 </html>

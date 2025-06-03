@@ -73,7 +73,7 @@
             font-size: 14px;
             color: #aaa;
             background-color: transparent;
-            border: 0px solid #6d6d6d;
+            border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
         }
@@ -110,7 +110,7 @@
         input[type="submit"] {
             background-color: transparent;
             color: #aaa;
-            border: 1px solid #6d6d6d;
+            border: 1px solid #aaa;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
@@ -570,7 +570,7 @@ function populateForm(data) {
         data.phases.forEach((phase, index) => {
             const tabNumber = index + 1;
             if (tabNumber <= 6) {
-				document.getElementById(phase${tabNumber}_duration).value = phase.duration || ' ';
+                document.getElementById(`phase${tabNumber}_duration`).value = phase.duration || '';
                 document.getElementById(`phase${tabNumber}_temp`).value = phase.temp || '';
                 document.getElementById(`phase${tabNumber}_hum`).value = phase.hum || '';
                 document.getElementById(`phase${tabNumber}_water_temp`).value = phase.waterTemp || '';

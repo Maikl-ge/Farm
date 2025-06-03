@@ -4,7 +4,7 @@
 AccessPoint::AccessPoint() : server(80) {}
 
 #define AP_SSID "Farm 255"
-#define AP_PASSWORD "87654321" // Минимум 8 символов
+#define AP_PASSWORD "87654321" // Минимум 8 символов ###
 
 void AccessPoint::start() {
     // Инициализация точки доступа
@@ -17,12 +17,12 @@ void AccessPoint::start() {
     server.on("/", HTTP_GET, std::bind(&AccessPoint::handleRoot, this));
     server.on("/save", HTTP_POST, std::bind(&AccessPoint::handleSave, this));
     server.begin();
-    Serial.println("Web Server Started");
+    Serial.println("Web Server Started ");
 }
 
 String AccessPoint::getSSID() {
     preferences.begin("wifi", true);
-    String ssid = preferences.getString("ssid", "");
+    String ssid = preferences.getString("ssid ", "");
     preferences.end();
     return ssid;
 }

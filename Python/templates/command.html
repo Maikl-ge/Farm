@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -215,17 +216,7 @@
 <body>
     <div class="container">
         <h1>Farm Parameters</h1>
-        <div class="button-group">
-            <button class="refresh-btn" onclick="loadFrqsData(event)">Refresh Parameters</button>
-            <button class="refresh-btn" onclick="SendCMD(event)">Parameters</button>
-            <button class="refresh-btn" onclick="RebootCMD(event)">Farm Reboot</button>
-            <button class="refresh-btn" onclick="StartCMD(event)">Start GROWING</button>
-            <button class="refresh-btn" onclick="StopCMD(event)">Stop GROWING</button>
-            <button class="refresh-btn" onclick="UpdataCMD(event)">Update App</button>
-            <button class="refresh-btn" onclick="SendDATA(event)">Send DATA</button>
-            <button class="refresh-btn" onclick="StatusCMD(event)">Send STATUS</button>
-            <button class="refresh-btn" onclick="PauseCMD(event)">Send PAUSE</button>
-        </div>
+
         <form id="profileForm">
             <h1 id="showProfileTitle">Show Profile</h1>
             <div class="form-row">
@@ -547,6 +538,17 @@
                 </div>
             </div>
         </form>
+          <div class="button-group">
+            <button class="refresh-btn" onclick="loadFrqsData(event)">Refresh Parameters</button>
+            <button class="refresh-btn" onclick="SendCMD(event)">Parameters</button>
+            <button class="refresh-btn" onclick="RebootCMD(event)">Farm Reboot</button>
+            <button class="refresh-btn" onclick="StartCMD(event)">Start GROWING</button>
+            <button class="refresh-btn" onclick="StopCMD(event)">Stop GROWING</button>
+            <button class="refresh-btn" onclick="UpdataCMD(event)">Update App</button>
+            <button class="refresh-btn" onclick="SendDATA(event)">Send DATA</button>
+            <button class="refresh-btn" onclick="StatusCMD(event)">Send STATUS</button>
+            <button class="refresh-btn" onclick="PauseCMD(event)">Send PAUSE</button>
+        </div>
     </div>
     <script>
         let websocketCheckInterval;
@@ -658,10 +660,29 @@
             });
         }
 
-        function SendCMD(event) { sendCommand('SRSE', '12', event.target); }
-        function RebootCMD(event) { sendCommand('SCMR', '12', event.target); }
-        function StartCMD(event) { sendCommand('SCMD', '12', event.target); }
-        function StopCMD(event) { sendCommand('SCMS', '12', event.target); }
+		function SendCMD(event) { sendCommand('SRSE', '12', event.target); }
+		function RebootCMD(event) { sendCommand('SCMR', '12', event.target); }
+			
+		function StartCMD(event) {
+			const password = prompt("Enter password:");
+			if (password === "Farm") {
+				sendCommand('SCMD', '12', event.target);
+			} else {
+				alert("Error password");
+			}
+		}
+		
+		function StopCMD(event) {
+			const password = prompt("Enter password:");
+			if (password === "Farm") {
+				sendCommand('SCMS', '12', event.target);
+			} else {
+				alert("Error password");
+			}
+		}		
+		
+		
+
         function UpdataCMD(event) { sendCommand('SCMU', '12', event.target); }
         function SendDATA(event) { sendCommand('SRDT', '12', event.target); }
         function StatusCMD(event) { sendCommand('SRST', '12', event.target); }

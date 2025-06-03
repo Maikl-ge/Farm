@@ -10,8 +10,8 @@ const int pwmFrequency = 20000;        // Частота PWM
 const int pwmResolution = 10;         // Разрешение PWM (макс. 1023)
 
 const uint16_t MAX_PWM = 1000;        // Максимальное значение PWM (аппаратный предел)
-const int MIN_CIRCULATION_PWM = 50;   // Минимальное значение PWM для вентилятора циркуляции
-const int MIN_VENTILATION_PWM = 50;   // Минимальное значение PWM для приточного вентилятора
+const int MIN_CIRCULATION_PWM = 250;   // Минимальное значение PWM для вентилятора циркуляции
+const int MIN_VENTILATION_PWM = 150;   // Минимальное значение PWM для приточного вентилятора
 const int WIND_CHANGE_DELAY = 200;    // Задержка между изменениями PWM (мс)
 const int WIND_CHANGE_STEP = 10;       // Максимальный шаг изменения PWM
 

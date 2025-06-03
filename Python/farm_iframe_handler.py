@@ -131,7 +131,7 @@ class FarmIframeHandler:
             limit = int(limit)
 
             async with self.db_manager.sensor_pool.acquire() as conn:
-                records = await conn.fetch(f'SELECT temperature_1, humidity_1 FROM sensor_data ORDER BY timestamp DESC LIMIT {limit}')
+                records = await conn.fetch(f'SELECT "current_time", temperature_1, humidity_1 FROM sensor_data ORDER BY timestamp DESC LIMIT {limit}')
                 
             return web.json_response([dict(record) for record in records])
         except Exception as e:

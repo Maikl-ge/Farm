@@ -48,6 +48,7 @@ const char* html_page = R"rawliteral(
   <button onclick="sendCommand(2)">Stop  Growing</button><br>
   <button onclick="sendCommand(3)">Send  Data</button><br>
   <button onclick="sendCommand(4)">Send Status</button>
+  <button onclick="ReBoot(5)">Reboot</button>
     <script>
         function sendCommand(num) {
             fetch("/btn" + num)
@@ -83,7 +84,8 @@ void handleButton(int num) {
         serializeStatus();
         Serial.println("Send Status direct command");
     } else if (num == 5) {
-
+        Serial.println("Send Status direct command");
+        esp_restart();
     } else if (num == 6) {
 
     }
@@ -97,8 +99,8 @@ void setupWebServer() {
     server.on("/btn2", []() { handleButton(2); });
     server.on("/btn3", []() { handleButton(3); });
     server.on("/btn4", []() { handleButton(4); });
-    server.on("/btn5", []() { handleButton(4); });
-    server.on("/btn6", []() { handleButton(4); });
+    server.on("/btn5", []() { handleButton(5); });
+    server.on("/btn6", []() { handleButton(6); });
     server.begin();
     Serial.println("HTTP сервер запущен");
 }

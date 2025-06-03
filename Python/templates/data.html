@@ -1,100 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>Farm Sensor Data</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 24px;
+            background-color: #f7f9fc;
+            color: #1a202c;
         }
-        
+
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out;
         }
 
         h1 {
-            color: #2c3e50;
+            color: #2d3748;
             text-align: center;
-            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .refresh-btn {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .refresh-btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            background-color: #ffffff;
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            background-color: white;
+            font-size: 0.9rem;
         }
 
         .data-table th {
-            background-color: #3498db;
-            color: white;
+            background-color: #3b82f6;
+            color: #ffffff;
             padding: 12px;
             text-align: left;
             font-weight: 500;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
 
         .data-table td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #1a202c;
+        }
+
+        .data-table tr {
+            transition: background-color 0.2s ease;
         }
 
         .data-table tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .sensor-group {
-            background-color: #ecf0f1;
+            background-color: #f1f5f9;
         }
 
         .timestamp-col {
             white-space: nowrap;
         }
 
-        .button-group {
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .refresh-btn {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        .refresh-btn:hover {
-            background-color: #27ae60;
-        }
-
-        .status {
-            text-align: center;
-            margin-top: 10px;
-            color: #7f8c8d;
-        }
-
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            body {
+                padding: 16px;
             }
-            
+
+            .container {
+                padding: 16px;
+            }
+
             .data-table {
-                display: block;
-                overflow-x: auto;
+                font-size: 0.8rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
             }
         }
     </style>
@@ -102,13 +131,13 @@
 <body>
     <div class="container">
         <h1>Farm Sensor Data</h1>
-        
+
         <div class="button-group">
             <button class="refresh-btn" onclick="refreshData()">Refresh Data</button>
         </div>
-        
+
         <div class="status" id="lastUpdate"></div>
-        
+
         <div class="table-container">
             <table class="data-table">
                 <thead>
@@ -117,13 +146,9 @@
                         <th>Timestamp</th>
                         <th>Date</th>
                         <th>Time</th>
-                        <th>Buttons</th>
-                        <th>Levels</th>
-                        <th>Temperature Sensors</th>
-                        <th>Humidity Sensors</th>
-                        <th>Water Temperature</th>
-                        <th>Air Temperature</th>
-                        <th>Other Sensors</th>
+                        <th>Temperature (T1)</th>
+                        <th>Humidity (H1)</th>
+                        <th>Temperature (Watering)</th>
                     </tr>
                 </thead>
                 <tbody id="dataBody">
@@ -133,6 +158,43 @@
     </div>
 
     <script>
+        function formatTime(hhmmss) {
+            if (!hhmmss || isNaN(hhmmss)) {
+                return '--';
+            }
+            const timeStr = hhmmss.toString().padStart(6, '0');
+            const hours = timeStr.slice(0, 2);
+            const minutes = timeStr.slice(2, 4);
+            const seconds = timeStr.slice(4, 6);
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function formatDate(dateInput) {
+            if (!dateInput) {
+                return '--';
+            }
+            try {
+                // Преобразуем входные данные в строку и проверяем формат YYYYMMDD
+                const dateStr = dateInput.toString().padStart(8, '0');
+                if (dateStr.length !== 8 || isNaN(dateStr)) {
+                    return '--';
+                }
+                const year = dateStr.slice(0, 4);
+                const month = dateStr.slice(4, 6);
+                const day = dateStr.slice(6, 8);
+                // Проверка валидности компонентов даты
+                if (month < 1 || month > 12 || day < 1 || day > 31) {
+                    return '--';
+                }
+                // Формируем строку в формате dd:mm:yy
+                const shortYear = year.slice(-2);
+                return `${day}:${month}:${shortYear}`;
+            } catch (e) {
+                console.error(`Error formatting date: ${dateInput}`, e);
+                return '--';
+            }
+        }
+
         function updateLastRefresh() {
             const now = new Date();
             document.getElementById('lastUpdate').textContent = 
@@ -161,52 +223,21 @@
 
         function updateTable(data) {
             const tbody = document.getElementById('dataBody');
-            tbody.innerHTML = data.map(record => `
-                <tr>
-                    <td>${record.id}</td>
-                    <td class="timestamp-col">${record.timestamp}</td>
-                    <td>${record.current_date}</td>
-                    <td>${record.current_time}</td>
-                    <td>
-                        Start: ${record.start_button}<br>
-                        Stop: ${record.stop_button}<br>
-                        Mode: ${record.mode_button}
-                    </td>
-                    <td>
-                        Osmo Max: ${record.max_osmo_level}<br>
-                        Osmo Min: ${record.min_osmo_level}<br>
-                        Water Max: ${record.max_water_level}<br>
-                        Water Min: ${record.min_water_level}
-                    </td>
-                    <td>
-                        T1: ${record.temperature_1}°C<br>
-                        T2: ${record.temperature_2}°C<br>
-                        T3: ${record.temperature_3}°C<br>
-                        T4: ${record.temperature_4}°C<br>
-                        T5: ${record.temperature_5}°C
-                    </td>
-                    <td>
-                        H1: ${record.humidity_1}%<br>
-                        H2: ${record.humidity_2}%<br>
-                        H3: ${record.humidity_3}%<br>
-                        H4: ${record.humidity_4}%<br>
-                        H5: ${record.humidity_5}%
-                    </td>
-                    <td>
-                        Osmo: ${record.water_temperature_osmo}°C<br>
-                        Watering: ${record.water_temperature_watering}°C
-                    </td>
-                    <td>
-                        Outdoor: ${record.air_temperature_outdoor}°C<br>
-                        Inlet: ${record.air_temperature_inlet}°C
-                    </td>
-                    <td>
-                        pH: ${record.ph_osmo}<br>
-                        TDS: ${record.tds_osmo}<br>
-                        Power: ${record.power_monitor}
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = data.map(record => {
+                // Логирование для диагностики
+                console.log('Record ID:', record.id, 'Water Temp:', record.water_temperature_watering);
+                return `
+                    <tr>
+                        <td>${typeof record.id === 'number' ? record.id : '--'}</td>
+                        <td class="timestamp-col">${record.timestamp ?? '--'}</td>
+                        <td>${formatDate(record.current_date)}</td>
+                        <td>${formatTime(record.current_time)}</td>
+                        <td>${record.temperature_1 != null ? record.temperature_1.toFixed(2) + '°C' : '--'}</td>
+                        <td>${record.humidity_1 != null ? record.humidity_1.toFixed(2) + '%' : '--'}</td>
+                        <td>${record.water_temperature_watering != null ? record.water_temperature_watering.toFixed(2) + '°C' : '--'}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         updateLastRefresh();
@@ -215,4 +246,4 @@
         window.onload = loadData;
     </script>
 </body>
-</html> 
+</html>

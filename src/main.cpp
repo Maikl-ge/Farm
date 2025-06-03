@@ -111,14 +111,13 @@ void sendDataTask(void *parameter) {
                         Serial.println("Отправка сообщения из очереди");
                         dequeue(); // Отправка данных из очереди на сервер
                     }
-
                     delay(1);  // Небольшая задержка чтобы не нагружать процессор
                 }
             }                     
         //Serial.println("Время передачи: " + String(timeSlot) + " ms");  
         timeSlot = (millis() - timeStartSlot);      
         //Serial.println("Время слота: " + String(timeSlot) + " ms");   
-        vTaskDelay((30000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
+        vTaskDelay((60000 - timeSlot) / portTICK_PERIOD_MS);  // Задержка 60000 мс          
     }
 }
 

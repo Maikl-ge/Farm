@@ -100,8 +100,19 @@ class FarmAPIHandler:
             )
         
         frqs_data = await self.websocket_handler.get_frqs_data()
-        print(f"Parameters: {frqs_data}")
         if frqs_data is None:
             return web.json_response({"error": "No FRQS data available"}, status=404)
         
         return web.json_response(frqs_data)
+
+    async def get_websocket_state(self, request):
+        """API: Получение состояния WebSocket"""
+        if not self.websocket_handler:
+            return web.json_response(
+                {"error": "WebSocket handler not initialized"},
+                status=500
+            )
+        
+        return web.json_response({
+            "state": self.websocket_handler.websocket_state
+        })
