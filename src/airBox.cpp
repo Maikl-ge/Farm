@@ -31,7 +31,7 @@ unsigned long lastFanActualOnTime = 0;
 
 // Коэффициенты пропорционального управления
 const float K_TEMP = 2000.0; // Коэффициент для нагревателя (PWM на °C ошибки)
-const float K_FAN_TEMP = 250.0; // Коэффициент для вентилятора по температуре (PWM на °C)
+const float K_FAN_TEMP = 500.0; // Коэффициент для вентилятора по температуре (PWM на °C)
 const float K_FAN_HUM = 100.0;  // Коэффициент для вентилятора по влажности (PWM на %)
 
 // Статические переменные для хранения предыдущих значений
@@ -188,6 +188,7 @@ void updateClimateControl() {
         ledcWrite(HITER_AIR_CHANNEL, tempOutput);
 
         if(!fanForced) {
+//fanOutput = 0;   // Удалить при добалении охлаждения
         ledcWrite(FAN_INLET_CHANNEL, fanOutput);  
         }
     }
